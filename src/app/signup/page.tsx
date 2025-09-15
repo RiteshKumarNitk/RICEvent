@@ -12,8 +12,50 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useToast } from "@/hooks/use-toast"
+
+const signupSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters."),
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+});
 
 export default function SignupPage() {
+  const { signup, signInWithGoogle } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof signupSchema>>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { fullName: "", email: "", password: "" },
+  });
+
+  const handleSignup = async (values: z.infer<typeof signupSchema>) => {
+    try {
+      await signup(values.email, values.password);
+      toast({ title: "Success", description: "Account created successfully!" });
+      router.push("/account");
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Signup Failed", description: error.message });
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      toast({ title: "Success", description: "Signed in with Google successfully!" });
+      router.push("/account");
+    } catch (error: any) {
+       toast({ variant: "destructive", title: "Google Sign-In Failed", description: error.message });
+    }
+  };
+
   return (
     <div className="container flex min-h-[calc(100vh-10rem)] items-center justify-center py-12">
       <Card className="w-full max-w-sm">
@@ -23,21 +65,22 @@ export default function SignupPage() {
             Enter your details below to create your account
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" placeholder="Jaipur Events" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" />
-          </div>
-          <Button className="w-full">Create account</Button>
-          <div className="relative">
+        <CardContent>
+           <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSignup)} className="grid gap-4">
+              <FormField control={form.control} name="fullName" render={({ field }) => (
+                  <FormItem className="grid gap-2"><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Jaipur Events" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="email" render={({ field }) => (
+                  <FormItem className="grid gap-2"><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="m@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="password" render={({ field }) => (
+                  <FormItem className="grid gap-2"><FormLabel>Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <Button type="submit" className="w-full">Create account</Button>
+            </form>
+          </Form>
+          <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -47,7 +90,7 @@ export default function SignupPage() {
               </span>
             </div>
           </div>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
             Google
           </Button>
         </CardContent>

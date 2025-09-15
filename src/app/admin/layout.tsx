@@ -3,7 +3,9 @@
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
 import { Home, Calendar, Users, Settings } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 export default function AdminLayout({
   children,
@@ -11,9 +13,22 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login?redirect=/admin");
+    }
+  }, [user, loading, router]);
+
 
   const isActive = (path: string) => {
     return pathname === path;
+  }
+
+  if (loading || !user) {
+    return <div className="container text-center py-12">Loading admin dashboard...</div>;
   }
 
   return (

@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, Search, User } from "lucide-react";
-import { Input } from "../ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { useAuth } from "@/hooks/use-auth";
 
 export function SiteHeader() {
+  const { user } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
@@ -36,7 +38,7 @@ export function SiteHeader() {
             </Button>
            </div>
            <ThemeToggle />
-           <Link href="/account">
+           <Link href={user ? "/account" : "/login"}>
               <Button variant="ghost" size="icon" aria-label="My Account">
                 <User className="h-5 w-5"/>
               </Button>

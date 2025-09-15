@@ -1,13 +1,26 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AccountPage() {
-  // Mock user data
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-  };
+  const { user, loading, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <div className="container text-center py-12">Loading your account details...</div>;
+  }
 
   // Mock registered events
   const registeredEvents = [
@@ -26,12 +39,18 @@ export default function AccountPage() {
               <CardDescription>Your personal information.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="font-semibold">{user.name}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={user.photoURL || undefined} />
+                  <AvatarFallback>{user.displayName ? user.displayName[0] : user.email ? user.email[0].toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold">{user.displayName || 'User'}</p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
               </div>
               <Button variant="outline" className="w-full">Edit Profile</Button>
-              <Button variant="destructive" className="w-full">Log Out</Button>
+              <Button variant="destructive" className="w-full" onClick={logout}>Log Out</Button>
             </CardContent>
           </Card>
         </div>
