@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { TicketIcon } from "../icons/ticket-icon";
 import { ChevronDown, Menu, Search } from "lucide-react";
 import { Input } from "../ui/input";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
   return (
@@ -26,6 +27,7 @@ export function SiteHeader() {
 
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="hidden md:flex items-center space-x-2">
+             <ThemeToggle />
              <Button variant="ghost" className="text-sm">
                 Mumbai <ChevronDown className="h-4 w-4 ml-1" />
              </Button>
