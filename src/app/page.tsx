@@ -4,37 +4,29 @@ import { EventList } from "@/components/events/event-list";
 import { events } from "@/lib/data";
 import { Suspense } from "react";
 import { EventRecommendations } from "@/components/events/event-recommendations";
+import { FeaturedCarousel } from "@/components/events/featured-carousel";
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
+  const featuredEvents = events.slice(0, 5);
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <section className="relative mb-16 h-[50vh] min-h-[400px] w-full overflow-hidden rounded-2xl bg-primary/20">
-        <Image
-          src="https://picsum.photos/seed/hero/1200/600"
-          alt="Concert crowd"
-          fill
-          className="object-cover"
-          priority
-          data-ai-hint="concert crowd"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 p-8 md:p-12 text-white">
-          <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4 drop-shadow-lg">
-            Unforgettable Experiences Await
-          </h1>
-          <p className="text-lg md:text-xl max-w-2xl mb-6 drop-shadow-md">
-            Discover and book tickets for the best live events, from concerts and sports to theater and art shows.
-          </p>
-          <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6 px-8 font-bold">
-            Explore Events
-          </Button>
-        </div>
+      <section className="mb-12">
+        <FeaturedCarousel events={featuredEvents} />
       </section>
       
       <Suspense fallback={<div className="text-center">Loading recommendations...</div>}>
         <EventRecommendations />
       </Suspense>
 
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Recommended Movies</h2>
+        <Button variant="link" asChild className="text-primary">
+          <Link href="#events">See All <ChevronRight className="w-4 h-4" /></Link>
+        </Button>
+      </div>
       <EventList events={events} />
     </div>
   );
