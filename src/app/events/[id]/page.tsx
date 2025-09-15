@@ -2,12 +2,13 @@ import { events } from "@/lib/data";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { SeatingChart } from "@/components/events/seating-chart";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,10 +21,10 @@ export default function EventPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+    <div className="container mx-auto max-w-6xl px-4 py-8 md:py-16">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12">
         <div className="md:col-span-3">
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl mb-4 shadow-lg">
+          <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6 shadow-lg">
             <Image
               src={event.image}
               alt={event.name}
@@ -33,27 +34,26 @@ export default function EventPage({ params }: { params: { id: string } }) {
               data-ai-hint={`${event.category.toLowerCase()} event`}
             />
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline text-3xl">{event.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap items-center gap-4 mb-4 text-muted-foreground">
-                <Badge variant="secondary" className="text-base">
+           <CardHeader className="px-0">
+              <div className="flex items-center gap-4 mb-2">
+                 <Badge variant="secondary" className="text-base">
                   {event.category}
                 </Badge>
-                <div className="flex items-center">
+                <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4 mr-2" />
                   <span>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</span>
                 </div>
-                <div className="flex items-center">
+              </div>
+              <CardTitle className="text-4xl font-bold">{event.name}</CardTitle>
+               <div className="flex items-center pt-2 text-muted-foreground">
                   <MapPin className="w-4 h-4 mr-2" />
                   <span>{event.venue}, {event.location}</span>
                 </div>
+            </CardHeader>
+           
+              <div className="prose prose-lg max-w-none mt-6">
+                <p>{event.description}</p>
               </div>
-              <p className="text-lg leading-relaxed">{event.description}</p>
-            </CardContent>
-          </Card>
         </div>
         <div className="md:col-span-2">
             <SeatingChart event={event} />

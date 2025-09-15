@@ -1,4 +1,4 @@
-export type EventCategory = "Music" | "Sports" | "Art" | "Theater";
+export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
   type: 'VIP' | 'Standard' | 'Balcony';
