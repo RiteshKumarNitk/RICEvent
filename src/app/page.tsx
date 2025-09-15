@@ -1,11 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { EventList } from "@/components/events/event-list";
 import { events } from "@/lib/data";
 import Link from "next/link";
 import Image from "next/image";
+import { EventList } from "@/components/events/event-list";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { EventCard } from "@/components/events/event-card";
 
 export default function Home() {
   const featuredEvents = events.slice(0, 3);
+  const upcomingEvents = events.slice(0, 5);
 
   return (
     <>
@@ -30,8 +39,26 @@ export default function Home() {
       
       <div className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-8">Upcoming Events</h2>
-        <EventList events={featuredEvents} />
-        <div className="text-center mt-8">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {upcomingEvents.map((event, index) => (
+              <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3">
+                <div className="p-1">
+                  <EventCard event={event} index={index} />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex" />
+        </Carousel>
+        <div className="text-center mt-12">
           <Button asChild variant="outline">
             <Link href="/events">View All Events</Link>
           </Button>
