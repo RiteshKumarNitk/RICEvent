@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { events } from "@/lib/data";
 import Link from "next/link";
 import Image from "next/image";
-import { EventList } from "@/components/events/event-list";
 import {
   Carousel,
   CarouselContent,
@@ -13,7 +12,6 @@ import {
 import { EventCard } from "@/components/events/event-card";
 
 export default function Home() {
-  const featuredEvents = events.slice(0, 3);
   const upcomingEvents = events.slice(0, 5);
 
   return (
@@ -37,32 +35,81 @@ export default function Home() {
         </div>
       </section>
       
-      <div className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Upcoming Events</h2>
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent>
-            {upcomingEvents.map((event, index) => (
-              <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3">
-                <div className="p-1">
-                  <EventCard event={event} index={index} />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
-        </Carousel>
-        <div className="text-center mt-12">
-          <Button asChild variant="outline">
-            <Link href="/events">View All Events</Link>
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 py-16 space-y-16">
+        
+        <section>
+            <Image
+                src="https://storage.googleapis.com/aifirebase-static-content/studio-public/blockbuster-tuesday.png"
+                alt="Blockbuster Tuesdays"
+                width={1200}
+                height={300}
+                className="w-full h-auto rounded-lg"
+            />
+        </section>
+
+        <section>
+          <h2 className="text-3xl font-bold text-center mb-8">Upcoming Events</h2>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {upcomingEvents.map((event, index) => (
+                <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="p-1">
+                    <EventCard event={event} index={index} />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </Carousel>
+          <div className="text-center mt-12">
+            <Button asChild variant="outline">
+              <Link href="/events">View All Events</Link>
+            </Button>
+          </div>
+        </section>
+
+        <section>
+            <h2 className="text-3xl font-bold text-center mb-8">Follow us on Instagram</h2>
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-muted rounded-lg flex items-center justify-center">
+                        <Image
+                            src={`https://picsum.photos/seed/insta${i}/400`}
+                            alt={`Instagram Post ${i+1}`}
+                            width={400}
+                            height={400}
+                            className="object-cover w-full h-full rounded-lg"
+                            data-ai-hint="lifestyle event"
+                        />
+                    </div>
+                ))}
+            </div>
+        </section>
+
+        <section>
+            <h2 className="text-3xl font-bold text-center mb-8">Latest on YouTube</h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {[...Array(2)].map((_, i) => (
+                    <div key={i} className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                         <Image
+                            src={`https://picsum.photos/seed/youtube${i}/800/450`}
+                            alt={`YouTube Video ${i+1}`}
+                            width={800}
+                            height={450}
+                            className="object-cover w-full h-full rounded-lg"
+                            data-ai-hint="event recording"
+                        />
+                    </div>
+                ))}
+            </div>
+        </section>
       </div>
     </>
   );
