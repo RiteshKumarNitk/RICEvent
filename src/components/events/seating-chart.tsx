@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Event, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Armchair, Ticket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CheckoutDialog } from "../checkout/checkout-dialog";
 
 export function SeatingChart({ event }: { event: Event }) {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
-  const router = useRouter();
   const { toast } = useToast();
+  const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   
   const ticketPrice = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
   const isFreeEvent = ticketPrice === 0;
@@ -27,7 +27,7 @@ export function SeatingChart({ event }: { event: Event }) {
   };
 
   const handleCheckout = () => {
-    if (selectedSeats.length === 0) {
+    if (selectedSeats.length === 0 && event.seatingChart) {
       toast({
         variant: "destructive",
         title: "No seats selected",
@@ -35,13 +35,13 @@ export function SeatingChart({ event }: { event: Event }) {
       });
       return;
     }
-    const seatIds = selectedSeats.map(s => s.id).join(',');
-    router.push(`/checkout?eventId=${event.id}&seats=${seatIds}`);
+    setCheckoutOpen(true);
   };
 
   if (!event.seatingChart) {
     const buttonText = isFreeEvent ? "Register Now" : "Buy Ticket";
     return (
+       <>
         <Card>
             <CardHeader>
                 <CardTitle className="text-2xl">{isFreeEvent ? "Register" : "Get Your Tickets"}</CardTitle>
@@ -56,21 +56,29 @@ export function SeatingChart({ event }: { event: Event }) {
                 )}
             </CardContent>
             <CardFooter>
-                <Button className="w-full" size="lg" onClick={() => router.push(`/checkout?eventId=${event.id}&seats=GA1`)}>
+                <Button className="w-full" size="lg" onClick={handleCheckout}>
                     <Ticket className="w-5 h-5 mr-2" />
                     {buttonText}
                 </Button>
             </CardFooter>
         </Card>
+         <CheckoutDialog 
+            isOpen={isCheckoutOpen}
+            onOpenChange={setCheckoutOpen}
+            event={event}
+            selectedSeats={[{id: 'GA1', isAvailable: true}]}
+        />
+       </>
     )
   }
 
-  const { rows, seatsPerRow, seats } = event.seatingChart;
+  const { seatsPerRow, seats } = event.seatingChart;
   const totalPrice = selectedSeats.length * ticketPrice;
 
   const checkoutButtonText = isFreeEvent ? "Register" : "Proceed to Checkout";
 
   return (
+    <>
     <Card className="sticky top-24">
       <CardHeader>
         <CardTitle className="text-2xl">Select Your Seats</CardTitle>
@@ -126,5 +134,12 @@ export function SeatingChart({ event }: { event: Event }) {
         </Button>
       </CardFooter>
     </Card>
+    <CheckoutDialog 
+        isOpen={isCheckoutOpen}
+        onOpenChange={setCheckoutOpen}
+        event={event}
+        selectedSeats={selectedSeats}
+    />
+    </>
   );
 }
