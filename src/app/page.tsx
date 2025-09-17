@@ -49,31 +49,6 @@ export default function Home() {
         </section>
 
         <section>
-             <Card>
-                <CardHeader>
-                    <CardTitle className="text-3xl font-bold text-center">What We Offer</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <div className="flex flex-col items-center p-4">
-                        <Clapperboard className="h-12 w-12 text-primary mb-4" />
-                        <h3 className="text-2xl font-semibold mb-2">Culture & Arts</h3>
-                        <p className="text-muted-foreground">Immerse yourself in a diverse array of cultural performances, art exhibitions, and film screenings that showcase local and global talent.</p>
-                    </div>
-                    <div className="flex flex-col items-center p-4">
-                        <Lightbulb className="h-12 w-12 text-primary mb-4" />
-                        <h3 className="text-2xl font-semibold mb-2">Knowledge & Ideas</h3>
-                        <p className="text-muted-foreground">Engage in thought-provoking seminars, talks, and conferences featuring leading experts from various fields.</p>
-                    </div>
-                    <div className="flex flex-col items-center p-4">
-                        <Users className="h-12 w-12 text-primary mb-4" />
-                        <h3 className="text-2xl font-semibold mb-2">Community & Networking</h3>
-                        <p className="text-muted-foreground">Connect with like-minded individuals and professionals in a dynamic environment built for collaboration.</p>
-                    </div>
-                </CardContent>
-             </Card>
-        </section>
-        
-        <section>
           <Card>
             <CardHeader>
                 <CardTitle className="text-3xl font-bold text-center">Special Offers</CardTitle>
@@ -154,80 +129,60 @@ export default function Home() {
           </Card>
         </section>
 
-         <section>
+        <section>
             <Card>
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold text-center">Explore Our Venues</CardTitle>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-3 gap-4">
-                     <div className="relative aspect-square rounded-lg overflow-hidden group">
-                        <Image src="https://picsum.photos/seed/venue1/400" fill objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
-                        <div className="absolute inset-0 bg-black/50 flex items-end p-4">
-                            <h3 className="text-white font-bold text-xl">Main Auditorium</h3>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                     <div className="group">
+                        <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
+                            <Image src="https://picsum.photos/seed/venue1/400/225" fill objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
                         </div>
+                        <h3 className="text-xl font-semibold mb-1">Main Auditorium</h3>
+                        <p className="text-muted-foreground">State-of-the-art acoustics and seating for large-scale performances and conferences.</p>
                     </div>
-                    <div className="relative aspect-square rounded-lg overflow-hidden group">
-                        <Image src="https://picsum.photos/seed/venue2/400" fill objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
-                        <div className="absolute inset-0 bg-black/50 flex items-end p-4">
-                            <h3 className="text-white font-bold text-xl">Conference Halls</h3>
+                    <div className="group">
+                        <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
+                            <Image src="https://picsum.photos/seed/venue2/400/225" fill objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
                         </div>
+                        <h3 className="text-xl font-semibold mb-1">Conference Halls</h3>
+                        <p className="text-muted-foreground">Flexible spaces equipped with the latest technology for meetings and seminars.</p>
                     </div>
-                    <div className="relative aspect-square rounded-lg overflow-hidden group">
-                        <Image src="https://picsum.photos/seed/venue3/400" fill objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
-                        <div className="absolute inset-0 bg-black/50 flex items-end p-4">
-                            <h3 className="text-white font-bold text-xl">Art Gallery</h3>
+                    <div className="group">
+                        <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
+                            <Image src="https://picsum.photos/seed/venue3/400/225" fill objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
                         </div>
+                        <h3 className="text-xl font-semibold mb-1">Art Gallery</h3>
+                        <p className="text-muted-foreground">A modern space to exhibit art from local and international artists.</p>
                     </div>
                 </CardContent>
             </Card>
         </section>
 
         <section>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-3xl font-bold text-center">Follow us on Instagram</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[...Array(4)].map((_, i) => (
-                        <div key={i} className="aspect-square bg-muted rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105">
-                            <Image
-                                src={`https://picsum.photos/seed/insta${i}/400`}
-                                alt={`Instagram Post ${i+1}`}
-                                width={400}
-                                height={400}
-                                className="object-cover w-full h-full"
-                                data-ai-hint="lifestyle event"
-                            />
-                        </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-        </section>
-
-        <section>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-3xl font-bold text-center">Latest on YouTube</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {[...Array(2)].map((_, i) => (
-                        <div key={i} className="aspect-video bg-muted rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105">
-                             <Image
-                                src={`https://picsum.photos/seed/youtube${i}/800/450`}
-                                alt={`YouTube Video ${i+1}`}
-                                width={800}
-                                height={450}
-                                className="object-cover w-full h-full"
-                                data-ai-hint="event recording"
-                            />
-                        </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold text-center">What We Offer</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div className="flex flex-col items-center p-4">
+                        <Clapperboard className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-2xl font-semibold mb-2">Culture & Arts</h3>
+                        <p className="text-muted-foreground">Immerse yourself in a diverse array of cultural performances, art exhibitions, and film screenings that showcase local and global talent.</p>
+                    </div>
+                    <div className="flex flex-col items-center p-4">
+                        <Lightbulb className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-2xl font-semibold mb-2">Knowledge & Ideas</h3>
+                        <p className="text-muted-foreground">Engage in thought-provoking seminars, talks, and conferences featuring leading experts from various fields.</p>
+                    </div>
+                    <div className="flex flex-col items-center p-4">
+                        <Users className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-2xl font-semibold mb-2">Community & Networking</h3>
+                        <p className="text-muted-foreground">Connect with like-minded individuals and professionals in a dynamic environment built for collaboration.</p>
+                    </div>
+                </CardContent>
+             </Card>
         </section>
       </div>
     </>
