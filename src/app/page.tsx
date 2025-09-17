@@ -74,13 +74,54 @@ export default function Home() {
         </section>
         
         <section>
-            <Image
-                src="https://storage.googleapis.com/aifirebase-static-content/studio-public/blockbuster-tuesday.png"
-                alt="Blockbuster Tuesdays"
-                width={1200}
-                height={300}
-                className="w-full h-auto rounded-lg shadow-lg"
-            />
+          <Card>
+            <CardHeader>
+                <CardTitle className="text-3xl font-bold text-center">Special Offers</CardTitle>
+            </CardHeader>
+            <CardContent>
+               <Carousel
+                  opts={{
+                    align: "start",
+                    loop: true,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    <CarouselItem>
+                       <Image
+                          src="https://storage.googleapis.com/aifirebase-static-content/studio-public/blockbuster-tuesday.png"
+                          alt="Blockbuster Tuesdays"
+                          width={1200}
+                          height={300}
+                          className="w-full h-auto rounded-lg shadow-lg object-cover"
+                      />
+                    </CarouselItem>
+                    <CarouselItem>
+                       <Image
+                          src="https://picsum.photos/seed/offer2/1200/300"
+                          alt="Special Discount"
+                          width={1200}
+                          height={300}
+                          className="w-full h-auto rounded-lg shadow-lg object-cover"
+                          data-ai-hint="promotional banner"
+                      />
+                    </CarouselItem>
+                     <CarouselItem>
+                       <Image
+                          src="https://picsum.photos/seed/offer3/1200/300"
+                          alt="Early Bird Offer"
+                          width={1200}
+                          height={300}
+                          className="w-full h-auto rounded-lg shadow-lg object-cover"
+                          data-ai-hint="ticket sale advertisement"
+                      />
+                    </CarouselItem>
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:flex" />
+                  <CarouselNext className="hidden sm:flex" />
+                </Carousel>
+            </CardContent>
+          </Card>
         </section>
 
         <section>
@@ -100,9 +141,9 @@ export default function Home() {
                   className="w-full"
                 >
                   <CarouselContent className="-ml-4">
-                    {upcomingEvents.map((event, index) => (
+                    {upcomingEvents.map((event) => (
                       <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
-                        <EventCard event={event} index={index} />
+                        <EventCard event={event} />
                       </CarouselItem>
                     ))}
                   </CarouselContent>
@@ -120,19 +161,19 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-3 gap-4">
                      <div className="relative aspect-square rounded-lg overflow-hidden group">
-                        <Image src="https://picsum.photos/seed/venue1/400" layout="fill" objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
+                        <Image src="https://picsum.photos/seed/venue1/400" fill objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
                         <div className="absolute inset-0 bg-black/50 flex items-end p-4">
                             <h3 className="text-white font-bold text-xl">Main Auditorium</h3>
                         </div>
                     </div>
                     <div className="relative aspect-square rounded-lg overflow-hidden group">
-                        <Image src="https://picsum.photos/seed/venue2/400" layout="fill" objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
+                        <Image src="https://picsum.photos/seed/venue2/400" fill objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
                         <div className="absolute inset-0 bg-black/50 flex items-end p-4">
                             <h3 className="text-white font-bold text-xl">Conference Halls</h3>
                         </div>
                     </div>
                     <div className="relative aspect-square rounded-lg overflow-hidden group">
-                        <Image src="https://picsum.photos/seed/venue3/400" layout="fill" objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
+                        <Image src="https://picsum.photos/seed/venue3/400" fill objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
                         <div className="absolute inset-0 bg-black/50 flex items-end p-4">
                             <h3 className="text-white font-bold text-xl">Art Gallery</h3>
                         </div>
