@@ -50,57 +50,6 @@ export default function Home() {
 
         <section>
           <Card>
-            <CardHeader>
-                <CardTitle className="text-3xl font-bold text-center">Special Offers</CardTitle>
-            </CardHeader>
-            <CardContent>
-               <Carousel
-                  opts={{
-                    align: "start",
-                    loop: true,
-                  }}
-                  className="w-full"
-                >
-                  <CarouselContent>
-                    <CarouselItem>
-                       <Image
-                          src="https://storage.googleapis.com/aifirebase-static-content/studio-public/blockbuster-tuesday.png"
-                          alt="Blockbuster Tuesdays"
-                          width={1200}
-                          height={300}
-                          className="w-full h-auto rounded-lg shadow-lg object-cover"
-                      />
-                    </CarouselItem>
-                    <CarouselItem>
-                       <Image
-                          src="https://picsum.photos/seed/offer2/1200/300"
-                          alt="Special Discount"
-                          width={1200}
-                          height={300}
-                          className="w-full h-auto rounded-lg shadow-lg object-cover"
-                          data-ai-hint="promotional banner"
-                      />
-                    </CarouselItem>
-                     <CarouselItem>
-                       <Image
-                          src="https://picsum.photos/seed/offer3/1200/300"
-                          alt="Early Bird Offer"
-                          width={1200}
-                          height={300}
-                          className="w-full h-auto rounded-lg shadow-lg object-cover"
-                          data-ai-hint="ticket sale advertisement"
-                      />
-                    </CarouselItem>
-                  </CarouselContent>
-                  <CarouselPrevious className="hidden sm:flex" />
-                  <CarouselNext className="hidden sm:flex" />
-                </Carousel>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section>
-          <Card>
             <CardHeader className="flex flex-row justify-between items-center">
               <CardTitle className="text-3xl font-bold">Upcoming Events</CardTitle>
                <Button asChild variant="outline">
