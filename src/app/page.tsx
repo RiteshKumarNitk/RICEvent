@@ -10,7 +10,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { EventCard } from "@/components/events/event-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, Building, Clapperboard, Lightbulb, Users } from "lucide-react";
 
 export default function Home() {
   const upcomingEvents = events.slice(0, 5);
@@ -36,7 +37,41 @@ export default function Home() {
         </div>
       </section>
       
-      <div className="container mx-auto px-4 py-16 space-y-16">
+      <div className="container mx-auto px-4 py-16 space-y-20">
+
+        <section>
+          <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold mb-4">A Hub of Culture, Knowledge, and Diplomacy</h2>
+              <p className="text-lg text-muted-foreground">
+                  The Rajasthan International Centre (RIC) is a world-class institution designed to be the epicenter of cultural exchange, intellectual dialogue, and social engagement in Rajasthan. We offer a vibrant platform for thinkers, artists, and leaders to connect and collaborate.
+              </p>
+          </div>
+        </section>
+
+        <section>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold text-center">What We Offer</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div className="flex flex-col items-center p-4">
+                        <Clapperboard className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-2xl font-semibold mb-2">Culture & Arts</h3>
+                        <p className="text-muted-foreground">Immerse yourself in a diverse array of cultural performances, art exhibitions, and film screenings that showcase local and global talent.</p>
+                    </div>
+                    <div className="flex flex-col items-center p-4">
+                        <Lightbulb className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-2xl font-semibold mb-2">Knowledge & Ideas</h3>
+                        <p className="text-muted-foreground">Engage in thought-provoking seminars, talks, and conferences featuring leading experts from various fields.</p>
+                    </div>
+                    <div className="flex flex-col items-center p-4">
+                        <Users className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-2xl font-semibold mb-2">Community & Networking</h3>
+                        <p className="text-muted-foreground">Connect with like-minded individuals and professionals in a dynamic environment built for collaboration.</p>
+                    </div>
+                </CardContent>
+             </Card>
+        </section>
         
         <section>
             <Image
@@ -49,9 +84,14 @@ export default function Home() {
         </section>
 
         <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Upcoming Events</h2>
-           <Card className="overflow-hidden">
-            <CardContent className="p-0">
+          <Card>
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle className="text-3xl font-bold">Upcoming Events</CardTitle>
+               <Button asChild variant="outline">
+                  <Link href="/events">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+            </CardHeader>
+            <CardContent>
                 <Carousel
                   opts={{
                     align: "start",
@@ -59,9 +99,9 @@ export default function Home() {
                   }}
                   className="w-full"
                 >
-                  <CarouselContent className="-ml-1">
+                  <CarouselContent className="-ml-4">
                     {upcomingEvents.map((event, index) => (
-                      <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3 p-1">
+                      <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
                         <EventCard event={event} index={index} />
                       </CarouselItem>
                     ))}
@@ -71,11 +111,34 @@ export default function Home() {
                 </Carousel>
             </CardContent>
           </Card>
-          <div className="text-center mt-12">
-            <Button asChild variant="outline">
-              <Link href="/events">View All Events</Link>
-            </Button>
-          </div>
+        </section>
+
+         <section>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold text-center">Explore Our Venues</CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-3 gap-4">
+                     <div className="relative aspect-square rounded-lg overflow-hidden group">
+                        <Image src="https://picsum.photos/seed/venue1/400" layout="fill" objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
+                        <div className="absolute inset-0 bg-black/50 flex items-end p-4">
+                            <h3 className="text-white font-bold text-xl">Main Auditorium</h3>
+                        </div>
+                    </div>
+                    <div className="relative aspect-square rounded-lg overflow-hidden group">
+                        <Image src="https://picsum.photos/seed/venue2/400" layout="fill" objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
+                        <div className="absolute inset-0 bg-black/50 flex items-end p-4">
+                            <h3 className="text-white font-bold text-xl">Conference Halls</h3>
+                        </div>
+                    </div>
+                    <div className="relative aspect-square rounded-lg overflow-hidden group">
+                        <Image src="https://picsum.photos/seed/venue3/400" layout="fill" objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
+                        <div className="absolute inset-0 bg-black/50 flex items-end p-4">
+                            <h3 className="text-white font-bold text-xl">Art Gallery</h3>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </section>
 
         <section>
