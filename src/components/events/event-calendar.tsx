@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { EventList } from "./event-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
+import { DayContentProps } from "react-day-picker";
 
 interface EventCalendarProps {
     events: Event[];
@@ -31,7 +32,7 @@ export function EventCalendar({ events }: EventCalendarProps) {
                             onSelect={handleDateSelect}
                             className="w-full"
                             components={{
-                                DayContent: ({ date, ...props }) => {
+                                DayContent: ({ date, displayMonth, ...props }: DayContentProps) => {
                                 const hasEvent = eventDates.includes(date.toDateString());
                                 return (
                                     <div className="relative h-full w-full">
