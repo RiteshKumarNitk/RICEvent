@@ -20,8 +20,8 @@ interface EventCardProps {
 
 export function EventCard({ event, index }: EventCardProps) {
   return (
-    <Link href={`/events/${event.id}`} className="group block">
-      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+    <Link href={`/events/${event.id}`} className="group block h-full">
+      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 bg-card">
         <CardHeader className="p-0 relative">
           <div className="aspect-w-16 aspect-h-9 overflow-hidden">
             <Image
@@ -42,13 +42,13 @@ export function EventCard({ event, index }: EventCardProps) {
             <CardTitle className="text-xl font-bold mb-2 leading-tight group-hover:text-primary transition-colors">
               {event.name}
             </CardTitle>
-            <div className="flex items-center text-sm text-muted-foreground">
+            <div className="flex items-center text-sm text-muted-foreground flex-1">
               <MapPin className="w-4 h-4 mr-2" />
               <span>{event.venue}</span>
             </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
-          <Badge variant="secondary">{event.category}</Badge>
+        <CardFooter className="p-4 pt-2">
+          <Badge variant="secondary" className="font-semibold">{event.category}</Badge>
         </CardFooter>
       </Card>
     </Link>

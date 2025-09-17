@@ -20,7 +20,7 @@ export function SiteHeader() {
             <path d="M107 167.75C140.692 167.75 167.75 140.692 167.75 107C167.75 73.3076 140.692 46.25 107 46.25C73.3076 46.25 46.25 73.3076 46.25 107C46.25 140.692 73.3076 167.75 107 167.75Z" fill="currentColor"/>
           </svg>
           <span className="font-bold text-xl hidden sm:inline-block">
-            RIC
+            RIC Jaipur
           </span>
         </Link>
         
