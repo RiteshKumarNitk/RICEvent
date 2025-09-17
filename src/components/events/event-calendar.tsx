@@ -32,8 +32,8 @@ export function EventCalendar({ events }: EventCalendarProps) {
                             onSelect={handleDateSelect}
                             className="w-full"
                             components={{
-                                DayContent: ({ date, displayMonth, ...props }: DayContentProps) => {
-                                const hasEvent = eventDates.includes(date.toDateString());
+                                DayContent: ({ date: dayDate, activeModifiers, displayMonth, ...props }: DayContentProps) => {
+                                const hasEvent = eventDates.includes(dayDate.toDateString());
                                 return (
                                     <div className="relative h-full w-full">
                                     <span {...props} />
