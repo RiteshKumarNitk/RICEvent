@@ -10,8 +10,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { EventCard } from "@/components/events/event-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Building, Clapperboard, Lightbulb, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, Clapperboard, Lightbulb, Users } from "lucide-react";
 
 export default function Home() {
   const upcomingEvents = events.slice(0, 5);
@@ -115,7 +115,7 @@ export default function Home() {
                   }}
                   className="w-full"
                 >
-                  <CarouselContent className="-ml-4">
+                  <CarouselContent>
                     {upcomingEvents.map((event) => (
                       <CarouselItem key={event.id} className="md:basis-1/2 lg:basis-1/3 pl-4">
                         <EventCard event={event} />
@@ -135,27 +135,39 @@ export default function Home() {
                     <CardTitle className="text-3xl font-bold text-center">Explore Our Venues</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                     <div className="group">
-                        <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
-                            <Image src="https://picsum.photos/seed/venue1/400/225" fill objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
-                        </div>
-                        <h3 className="text-xl font-semibold mb-1">Main Auditorium</h3>
-                        <p className="text-muted-foreground">State-of-the-art acoustics and seating for large-scale performances and conferences.</p>
-                    </div>
-                    <div className="group">
-                        <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
-                            <Image src="https://picsum.photos/seed/venue2/400/225" fill objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
-                        </div>
-                        <h3 className="text-xl font-semibold mb-1">Conference Halls</h3>
-                        <p className="text-muted-foreground">Flexible spaces equipped with the latest technology for meetings and seminars.</p>
-                    </div>
-                    <div className="group">
-                        <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
-                            <Image src="https://picsum.photos/seed/venue3/400/225" fill objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
-                        </div>
-                        <h3 className="text-xl font-semibold mb-1">Art Gallery</h3>
-                        <p className="text-muted-foreground">A modern space to exhibit art from local and international artists.</p>
-                    </div>
+                     <Link href="/about" className="group block">
+                        <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+                            <div className="relative aspect-video rounded-t-lg overflow-hidden">
+                                <Image src="https://picsum.photos/seed/venue1/400/225" fill objectFit="cover" alt="Auditorium" data-ai-hint="modern auditorium interior"/>
+                            </div>
+                            <CardContent className="p-4">
+                                <h3 className="text-xl font-semibold mb-1">Main Auditorium</h3>
+                                <p className="text-muted-foreground text-sm">State-of-the-art acoustics and seating for large-scale performances and conferences.</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/about" className="group block">
+                         <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+                            <div className="relative aspect-video rounded-t-lg overflow-hidden">
+                                <Image src="https://picsum.photos/seed/venue2/400/225" fill objectFit="cover" alt="Conference Hall" data-ai-hint="conference room empty"/>
+                            </div>
+                            <CardContent className="p-4">
+                                <h3 className="text-xl font-semibold mb-1">Conference Halls</h3>
+                                <p className="text-muted-foreground text-sm">Flexible spaces equipped with the latest technology for meetings and seminars.</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/about" className="group block">
+                         <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+                            <div className="relative aspect-video rounded-t-lg overflow-hidden">
+                                <Image src="https://picsum.photos/seed/venue3/400/225" fill objectFit="cover" alt="Art Gallery" data-ai-hint="art gallery empty"/>
+                            </div>
+                            <CardContent className="p-4">
+                                <h3 className="text-xl font-semibold mb-1">Art Gallery</h3>
+                                <p className="text-muted-foreground text-sm">A modern space to exhibit art from local and international artists.</p>
+                             </CardContent>
+                        </Card>
+                    </Link>
                 </CardContent>
             </Card>
         </section>
