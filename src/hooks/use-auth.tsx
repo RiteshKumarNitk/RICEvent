@@ -71,11 +71,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (email: string, pass: string, fullName: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const user = userCredential.user;
-    if(user) {
-        // Update Firebase Auth profile
-        await updateProfile(user, { displayName: fullName });
-        // Create user document in Firestore
-        await createUserProfile(user, { displayName: fullName });
+    if (user) {
+      // First, update the user's profile in Firebase Auth
+      await updateProfile(user, { displayName: fullName });
+      
+      // Then, sign in the user to establish an authenticated session for Firestore rules
+      await signInWithEmailAndPassword(auth, email, pass);
+
+      // Now that the user is authenticated, create their profile in Firestore
+      // We need to get the user object again as it might have been updated
+      const currentUser = getAuth().currentUser;
+      if (currentUser) {
+        await createUserProfile(currentUser, { displayName: fullName });
+      }
     }
     return userCredential;
   };
