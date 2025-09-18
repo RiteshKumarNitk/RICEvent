@@ -1,35 +1,84 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Event } from '@/lib/types';
-import { events as initialEvents } from '@/lib/data';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface EventsContextType {
   events: Event[];
-  addEvent: (event: Event) => void;
-  updateEvent: (event: Event) => void;
-  deleteEvent: (eventId: string) => void;
+  loading: boolean;
+  addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
+  updateEvent: (event: Event) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
 }
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
 
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
-  const [events, setEvents] = useState<Event[]>(initialEvents);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const addEvent = (event: Event) => {
-    setEvents(prev => [...prev, event]);
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'events'), (snapshot) => {
+      const eventsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamp to string if necessary
+          date: (data.date as Timestamp).toDate().toISOString(),
+        } as Event;
+      });
+      setEvents(eventsData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const addEvent = async (event: Omit<Event, 'id'>) => {
+    try {
+      await addDoc(collection(db, 'events'), {
+          ...event,
+          date: new Date(event.date), // Store as Firestore Timestamp
+      });
+      toast({ title: 'Success', description: 'Event added successfully.' });
+    } catch (error) {
+      console.error("Error adding event: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not add event.' });
+    }
   };
 
-  const updateEvent = (updatedEvent: Event) => {
-    setEvents(prev => prev.map(event => event.id === updatedEvent.id ? updatedEvent : event));
+  const updateEvent = async (updatedEvent: Event) => {
+    try {
+      const eventRef = doc(db, 'events', updatedEvent.id);
+      await updateDoc(eventRef, {
+        ...updatedEvent,
+        date: new Date(updatedEvent.date), // Store as Firestore Timestamp
+      });
+      toast({ title: 'Success', description: 'Event updated successfully.' });
+    } catch (error) {
+      console.error("Error updating event: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not update event.' });
+    }
   };
 
-  const deleteEvent = (eventId: string) => {
-    setEvents(prev => prev.filter(event => event.id !== eventId));
+  const deleteEvent = async (eventId: string) => {
+    try {
+      await deleteDoc(doc(db, 'events', eventId));
+      toast({ title: 'Success', description: 'Event deleted successfully.' });
+    } catch (error) {
+      console.error("Error deleting event: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not delete event.' });
+    }
   };
 
   const value = {
     events,
+    loading,
     addEvent,
     updateEvent,
     deleteEvent

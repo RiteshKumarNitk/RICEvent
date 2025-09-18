@@ -11,11 +11,17 @@ import { useEvents } from "./events-provider";
 import { useRouter } from "next/navigation";
 
 export default function AdminEventsPage() {
-  const { events, deleteEvent } = useEvents();
+  const { events, deleteEvent, loading } = useEvents();
   const router = useRouter();
 
   const handleEdit = (id: string) => {
     router.push(`/admin/events/edit/${id}`);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this event?')) {
+      await deleteEvent(id);
+    }
   };
 
   return (
@@ -39,32 +45,42 @@ export default function AdminEventsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell className="font-medium">{event.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{event.category}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{event.venue}</TableCell>
-                  <TableCell className="text-right">
-                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEdit(event.id)}>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Bookings</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => deleteEvent(event.id)} className="text-destructive">Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">Loading events...</TableCell>
                 </TableRow>
-              ))}
+              ) : events.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">No events found. Create one!</TableCell>
+                </TableRow>
+              ) : (
+                events.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell className="font-medium">{event.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{event.category}</Badge>
+                    </TableCell>
+                    <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{event.venue}</TableCell>
+                    <TableCell className="text-right">
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleEdit(event.id)}>Edit</DropdownMenuItem>
+                          <DropdownMenuItem>View Bookings</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(event.id)} className="text-destructive">Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

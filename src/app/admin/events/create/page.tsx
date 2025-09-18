@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,7 +24,6 @@ const eventSchema = z.object({
 });
 
 export default function CreateEventPage() {
-    const { toast } = useToast();
     const router = useRouter();
     const { addEvent } = useEvents();
 
@@ -41,19 +39,14 @@ export default function CreateEventPage() {
         },
     });
 
-    function onSubmit(values: z.infer<typeof eventSchema>) {
+    async function onSubmit(values: z.infer<typeof eventSchema>) {
         const newEvent = {
             ...values,
-            id: Date.now().toString(),
             location: 'Jaipur, Rajasthan',
             showtimes: [new Date(values.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })],
             ticketTypes: [{ type: 'Standard' as const, price: 0 }],
         };
-        addEvent(newEvent);
-        toast({
-            title: "Event Created!",
-            description: "The new event has been added successfully.",
-        });
+        await addEvent(newEvent);
         router.push("/admin/events");
     }
 

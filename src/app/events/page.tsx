@@ -1,12 +1,14 @@
 "use client";
 
-import { events as staticEvents } from "@/lib/data";
 import { EventList } from "@/components/events/event-list";
 import { useEvents } from "../admin/events/events-provider";
 
 export default function EventsPage() {
-  const { events } = useEvents();
-  const allEvents = [...staticEvents, ...events.filter(e => !staticEvents.find(se => se.id === e.id))];
+  const { events, loading } = useEvents();
+
+  if (loading) {
+    return <div className="container text-center py-12">Loading events...</div>;
+  }
 
   return (
     <div className="bg-background">
@@ -15,7 +17,7 @@ export default function EventsPage() {
             <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl">Explore Our Events</h1>
             <p className="mt-4 text-xl text-muted-foreground">Discover a world of culture, knowledge, and entertainment.</p>
         </div>
-        <EventList events={allEvents} />
+        <EventList events={events} />
     </div>
     </div>
   );

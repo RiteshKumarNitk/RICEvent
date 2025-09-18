@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { events as staticEvents } from "@/lib/data";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -17,9 +16,11 @@ import { ArrowRight, Clapperboard, Lightbulb, Users } from "lucide-react";
 import { useEvents } from "./admin/events/events-provider";
 
 export default function Home() {
-  const { events } = useEvents();
-  const allEvents = [...staticEvents, ...events.filter(e => !staticEvents.find(se => se.id === e.id))];
-  const upcomingEvents = allEvents.slice(0, 5);
+  const { events, loading } = useEvents();
+  const upcomingEvents = events
+    .filter(e => new Date(e.date) > new Date())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 5);
 
   return (
     <>
@@ -62,10 +63,13 @@ export default function Home() {
                 </Button>
             </CardHeader>
             <CardContent>
+              {loading ? (
+                <p>Loading upcoming events...</p>
+              ) : upcomingEvents.length > 0 ? (
                 <Carousel
                   opts={{
                     align: "start",
-                    loop: true,
+                    loop: upcomingEvents.length > 2,
                   }}
                   className="w-full"
                 >
@@ -79,6 +83,9 @@ export default function Home() {
                   <CarouselPrevious className="hidden md:flex" />
                   <CarouselNext className="hidden md:flex" />
                 </Carousel>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">No upcoming events scheduled. Please check back later.</p>
+              )}
             </CardContent>
           </Card>
         </section>

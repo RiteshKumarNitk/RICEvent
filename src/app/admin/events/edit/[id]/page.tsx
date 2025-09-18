@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,7 +26,6 @@ const eventSchema = z.object({
 });
 
 export default function EditEventPage() {
-    const { toast } = useToast();
     const router = useRouter();
     const params = useParams();
     const { events, updateEvent } = useEvents();
@@ -48,18 +46,14 @@ export default function EditEventPage() {
         }
     }, [event, form]);
 
-    function onSubmit(values: z.infer<typeof eventSchema>) {
+    async function onSubmit(values: z.infer<typeof eventSchema>) {
         if (!event) return;
 
         const updatedEvent = {
             ...event,
             ...values,
         };
-        updateEvent(updatedEvent);
-        toast({
-            title: "Event Updated!",
-            description: "The event has been updated successfully.",
-        });
+        await updateEvent(updatedEvent);
         router.push("/admin/events");
     }
 
@@ -67,6 +61,7 @@ export default function EditEventPage() {
         return (
             <div>
                 <h1 className="text-2xl font-bold">Event not found</h1>
+                <p>Loading or event does not exist...</p>
                 <Button asChild variant="link">
                     <Link href="/admin/events">Go back</Link>
                 </Button>
@@ -99,7 +94,7 @@ export default function EditEventPage() {
                             )} />
                              <FormField control={form.control} name="category" render={({ field }) => (
                                 <FormItem><FormLabel>Category</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a category" />
