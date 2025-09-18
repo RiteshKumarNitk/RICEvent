@@ -23,7 +23,7 @@ export function SiteFooter() {
               <li><Link href="/events" className="text-sm hover:underline">Events</Link></li>
               <li><Link href="/about" className="text-sm hover:underline">About Us</Link></li>
               <li><Link href="/contact" className="text-sm hover:underline">Contact</Link></li>
-              <li><Link href="/faq" className="text-sm hover:underline">FAQ</Link></li>
+              <li><Link href="/admin" className="text-sm hover:underline">Admin</Link></li>
             </ul>
           </div>
           <div>
