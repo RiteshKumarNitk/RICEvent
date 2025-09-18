@@ -1,12 +1,15 @@
 "use client"
 
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
-import { Home, Calendar, Users, Settings } from "lucide-react";
+import { Home, Calendar, Users, Settings, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
-import { EventsProvider } from "./events/events-provider";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+const ADMIN_EMAIL = "admin@example.com";
 
 export default function AdminLayout({
   children,
@@ -31,6 +34,28 @@ export default function AdminLayout({
 
   if (loading || !user) {
     return <div className="container text-center py-12">Loading admin dashboard...</div>;
+  }
+  
+  // Check if the user is the designated admin
+  if (user.email !== ADMIN_EMAIL) {
+    return (
+        <div className="container flex items-center justify-center min-h-[calc(100vh-10rem)]">
+            <Card className="max-w-md text-center">
+                <CardHeader>
+                    <div className="mx-auto bg-destructive/10 rounded-full p-3 w-fit">
+                        <ShieldAlert className="h-10 w-10 text-destructive" />
+                    </div>
+                    <CardTitle className="mt-4">Not Authorized</CardTitle>
+                    <CardDescription>You do not have permission to access this page. Please log in with an administrator account.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button asChild>
+                        <Link href="/login?redirect=/admin">Login as Admin</Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    )
   }
 
   return (
