@@ -5,16 +5,16 @@ import { Event, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Armchair, Ticket, Plus, Minus, User } from "lucide-react";
+import { Armchair, Ticket, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
+import { useRouter } from "next/navigation";
 
-export function SeatingChart({ event }: { event: Event }) {
+export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount: number }) {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
-  const [ticketCount, setTicketCount] = useState(0);
-  const [step, setStep] = useState<'selectCount' | 'selectSeats'>('selectCount');
   const { toast } = useToast();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
+  const router = useRouter();
   
   const ticketPrice = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
   const isFreeEvent = ticketPrice === 0;
@@ -40,18 +40,6 @@ export function SeatingChart({ event }: { event: Event }) {
     });
   };
 
-  const handleProceedToSeats = () => {
-    if (ticketCount === 0) {
-      toast({
-        variant: 'destructive',
-        title: "No tickets selected",
-        description: "Please select the number of tickets.",
-      });
-      return;
-    }
-    setStep('selectSeats');
-  };
-
   const handleCheckout = () => {
     if (event.seatingChart && selectedSeats.length !== ticketCount) {
       toast({
@@ -67,39 +55,6 @@ export function SeatingChart({ event }: { event: Event }) {
     setCheckoutOpen(true);
   };
 
-  if (step === 'selectCount') {
-     return (
-        <Card className="sticky top-24">
-            <CardHeader>
-                <CardTitle className="text-2xl">How many seats?</CardTitle>
-                <CardDescription>Select the number of tickets you wish to book.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center gap-6">
-                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={() => setTicketCount(Math.max(1, ticketCount - 1))} disabled={ticketCount <= 0}>
-                        <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="text-4xl font-bold w-20 text-center">{ticketCount}</span>
-                    <Button variant="outline" size="icon" onClick={() => setTicketCount(Math.min(10, ticketCount + 1))}>
-                        <Plus className="h-4 w-4" />
-                    </Button>
-                </div>
-                 {!isFreeEvent && (
-                    <div className="flex flex-col items-center">
-                        <span className="font-bold text-xl">Total: ${(ticketCount * ticketPrice).toFixed(2)}</span>
-                        <span className="text-muted-foreground text-sm">(${ticketPrice.toFixed(2)} per ticket)</span>
-                    </div>
-                 )}
-            </CardContent>
-            <CardFooter>
-                 <Button onClick={handleProceedToSeats} size="lg" className="w-full">
-                    Select Seats
-                </Button>
-            </CardFooter>
-        </Card>
-     )
-  }
-
   // General Admission flow
   if (!event.seatingChart) {
     const buttonText = isFreeEvent ? "Register Now" : "Buy Tickets";
@@ -108,7 +63,7 @@ export function SeatingChart({ event }: { event: Event }) {
         <Card>
             <CardHeader>
                 <CardTitle className="text-2xl">{isFreeEvent ? "Register" : "Get Your Tickets"}</CardTitle>
-                <CardDescription>This is a general admission event.</CardDescription>
+                <CardDescription>This is a general admission event. Confirm your number of tickets to proceed.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex justify-between items-center bg-secondary p-4 rounded-md">
@@ -130,7 +85,6 @@ export function SeatingChart({ event }: { event: Event }) {
                     <Ticket className="w-5 h-5 mr-2" />
                     {buttonText}
                 </Button>
-                <Button variant="outline" className="w-full" onClick={() => { setStep('selectCount'); setSelectedSeats([])}}>Change Ticket Count</Button>
             </CardFooter>
         </Card>
          <CheckoutDialog 
@@ -152,7 +106,7 @@ export function SeatingChart({ event }: { event: Event }) {
 
   return (
     <>
-    <Card className="sticky top-24">
+    <Card>
       <CardHeader>
         <CardTitle className="text-2xl">Select Your Seats</CardTitle>
         <CardDescription>Please select {ticketCount} seat(s).</CardDescription>
@@ -203,7 +157,6 @@ export function SeatingChart({ event }: { event: Event }) {
             <Ticket className="w-5 h-5 mr-2" />
             {checkoutButtonText}
         </Button>
-        <Button variant="outline" className="w-full" onClick={() => { setStep('selectCount'); setSelectedSeats([])}}>Change Ticket Count</Button>
       </CardFooter>
     </Card>
     <CheckoutDialog 

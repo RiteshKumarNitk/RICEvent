@@ -1,25 +1,32 @@
 "use client";
 
 import { events as staticEvents } from "@/lib/data";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
-import { SeatingChart } from "@/components/events/seating-chart";
 import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { useEvents } from "@/app/admin/events/events-provider";
+import { TicketSelection } from "@/components/events/ticket-selection";
 
 export default function EventPage({ params }: { params: { id: string } }) {
   const { events } = useEvents();
   const event = events.find((e) => e.id === params.id) || staticEvents.find(e => e.id === params.id);
+  const router = useRouter();
 
   if (!event) {
     notFound();
   }
+
+  const handleProceedToSeats = (ticketCount: number) => {
+    if (ticketCount > 0) {
+      router.push(`/events/${event.id}/seats?tickets=${ticketCount}`);
+    }
+  };
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8 md:py-16">
@@ -57,7 +64,7 @@ export default function EventPage({ params }: { params: { id: string } }) {
               </div>
         </div>
         <div className="md:col-span-2">
-            <SeatingChart event={event} />
+            <TicketSelection event={event} onProceed={handleProceedToSeats} />
         </div>
       </div>
     </div>
