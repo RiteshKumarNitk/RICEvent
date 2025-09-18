@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Event, Seat, SeatRow } from "@/lib/types";
+import { Event, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ticket, User, Screen } from "lucide-react";
+import { Ticket, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 import { Separator } from "../ui/separator";
 
 const RowLabel = ({ label }: { label: string }) => (
-  <div className="flex h-6 w-6 items-center justify-center text-sm font-medium text-muted-foreground">
+  <div className="flex h-8 w-8 items-center justify-center text-sm font-medium text-muted-foreground">
     {label}
   </div>
 );
@@ -53,23 +53,26 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
       });
       return;
     }
-    const seatsToCheckout = event.seatingChart ? selectedSeats : Array.from({ length: ticketCount }, (_, i) => ({ id: `GA${i + 1}`, number: `GA${i+1}`, isAvailable: true }));
     setCheckoutOpen(true);
   };
+  
+  const getSeatPrice = (seat: Seat) => {
+      for (const section of event.seatingChart!.sections) {
+        for (const row of section.rows) {
+          if (row.find(s => s?.id === seat.id)) {
+            return section.price;
+          }
+        }
+      }
+      return 0;
+  }
 
   const getTotalPrice = () => {
     if (isFreeEvent) return 0;
     if (!event.seatingChart) return (event.ticketTypes.find(t => t.type === 'Standard')?.price || 0) * ticketCount;
-    return selectedSeats.reduce((total, seat) => {
-      for (const section of event.seatingChart!.sections) {
-        if (section.rows.flat().some(s => s?.id === seat.id)) {
-          return total + section.price;
-        }
-      }
-      return total;
-    }, 0);
+    return selectedSeats.reduce((total, seat) => total + getSeatPrice(seat), 0);
   };
-  
+
   if (ticketCount > 0 && !event.seatingChart) {
     const totalPrice = getTotalPrice();
     return (
@@ -90,7 +93,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
             {!isFreeEvent && (
               <div className="flex justify-between items-center font-bold text-lg mt-4">
                 <span>Total Price:</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>₹{totalPrice.toFixed(2)}</span>
               </div>
             )}
           </CardContent>
@@ -106,13 +109,18 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     );
   }
 
+
   if (!event.seatingChart) {
-    // This case should ideally not be hit if navigation from event page is correct
-    // (i.e. you shouldn't get to seats page if there's no seating chart)
     return (
         <div className="text-center py-16 text-muted-foreground">
             <h3 className="text-xl font-semibold mb-2">General Admission</h3>
-            <p>This event does not have a seating chart.</p>
+            <p>This event does not have a seating chart. Go back to select tickets.</p>
+             <Button asChild variant="outline" className="mt-4">
+                <Link href={`/events/${event.id}`}>
+                    <ArrowLeft className="mr-2 h-4 w-4"/>
+                    Back to Event
+                </Link>
+            </Button>
         </div>
     );
   }
@@ -126,24 +134,23 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-grow">
             <div className="w-full overflow-x-auto pb-4">
-                <div className="inline-block min-w-full align-middle">
-                    <div className="flex flex-col items-center gap-4">
+                <div className="inline-block min-w-full align-middle text-center">
+                    <div className="flex flex-col items-center gap-6">
                         {sections.map((section, sectionIndex) => (
                         <div key={sectionIndex} className="w-full">
-                            <p className="text-center text-sm font-semibold text-muted-foreground my-2">{section.sectionName} - {isFreeEvent ? 'Free' : `₹${section.price}`}</p>
-                            <Separator className="mb-4" />
+                            <p className="text-center font-semibold text-muted-foreground my-2">{section.sectionName} - {isFreeEvent ? 'Free' : `₹${section.price}`}</p>
                             <div className="flex gap-4">
-                            <div className="flex flex-col-reverse justify-end gap-1">
+                            <div className="flex flex-col-reverse justify-end gap-2">
                                 {section.rows.map((_, i) => <RowLabel key={i} label={alphabet[rowCounter + section.rows.length - 1 - i]} />)}
                             </div>
-                            <div className="flex-grow flex flex-col-reverse gap-1">
+                            <div className="flex-grow flex flex-col-reverse gap-2">
                                 {section.rows.map((row, rowIndex) => {
                                 const rowKey = `s${sectionIndex}-r${rowIndex}`;
                                 return (
-                                    <div key={rowKey} className="flex items-center justify-center gap-1">
+                                    <div key={rowKey} className="flex items-center justify-center gap-2">
                                     {row.map((seat, seatIndex) => {
                                         if (!seat) {
-                                        return <div key={`${rowKey}-e${seatIndex}`} className="h-6 w-6" />;
+                                        return <div key={`${rowKey}-e${seatIndex}`} className="h-8 w-8" />;
                                         }
                                         const isSelected = selectedSeats.some(s => s.id === seat.id);
                                         return (
@@ -152,9 +159,9 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                                             onClick={() => handleSelectSeat(seat)}
                                             disabled={!seat.isAvailable}
                                             className={cn(
-                                            "flex h-6 w-6 items-center justify-center rounded-sm border text-xs font-mono transition-colors",
-                                            "disabled:bg-muted disabled:border-muted-foreground/20 disabled:text-muted-foreground/50 disabled:cursor-not-allowed",
-                                            isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-primary/10",
+                                            "flex h-8 w-8 items-center justify-center rounded-md border text-xs font-mono transition-colors",
+                                            "disabled:bg-gray-400 disabled:border-gray-500 disabled:text-gray-600 disabled:cursor-not-allowed",
+                                            isSelected ? "bg-blue-400 border-blue-600 text-white" : "bg-green-200 border-green-400 hover:bg-green-300",
                                             seat.isAvailable ? "cursor-pointer" : ""
                                             )}
                                         >
@@ -167,7 +174,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                                 })}
                             </div>
                             </div>
-                            <div hidden>
+                             <div hidden>
                                 {rowCounter += section.rows.length}
                             </div>
                         </div>
@@ -175,37 +182,37 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                     </div>
                 </div>
             </div>
-          <div className="w-full bg-muted/50 p-2 rounded-md text-center my-4 text-sm font-semibold tracking-widest text-muted-foreground">SCREEN</div>
+          <div className="w-full border-t-4 border-gray-400 p-2 rounded-md text-center my-8 text-sm font-semibold tracking-widest text-muted-foreground">SCREEN</div>
 
           <div className="flex justify-center flex-wrap gap-x-6 gap-y-2 mt-4 text-sm">
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border bg-background" /> Available</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border-primary bg-primary" /> Selected</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm bg-muted border-muted-foreground/20" /> Unavailable</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-md border-green-400 bg-green-200" /> Available</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-md border-blue-600 bg-blue-400" /> Selected</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-md bg-gray-400 border-gray-500" /> Sold</div>
           </div>
         </div>
 
         <div className="lg:w-80 flex-shrink-0">
-          <Card>
+          <Card className="sticky top-24">
             <CardHeader>
               <CardTitle>Your Selection</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex justify-between text-lg font-bold mb-2">
                 <span>Total</span>
-                <span>{isFreeEvent ? 'Free' : `$${getTotalPrice().toFixed(2)}`}</span>
+                <span>{isFreeEvent ? 'Free' : `₹${getTotalPrice().toFixed(2)}`}</span>
               </div>
               <Separator />
                <div className="mt-4 space-y-2">
                 <div className="flex justify-between text-muted-foreground">
                     <span>Seats ({selectedSeats.length}/{ticketCount})</span>
                 </div>
-                 <p className="font-mono text-sm break-words">{selectedSeats.length > 0 ? selectedSeats.map(s => s.number).join(', ') : "No seats selected"}</p>
+                 <p className="font-mono text-lg font-semibold break-words min-h-[2rem]">{selectedSeats.length > 0 ? selectedSeats.map(s => s.id).join(', ') : "No seats selected"}</p>
               </div>
             </CardContent>
             <CardFooter>
               <Button onClick={handleCheckout} className="w-full" disabled={selectedSeats.length !== ticketCount}>
                 <Ticket className="mr-2 h-4 w-4" />
-                {isFreeEvent ? "Register" : "Proceed"}
+                {isFreeEvent ? "Register" : "Proceed to Pay"}
               </Button>
             </CardFooter>
           </Card>

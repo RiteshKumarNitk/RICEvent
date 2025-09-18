@@ -1,11 +1,11 @@
 import type { Event, SeatingChartData } from "./types";
 
-const generateSeatingChart = (): SeatingChartData => {
-  const createRow = (seatCount: number, startNum: number, isAvailableProb: number, isReversed = false): (any | null)[] => {
+const generateCinemaSeatingChart = (): SeatingChartData => {
+  const createRow = (seatCount: number, startNum: number, isAvailableProb: number): (Seat | null)[] => {
     const row = Array.from({ length: seatCount }, (_, i) => {
-      const seatNum = startNum + (isReversed ? (seatCount - 1 - i) : i);
+      const seatNum = startNum + i;
       return {
-        id: `S${seatNum}`,
+        id: `${seatNum}`, // Simplified ID for cinema
         number: `${seatNum}`,
         isAvailable: Math.random() < isAvailableProb,
       }
@@ -14,32 +14,24 @@ const generateSeatingChart = (): SeatingChartData => {
   }
   return {
     sections: [
-      {
-        sectionName: 'Premium',
-        ticketType: 'VIP',
-        price: 300,
+       {
+        sectionName: 'Normal',
+        ticketType: 'Standard',
+        price: 260,
         rows: [
-          ...Array(8).fill(0).map((_, rowIndex) => [
-            ...createRow(2, 1, 0.9, true), null, null, ...createRow(8, 7, 0.7, true), null, null, ...createRow(6, 15, 0.8, true)
-          ].reverse()),
+            ...Array.from({length: 4}, (_, i) => i + 1).map(rowNum => [
+                ...createRow(6, (rowNum-1)*20 + 1, 0.9), null, ...createRow(8, (rowNum-1)*20 + 7, 0.8), null, ...createRow(6, (rowNum-1)*20 + 15, 0.9)
+            ])
         ]
       },
       {
         sectionName: 'Executive',
-        ticketType: 'Standard',
+        ticketType: 'VIP',
         price: 280,
         rows: [
-            ...Array(3).fill(0).map((_, rowIndex) => [
-            ...createRow(9, 1, 0.85), null, null, ...createRow(6, 12, 0.8)
-          ]),
-        ]
-      },
-      {
-        sectionName: 'Normal',
-        ticketType: 'Balcony',
-        price: 260,
-        rows: [
-          [...createRow(3, 1, 0.9, true), null, ...createRow(3, 7, 0.9, true), null, ...createRow(6, 10, 0.9, true)]
+             ...Array.from({length: 8}, (_, i) => i + 5).map(rowNum => [
+                ...createRow(6, (rowNum-1)*20 + 1, 0.7), null, ...createRow(8, (rowNum-1)*20 + 7, 0.6), null, ...createRow(6, (rowNum-1)*20 + 15, 0.7)
+            ])
         ]
       },
     ]
@@ -49,18 +41,19 @@ const generateSeatingChart = (): SeatingChartData => {
 export const events: Event[] = [
   {
     id: "1",
-    name: "Seminar on Artificial Intelligence",
-    description: "Join leading experts in a discussion about the future of AI and its impact on society. A must-attend for tech enthusiasts and professionals.",
-    category: "Seminar",
+    name: "Jawan (Hindi)",
+    description: "A high-octane action thriller that outlines the emotional journey of a man who is set to rectify the wrongs in society.",
+    category: "Theater",
     date: "2024-09-15T10:00:00Z",
     location: "Jaipur, Rajasthan",
-    venue: "Main Auditorium, RIC",
-    image: "https://picsum.photos/seed/1/600/400",
-    showtimes: ["10:00", "13:00", "16:00"],
+    venue: "Cinepolis, World Trade Park",
+    image: "https://picsum.photos/seed/movie1/600/400",
+    showtimes: ["10:00 AM", "01:30 PM", "05:00 PM", "09:30 PM"],
     ticketTypes: [
-      { type: "Standard", price: 0 },
+      { type: "Standard", price: 260 },
+      { type: "VIP", price: 280 },
     ],
-    seatingChart: generateSeatingChart(),
+    seatingChart: generateCinemaSeatingChart(),
   },
   {
     id: "2",
@@ -76,7 +69,7 @@ export const events: Event[] = [
       { type: "Standard", price: 50 },
       { type: "VIP", price: 100 },
     ],
-    seatingChart: generateSeatingChart(),
+    seatingChart: generateCinemaSeatingChart(),
   },
   {
     id: "3",
@@ -104,7 +97,7 @@ export const events: Event[] = [
       { type: "Standard", price: 40 },
       { type: "Balcony", price: 25 },
     ],
-    seatingChart: generateSeatingChart(),
+    seatingChart: generateCinemaSeatingChart(),
   },
   {
     id: "5",
@@ -120,7 +113,7 @@ export const events: Event[] = [
         { type: "Standard", price: 80 },
         { type: "VIP", price: 150 },
     ],
-    seatingChart: generateSeatingChart(),
+    seatingChart: generateCinemaSeatingChart(),
   },
   {
     id: "6",
@@ -133,6 +126,7 @@ export const events: Event[] = [
     image: "https://picsum.photos/seed/6/600/400",
     showtimes: ["11:00", "14:00", "17:00"],
     ticketTypes: [{ type: "Standard", price: 0 }],
+    seatingChart: generateCinemaSeatingChart(),
   },
   {
     id: "7",
@@ -161,6 +155,6 @@ export const events: Event[] = [
     ticketTypes: [
       { type: "Standard", price: 30 },
     ],
-    seatingChart: generateSeatingChart(),
+    seatingChart: generateCinemaSeatingChart(),
   },
 ];

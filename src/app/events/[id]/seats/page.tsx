@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, notFound, useRouter, useParams } from "next/navigation";
+import { useSearchParams, notFound, useParams } from "next/navigation";
 import { useEvents } from "@/app/admin/events/events-provider";
 import { events as staticEvents } from "@/lib/data";
 import { SeatingChart } from "@/components/events/seating-chart";
@@ -32,10 +32,9 @@ const ShowtimeSelector = ({ event, selectedShowtime, onSelect }: { event: Event,
 
 export default function SeatsPage() {
   const params = useParams();
-  const { id } = params;
+  const id = params.id as string;
   const { events } = useEvents();
   const searchParams = useSearchParams();
-  const router = useRouter();
   
   const ticketCountParam = searchParams.get('tickets');
   const ticketCount = ticketCountParam ? parseInt(ticketCountParam, 10) : 0;
@@ -52,7 +51,7 @@ export default function SeatsPage() {
     <div className="container mx-auto max-w-7xl px-4 py-8">
         <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-4">
-                <Button asChild variant="ghost" size="icon" className="md:hidden">
+                <Button asChild variant="ghost" size="icon" className="hidden md:flex">
                     <Link href={`/events/${id}`}>
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
@@ -71,6 +70,7 @@ export default function SeatsPage() {
         </div>
 
         <div className="mb-8">
+           <p className="text-sm font-semibold mb-2">Showtimes:</p>
            <ShowtimeSelector event={event} selectedShowtime={selectedShowtime} onSelect={setSelectedShowtime} />
         </div>
         
