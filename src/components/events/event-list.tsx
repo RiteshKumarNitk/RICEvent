@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Event, EventCategory } from "@/lib/types";
 import { EventCard } from "./event-card";
 import { Button } from "@/components/ui/button";
@@ -12,19 +12,25 @@ const categories: (EventCategory | "All")[] = ["All", "Music", "Sports", "Art", 
 
 interface EventListProps {
   events: Event[];
-  initialDate?: Date;
+  selectedDate?: Date;
 }
 
-export function EventList({ events, initialDate }: EventListProps) {
+export function EventList({ events, selectedDate }: EventListProps) {
   const [activeCategory, setActiveCategory] = useState<EventCategory | "All">("All");
   const [searchTerm, setSearchTerm] = useState("");
   
-  const filteredEvents = useMemo(() => events
-    .filter((event) => activeCategory === "All" || event.category === activeCategory)
-    .filter((event) => event.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter((event) => initialDate ? new Date(event.date).toDateString() === initialDate.toDateString() : true)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), 
-  [events, activeCategory, searchTerm, initialDate]);
+  const filteredEvents = useMemo(() => {
+    let dateFilteredEvents = events;
+    
+    if (selectedDate) {
+        dateFilteredEvents = events.filter(event => new Date(event.date).toDateString() === selectedDate.toDateString());
+    }
+
+    return dateFilteredEvents
+      .filter((event) => activeCategory === "All" || event.category === activeCategory)
+      .filter((event) => event.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [events, activeCategory, searchTerm, selectedDate]);
 
 
   return (
@@ -64,7 +70,7 @@ export function EventList({ events, initialDate }: EventListProps) {
       ) : (
         <div className="text-center py-16 text-muted-foreground">
             <h3 className="text-xl font-semibold mb-2">No events found</h3>
-            <p>Try adjusting your search or filter.</p>
+            <p>Try adjusting your search or selecting a different date.</p>
         </div>
       )}
     </section>
