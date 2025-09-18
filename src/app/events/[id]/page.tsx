@@ -1,7 +1,7 @@
 "use client";
 
 import { events as staticEvents } from "@/lib/data";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin } from "lucide-react";
@@ -13,9 +13,11 @@ import {
 import { useEvents } from "@/app/admin/events/events-provider";
 import { TicketSelection } from "@/components/events/ticket-selection";
 
-export default function EventPage({ params }: { params: { id: string } }) {
+export default function EventPage() {
+  const params = useParams();
+  const { id } = params;
   const { events } = useEvents();
-  const event = events.find((e) => e.id === params.id) || staticEvents.find(e => e.id === params.id);
+  const event = events.find((e) => e.id === id) || staticEvents.find(e => e.id === id);
   const router = useRouter();
 
   if (!event) {
