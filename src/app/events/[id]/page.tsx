@@ -15,7 +15,7 @@ import { TicketSelection } from "@/components/events/ticket-selection";
 
 export default function EventPage() {
   const params = useParams();
-  const { id } = params;
+  const id = params.id as string;
   const { events } = useEvents();
   const event = events.find((e) => e.id === id) || staticEvents.find(e => e.id === id);
   const router = useRouter();
