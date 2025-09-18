@@ -5,8 +5,8 @@ import { Event } from "@/lib/types";
 import { Calendar } from "@/components/ui/calendar";
 import { EventList } from "./event-list";
 import { Card, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
-import { DayContentProps } from "react-day-picker";
+import { format, getDay } from "date-fns";
+import { DayContent, DayPicker } from "react-day-picker";
 
 interface EventCalendarProps {
     events: Event[];
@@ -21,6 +21,16 @@ export function EventCalendar({ events }: EventCalendarProps) {
         setDate(selectedDate);
     }
     
+    function DayContent(props: any) {
+        const hasEvent = eventDates.includes(props.date.toDateString());
+        return (
+            <div className="relative h-full w-full">
+                <DayPicker.Day {...props} />
+                {hasEvent && <div className="event-dot" />}
+            </div>
+        );
+    }
+    
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
@@ -32,15 +42,7 @@ export function EventCalendar({ events }: EventCalendarProps) {
                             onSelect={handleDateSelect}
                             className="w-full"
                             components={{
-                                DayContent: ({ date: dayDate, ...props }: DayContentProps) => {
-                                const hasEvent = eventDates.includes(dayDate.toDateString());
-                                return (
-                                    <div className="relative h-full w-full">
-                                    <span {...props.dayPickerProps.components?.DayContent(props) as any} />
-                                    {hasEvent && <div className="event-dot" />}
-                                    </div>
-                                );
-                                },
+                                Day: DayContent,
                             }}
                         />
                     </CardContent>
