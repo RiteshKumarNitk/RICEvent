@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import type { Event, EventCategory } from "@/lib/types";
 import { EventCard } from "./event-card";
 import { Button } from "@/components/ui/button";
@@ -12,25 +12,18 @@ const categories: (EventCategory | "All")[] = ["All", "Music", "Sports", "Art", 
 
 interface EventListProps {
   events: Event[];
-  selectedDate?: Date;
 }
 
-export function EventList({ events, selectedDate }: EventListProps) {
+export function EventList({ events }: EventListProps) {
   const [activeCategory, setActiveCategory] = useState<EventCategory | "All">("All");
   const [searchTerm, setSearchTerm] = useState("");
   
   const filteredEvents = useMemo(() => {
-    let dateFilteredEvents = events;
-    
-    if (selectedDate) {
-        dateFilteredEvents = events.filter(event => new Date(event.date).toDateString() === selectedDate.toDateString());
-    }
-
-    return dateFilteredEvents
+    return events
       .filter((event) => activeCategory === "All" || event.category === activeCategory)
       .filter((event) => event.name.toLowerCase().includes(searchTerm.toLowerCase()))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [events, activeCategory, searchTerm, selectedDate]);
+  }, [events, activeCategory, searchTerm]);
 
 
   return (
@@ -62,15 +55,15 @@ export function EventList({ events, selectedDate }: EventListProps) {
         </div>
       </div>
       {filteredEvents.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredEvents.map((event) => (
-            <EventCard key={event.id} event={event} layout="list" />
+            <EventCard key={event.id} event={event} />
           ))}
         </div>
       ) : (
         <div className="text-center py-16 text-muted-foreground">
             <h3 className="text-xl font-semibold mb-2">No events found</h3>
-            <p>Try adjusting your search or selecting a different date.</p>
+            <p>Try adjusting your search or selecting a different category.</p>
         </div>
       )}
     </section>
