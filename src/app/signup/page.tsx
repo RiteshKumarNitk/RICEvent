@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -28,6 +28,8 @@ const signupSchema = z.object({
 export default function SignupPage() {
   const { signup, signInWithGoogle } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof signupSchema>>({
@@ -39,9 +41,13 @@ export default function SignupPage() {
     try {
       await signup(values.email, values.password, values.fullName);
       toast({ title: "Success", description: "Account created successfully!" });
-      router.push("/account");
+      router.push(redirect || "/account");
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Signup Failed", description: error.message });
+      let description = "An unexpected error occurred. Please try again.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "This email is already in use. Please log in instead.";
+      }
+      toast({ variant: "destructive", title: "Signup Failed", description });
     }
   };
 
@@ -49,7 +55,7 @@ export default function SignupPage() {
     try {
       await signInWithGoogle();
       toast({ title: "Success", description: "Signed in with Google successfully!" });
-      router.push("/account");
+      router.push(redirect || "/account");
     } catch (error: any) {
        toast({ variant: "destructive", title: "Google Sign-In Failed", description: error.message });
     }

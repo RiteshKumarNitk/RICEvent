@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,14 +19,18 @@ interface Booking {
 export default function AccountPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+
   const [registeredEvents, setRegisteredEvents] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      const redirectPath = redirect ? `?redirect=${redirect}` : '';
+      router.push(`/login${redirectPath}`);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirect]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -52,7 +56,9 @@ export default function AccountPage() {
       }
     };
 
-    fetchBookings();
+    if (user) {
+      fetchBookings();
+    }
   }, [user]);
 
   if (loading || !user) {

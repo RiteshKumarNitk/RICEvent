@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -28,6 +28,8 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const { login, signInWithGoogle } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -39,9 +41,15 @@ export default function LoginPage() {
     try {
       await login(values.email, values.password);
       toast({ title: "Success", description: "Logged in successfully!" });
-      router.push("/account");
+      router.push(redirect || "/account");
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Login Failed", description: error.message });
+       let description = "An unexpected error occurred. Please try again.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        description = "Invalid email or password. Please check your credentials and try again.";
+      } else if (error.code === 'auth/too-many-requests') {
+        description = "Too many login attempts. Please try again later.";
+      }
+      toast({ variant: "destructive", title: "Login Failed", description });
     }
   };
 
@@ -49,7 +57,7 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
       toast({ title: "Success", description: "Logged in successfully with Google!" });
-      router.push("/account");
+      router.push(redirect || "/account");
     } catch (error: any) {
        toast({ variant: "destructive", title: "Google Sign-In Failed", description: error.message });
     }
