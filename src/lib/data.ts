@@ -1,20 +1,50 @@
-import type { Event } from "./types";
+import type { Event, SeatingChartData } from "./types";
 
-const generateSeatingChart = (rows: number, seatsPerRow: number) => {
-  const seats = [];
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < seatsPerRow; j++) {
-      const rowLabel = String.fromCharCode(65 + i);
-      const seatNumber = j + 1;
-      seats.push({
-        id: `${rowLabel}${seatNumber}`,
-        isAvailable: Math.random() > 0.2, // 80% chance of being available
-      });
-    }
+const generateSeatingChart = (): SeatingChartData => {
+  const createRow = (seatCount: number, startNum: number, isAvailableProb: number, isReversed = false): (any | null)[] => {
+    const row = Array.from({ length: seatCount }, (_, i) => {
+      const seatNum = startNum + (isReversed ? (seatCount - 1 - i) : i);
+      return {
+        id: `S${seatNum}`,
+        number: `${seatNum}`,
+        isAvailable: Math.random() < isAvailableProb,
+      }
+    });
+    return row;
   }
-  return { rows, seatsPerRow, seats };
+  return {
+    sections: [
+      {
+        sectionName: '₹300 PREMIUM',
+        ticketType: 'VIP',
+        price: 300,
+        rows: [
+          ...Array(8).fill(0).map((_, rowIndex) => [
+            ...createRow(6, 15, 0.8, true), null, null, ...createRow(8, 7, 0.7, true), null, null, ...createRow(2, 1, 0.9, true)
+          ]),
+        ]
+      },
+      {
+        sectionName: '₹280 EXECUTIVE',
+        ticketType: 'Standard',
+        price: 280,
+        rows: [
+            ...Array(3).fill(0).map((_, rowIndex) => [
+            ...createRow(6, 12, 0.8), null, null, ...createRow(9, 1, 0.85)
+          ]),
+        ]
+      },
+      {
+        sectionName: '₹260 NORMAL',
+        ticketType: 'Balcony',
+        price: 260,
+        rows: [
+          [...createRow(6, 10, 0.9, true), null, ...createRow(3, 7, 0.9, true), null, ...createRow(3, 1, 0.9, true)]
+        ]
+      },
+    ]
+  };
 };
-
 
 export const events: Event[] = [
   {
@@ -26,11 +56,10 @@ export const events: Event[] = [
     location: "Jaipur, Rajasthan",
     venue: "Main Auditorium, RIC",
     image: "https://picsum.photos/seed/1/600/400",
-    showtimes: ["10:00"],
+    showtimes: ["10:00", "13:00", "16:00"],
     ticketTypes: [
       { type: "Standard", price: 0 },
     ],
-    seatingChart: generateSeatingChart(10, 20),
   },
   {
     id: "2",
@@ -41,12 +70,12 @@ export const events: Event[] = [
     location: "Jaipur, Rajasthan",
     venue: "Open Air Theatre, RIC",
     image: "https://picsum.photos/seed/2/600/400",
-    showtimes: ["18:30"],
+    showtimes: ["18:30", "20:30"],
     ticketTypes: [
       { type: "Standard", price: 50 },
       { type: "VIP", price: 100 },
     ],
-    seatingChart: generateSeatingChart(15, 20),
+    seatingChart: generateSeatingChart(),
   },
   {
     id: "3",
@@ -74,7 +103,7 @@ export const events: Event[] = [
       { type: "Standard", price: 40 },
       { type: "Balcony", price: 25 },
     ],
-    seatingChart: generateSeatingChart(12, 18),
+    seatingChart: generateSeatingChart(),
   },
   {
     id: "5",
@@ -90,7 +119,7 @@ export const events: Event[] = [
         { type: "Standard", price: 80 },
         { type: "VIP", price: 150 },
     ],
-    seatingChart: generateSeatingChart(20, 25),
+    seatingChart: generateSeatingChart(),
   },
   {
     id: "6",
@@ -101,7 +130,7 @@ export const events: Event[] = [
     location: "Jaipur, Rajasthan",
     venue: "Art Gallery, RIC",
     image: "https://picsum.photos/seed/6/600/400",
-    showtimes: ["11:00"],
+    showtimes: ["11:00", "14:00", "17:00"],
     ticketTypes: [{ type: "Standard", price: 0 }],
   },
   {
@@ -127,10 +156,10 @@ export const events: Event[] = [
     location: "Jaipur, Rajasthan",
     venue: "Mini Auditorium, RIC",
     image: "https://picsum.photos/seed/8/600/400",
-    showtimes: ["18:00"],
+    showtimes: ["18:00", "20:30"],
     ticketTypes: [
       { type: "Standard", price: 30 },
     ],
-    seatingChart: generateSeatingChart(8, 15),
+    seatingChart: generateSeatingChart(),
   },
 ];

@@ -7,13 +7,21 @@ export type TicketType = {
 
 export type Seat = {
   id: string;
+  number: string;
   isAvailable: boolean;
 };
 
+export type SeatRow = (Seat | null)[];
+
+export type SeatSection = {
+  sectionName: string;
+  ticketType: TicketType['type'];
+  price: number;
+  rows: SeatRow[];
+}
+
 export type SeatingChartData = {
-  rows: number;
-  seatsPerRow: number;
-  seats: Seat[];
+  sections: SeatSection[];
 };
 
 export type Event = {
