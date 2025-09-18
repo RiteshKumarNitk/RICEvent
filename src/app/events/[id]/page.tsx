@@ -4,10 +4,11 @@ import { events as staticEvents } from "@/lib/data";
 import { notFound, useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Share2, Languages, PersonStanding, Ticket } from "lucide-react";
+import { Calendar, Clock, MapPin, Share2, Languages, PersonStanding, Ticket, UtensilsCrossed } from "lucide-react";
 import { format } from "date-fns";
 import { useEvents } from "@/app/admin/events/events-provider";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function EventPage() {
   const params = useParams();
@@ -96,7 +97,28 @@ export default function EventPage() {
             </div>
              <div className="prose prose-lg max-w-none mt-12 bg-background p-8 rounded-lg shadow">
                 <h2 className="font-bold text-2xl mb-4">About the event</h2>
-                <p>{event.description}</p>
+                <p className="text-base text-muted-foreground">{event.description}</p>
+            </div>
+            <div className="bg-background p-8 rounded-lg shadow mt-8">
+                <h2 className="font-bold text-2xl mb-4">Facilities</h2>
+                <div className="border rounded-lg p-4 flex items-center gap-4">
+                    <UtensilsCrossed className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-muted-foreground">Outside Food Not Allowed</span>
+                </div>
+            </div>
+            <div className="bg-background p-8 rounded-lg shadow mt-8">
+                <h2 className="font-bold text-2xl mb-4">M-Ticket</h2>
+                <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 flex items-center gap-4">
+                    <Ticket className="h-6 w-6 text-red-600" />
+                    <div>
+                        <p className="font-semibold">Contactless Ticketing & Fast-track Entry with M-ticket.</p>
+                        <a href="#" className="text-red-600 font-semibold hover:underline">Learn How</a>
+                    </div>
+                </div>
+            </div>
+            <div className="bg-background p-8 rounded-lg shadow mt-8">
+                 <h2 className="font-bold text-2xl mb-4">Terms & Conditions</h2>
+                 <p className="text-sm text-muted-foreground">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. </p>
             </div>
         </div>
     </div>
