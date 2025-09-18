@@ -10,7 +10,8 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  updateProfile
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -28,18 +29,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Helper function to create a user profile in Firestore
-const createUserProfile = async (user: User, fullName?: string) => {
+const createUserProfile = async (user: User, additionalData: { displayName?: string } = {}) => {
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-        await setDoc(userRef, {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName || fullName,
-            photoURL: user.photoURL,
-            createdAt: new Date()
-        });
+        const { uid, email, photoURL } = user;
+        const displayName = additionalData.displayName || user.displayName;
+        try {
+            await setDoc(userRef, {
+                uid,
+                email,
+                displayName,
+                photoURL,
+                createdAt: new Date(),
+            });
+        } catch (error) {
+            console.error("Error creating user profile in Firestore:", error);
+        }
     }
 }
 
@@ -63,8 +70,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const signup = async (email: string, pass: string, fullName: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    if(userCredential.user) {
-        await createUserProfile(userCredential.user, fullName);
+    const user = userCredential.user;
+    if(user) {
+        // Update Firebase Auth profile
+        await updateProfile(user, { displayName: fullName });
+        // Create user document in Firestore
+        await createUserProfile(user, { displayName: fullName });
     }
     return userCredential;
   };
