@@ -26,7 +26,14 @@ export default function EventPage() {
 
   const handleProceedToSeats = (ticketCount: number) => {
     if (ticketCount > 0) {
-      router.push(`/events/${event.id}/seats?tickets=${ticketCount}`);
+      if (event.seatingChart) {
+        router.push(`/events/${event.id}/seats?tickets=${ticketCount}`);
+      } else {
+        // For events without a seating chart, we can perhaps open a checkout dialog directly
+        // This part can be implemented later. For now, we focus on seating chart events.
+        console.log("Proceeding to checkout for general admission");
+        // Example: router.push(`/checkout?eventId=${event.id}&tickets=${ticketCount}`);
+      }
     }
   };
 

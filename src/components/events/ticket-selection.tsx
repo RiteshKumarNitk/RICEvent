@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Event } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Ticket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TicketSelectionProps {
@@ -17,7 +17,7 @@ export function TicketSelection({ event, onProceed }: TicketSelectionProps) {
   const { toast } = useToast();
   
   const ticketPrice = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
-  const isFreeEvent = ticketPrice === 0;
+  const isFreeEvent = event.ticketTypes.every(t => t.price === 0);
 
   const handleProceed = () => {
     if (ticketCount === 0) {
@@ -35,7 +35,9 @@ export function TicketSelection({ event, onProceed }: TicketSelectionProps) {
     <Card className="sticky top-24">
         <CardHeader>
             <CardTitle className="text-2xl">How many seats?</CardTitle>
-            <CardDescription>Select the number of tickets you wish to book.</CardDescription>
+            <CardDescription>
+                {event.seatingChart ? 'Select the number of tickets you wish to book.' : 'This is a general admission event.'}
+            </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center gap-6">
              <div className="flex items-center gap-4">
@@ -62,7 +64,8 @@ export function TicketSelection({ event, onProceed }: TicketSelectionProps) {
         </CardContent>
         <CardFooter>
              <Button onClick={handleProceed} size="lg" className="w-full">
-                Select Seats
+                <Ticket className="mr-2 h-4 w-4" />
+                {event.seatingChart ? 'Select Seats' : 'Register'}
             </Button>
         </CardFooter>
     </Card>

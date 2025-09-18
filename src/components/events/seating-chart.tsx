@@ -58,6 +58,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   };
 
   const getTotalPrice = () => {
+    if (isFreeEvent) return 0;
     if (!event.seatingChart) return (event.ticketTypes.find(t => t.type === 'Standard')?.price || 0) * ticketCount;
     return selectedSeats.reduce((total, seat) => {
       for (const section of event.seatingChart!.sections) {
@@ -70,8 +71,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   };
   
   if (ticketCount > 0 && !event.seatingChart) {
-    const price = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
-    const totalPrice = price * ticketCount;
+    const totalPrice = getTotalPrice();
     return (
       <>
         <Card className="max-w-md mx-auto">
@@ -107,8 +107,14 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   }
 
   if (!event.seatingChart) {
-    // If there's no seating chart and no tickets selected, don't render anything for the chart
-    return null;
+    // This case should ideally not be hit if navigation from event page is correct
+    // (i.e. you shouldn't get to seats page if there's no seating chart)
+    return (
+        <div className="text-center py-16 text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2">General Admission</h3>
+            <p>This event does not have a seating chart.</p>
+        </div>
+    );
   }
 
   const { sections } = event.seatingChart;
@@ -124,7 +130,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                     <div className="flex flex-col items-center gap-4">
                         {sections.map((section, sectionIndex) => (
                         <div key={sectionIndex} className="w-full">
-                            <p className="text-center text-sm font-semibold text-muted-foreground my-2">{section.sectionName}</p>
+                            <p className="text-center text-sm font-semibold text-muted-foreground my-2">{section.sectionName} - {isFreeEvent ? 'Free' : `₹${section.price}`}</p>
                             <Separator className="mb-4" />
                             <div className="flex gap-4">
                             <div className="flex flex-col-reverse justify-end gap-1">
@@ -186,7 +192,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
             <CardContent>
               <div className="flex justify-between text-lg font-bold mb-2">
                 <span>Total</span>
-                <span>${getTotalPrice().toFixed(2)}</span>
+                <span>{isFreeEvent ? 'Free' : `$${getTotalPrice().toFixed(2)}`}</span>
               </div>
               <Separator />
                <div className="mt-4 space-y-2">
@@ -199,7 +205,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
             <CardFooter>
               <Button onClick={handleCheckout} className="w-full" disabled={selectedSeats.length !== ticketCount}>
                 <Ticket className="mr-2 h-4 w-4" />
-                Proceed
+                {isFreeEvent ? "Register" : "Proceed"}
               </Button>
             </CardFooter>
           </Card>

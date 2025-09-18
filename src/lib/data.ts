@@ -15,31 +15,31 @@ const generateSeatingChart = (): SeatingChartData => {
   return {
     sections: [
       {
-        sectionName: '₹300 PREMIUM',
+        sectionName: 'Premium',
         ticketType: 'VIP',
         price: 300,
         rows: [
           ...Array(8).fill(0).map((_, rowIndex) => [
-            ...createRow(6, 15, 0.8, true), null, null, ...createRow(8, 7, 0.7, true), null, null, ...createRow(2, 1, 0.9, true)
-          ]),
+            ...createRow(2, 1, 0.9, true), null, null, ...createRow(8, 7, 0.7, true), null, null, ...createRow(6, 15, 0.8, true)
+          ].reverse()),
         ]
       },
       {
-        sectionName: '₹280 EXECUTIVE',
+        sectionName: 'Executive',
         ticketType: 'Standard',
         price: 280,
         rows: [
             ...Array(3).fill(0).map((_, rowIndex) => [
-            ...createRow(6, 12, 0.8), null, null, ...createRow(9, 1, 0.85)
+            ...createRow(9, 1, 0.85), null, null, ...createRow(6, 12, 0.8)
           ]),
         ]
       },
       {
-        sectionName: '₹260 NORMAL',
+        sectionName: 'Normal',
         ticketType: 'Balcony',
         price: 260,
         rows: [
-          [...createRow(6, 10, 0.9, true), null, ...createRow(3, 7, 0.9, true), null, ...createRow(3, 1, 0.9, true)]
+          [...createRow(3, 1, 0.9, true), null, ...createRow(3, 7, 0.9, true), null, ...createRow(6, 10, 0.9, true)]
         ]
       },
     ]
@@ -60,6 +60,7 @@ export const events: Event[] = [
     ticketTypes: [
       { type: "Standard", price: 0 },
     ],
+    seatingChart: generateSeatingChart(),
   },
   {
     id: "2",
