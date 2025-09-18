@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
+import { EventsProvider } from "./admin/events/events-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,12 +39,14 @@ export default function RootLayout({
             disableTransitionOnChange
         >
           <AuthProvider>
-            <div className="relative flex min-h-dvh flex-col bg-background">
-              <SiteHeader />
-              <main className="flex-1">{children}</main>
-              <SiteFooter />
-            </div>
-            <Toaster />
+            <EventsProvider>
+              <div className="relative flex min-h-dvh flex-col bg-background">
+                <SiteHeader />
+                <main className="flex-1">{children}</main>
+                <SiteFooter />
+              </div>
+              <Toaster />
+            </EventsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

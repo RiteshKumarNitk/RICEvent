@@ -1,4 +1,6 @@
-import { events } from "@/lib/data";
+"use client";
+
+import { events as staticEvents } from "@/lib/data";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -6,15 +8,14 @@ import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { SeatingChart } from "@/components/events/seating-chart";
 import {
-  Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useEvents } from "@/app/admin/events/events-provider";
 
 export default function EventPage({ params }: { params: { id: string } }) {
-  const event = events.find((e) => e.id === params.id);
+  const { events } = useEvents();
+  const event = events.find((e) => e.id === params.id) || staticEvents.find(e => e.id === params.id);
 
   if (!event) {
     notFound();

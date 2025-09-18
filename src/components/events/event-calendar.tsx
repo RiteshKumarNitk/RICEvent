@@ -32,11 +32,11 @@ export function EventCalendar({ events }: EventCalendarProps) {
                             onSelect={handleDateSelect}
                             className="w-full"
                             components={{
-                                DayContent: ({ date: dayDate, activeModifiers, displayMonth, ...props }: DayContentProps) => {
+                                DayContent: ({ date: dayDate, ...props }: DayContentProps) => {
                                 const hasEvent = eventDates.includes(dayDate.toDateString());
                                 return (
                                     <div className="relative h-full w-full">
-                                    <span {...props} />
+                                    <span {...props.dayPickerProps.components?.DayContent(props) as any} />
                                     {hasEvent && <div className="event-dot" />}
                                     </div>
                                 );

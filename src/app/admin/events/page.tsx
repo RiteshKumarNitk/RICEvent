@@ -1,13 +1,23 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { events } from "@/lib/data";
 import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useEvents } from "./events-provider";
+import { useRouter } from "next/navigation";
 
 export default function AdminEventsPage() {
+  const { events, deleteEvent } = useEvents();
+  const router = useRouter();
+
+  const handleEdit = (id: string) => {
+    router.push(`/admin/events/edit/${id}`);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -47,9 +57,9 @@ export default function AdminEventsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(event.id)}>Edit</DropdownMenuItem>
                         <DropdownMenuItem>View Bookings</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => deleteEvent(event.id)} className="text-destructive">Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

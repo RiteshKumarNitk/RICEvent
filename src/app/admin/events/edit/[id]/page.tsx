@@ -12,8 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
-import { useEvents } from "../events-provider";
+import { useParams, useRouter } from "next/navigation";
+import { useEvents } from "../../events-provider";
+import { useEffect } from "react";
+import { format } from "date-fns";
 
 const eventSchema = z.object({
   name: z.string().min(5, "Event name must be at least 5 characters."),
@@ -24,37 +26,52 @@ const eventSchema = z.object({
   image: z.string().url("Please enter a valid URL."),
 });
 
-export default function CreateEventPage() {
+export default function EditEventPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const { addEvent } = useEvents();
+    const params = useParams();
+    const { events, updateEvent } = useEvents();
+    const eventId = params.id as string;
+
+    const event = events.find(e => e.id === eventId);
 
     const form = useForm<z.infer<typeof eventSchema>>({
         resolver: zodResolver(eventSchema),
-        defaultValues: {
-            name: "",
-            description: "",
-            category: "Seminar",
-            date: "",
-            venue: "",
-            image: "https://picsum.photos/seed/default/600/400",
-        },
     });
 
+    useEffect(() => {
+        if (event) {
+            form.reset({
+                ...event,
+                date: format(new Date(event.date), "yyyy-MM-dd'T'HH:mm"),
+            });
+        }
+    }, [event, form]);
+
     function onSubmit(values: z.infer<typeof eventSchema>) {
-        const newEvent = {
+        if (!event) return;
+
+        const updatedEvent = {
+            ...event,
             ...values,
-            id: Date.now().toString(),
-            location: 'Jaipur, Rajasthan',
-            showtimes: [new Date(values.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })],
-            ticketTypes: [{ type: 'Standard' as const, price: 0 }],
         };
-        addEvent(newEvent);
+        updateEvent(updatedEvent);
         toast({
-            title: "Event Created!",
-            description: "The new event has been added successfully.",
+            title: "Event Updated!",
+            description: "The event has been updated successfully.",
         });
         router.push("/admin/events");
+    }
+
+    if (!event) {
+        return (
+            <div>
+                <h1 className="text-2xl font-bold">Event not found</h1>
+                <Button asChild variant="link">
+                    <Link href="/admin/events">Go back</Link>
+                </Button>
+            </div>
+        )
     }
 
     return (
@@ -69,7 +86,7 @@ export default function CreateEventPage() {
             </div>
             <Card className="max-w-4xl mx-auto">
                 <CardHeader>
-                    <CardTitle>Create New Event</CardTitle>
+                    <CardTitle>Edit Event</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -112,7 +129,7 @@ export default function CreateEventPage() {
                                 <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} placeholder="https://example.com/image.jpg" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <div className="flex justify-end">
-                                <Button type="submit">Create Event</Button>
+                                <Button type="submit">Save Changes</Button>
                             </div>
                         </form>
                     </Form>

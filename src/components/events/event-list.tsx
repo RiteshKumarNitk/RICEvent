@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Event, EventCategory } from "@/lib/types";
 import { EventCard } from "./event-card";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,12 @@ export function EventList({ events, initialDate }: EventListProps) {
   const [activeCategory, setActiveCategory] = useState<EventCategory | "All">("All");
   const [searchTerm, setSearchTerm] = useState("");
   
-  const filteredEvents = events
+  const filteredEvents = useMemo(() => events
     .filter((event) => activeCategory === "All" || event.category === activeCategory)
     .filter((event) => event.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter((event) => initialDate ? new Date(event.date).toDateString() === initialDate.toDateString() : true);
+    .filter((event) => initialDate ? new Date(event.date).toDateString() === initialDate.toDateString() : true)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), 
+  [events, activeCategory, searchTerm, initialDate]);
 
 
   return (

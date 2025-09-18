@@ -1,5 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { events } from "@/lib/data";
+import { events as staticEvents } from "@/lib/data";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,9 +14,12 @@ import {
 import { EventCard } from "@/components/events/event-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Clapperboard, Lightbulb, Users } from "lucide-react";
+import { useEvents } from "./admin/events/events-provider";
 
 export default function Home() {
-  const upcomingEvents = events.slice(0, 5);
+  const { events } = useEvents();
+  const allEvents = [...staticEvents, ...events.filter(e => !staticEvents.find(se => se.id === e.id))];
+  const upcomingEvents = allEvents.slice(0, 5);
 
   return (
     <>
