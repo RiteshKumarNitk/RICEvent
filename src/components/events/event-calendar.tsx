@@ -5,8 +5,8 @@ import { Event } from "@/lib/types";
 import { Calendar } from "@/components/ui/calendar";
 import { EventList } from "./event-list";
 import { Card, CardContent } from "@/components/ui/card";
-import { format, getDay } from "date-fns";
-import { DayContent, DayPicker } from "react-day-picker";
+import { format } from "date-fns";
+import { DayContent as DayPickerDay, DayPicker } from "react-day-picker";
 
 interface EventCalendarProps {
     events: Event[];
@@ -25,7 +25,7 @@ export function EventCalendar({ events }: EventCalendarProps) {
         const hasEvent = eventDates.includes(props.date.toDateString());
         return (
             <div className="relative h-full w-full">
-                <DayPicker.Day {...props} />
+                <DayPickerDay {...props} />
                 {hasEvent && <div className="event-dot" />}
             </div>
         );
