@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
@@ -38,7 +37,7 @@ export default function SignupPage() {
 
   const handleSignup = async (values: z.infer<typeof signupSchema>) => {
     try {
-      await signup(values.email, values.password);
+      await signup(values.email, values.password, values.fullName);
       toast({ title: "Success", description: "Account created successfully!" });
       router.push("/account");
     } catch (error: any) {

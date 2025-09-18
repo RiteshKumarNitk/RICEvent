@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,10 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, ArrowRight, ArrowLeft, CreditCard, User, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { addDoc, collection } from 'firebase/firestore';
 
 const isPaidEvent = (event: Event) => {
     return event.ticketTypes.some(t => t.price > 0);
@@ -42,6 +46,9 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: CheckoutDialogProps) {
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
 
   const steps = eventIsPaid ? ['Seats', 'Payment', 'Invoice'] : ['Confirm', 'Invoice'];
@@ -63,13 +70,50 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     },
   });
 
+  useEffect(() => {
+    if (user) {
+        form.setValue('fullName', user.displayName || '');
+        form.setValue('email', user.email || '');
+    }
+  }, [user, form]);
+
   const ticketPrice = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
   const subtotal = selectedSeats.length * ticketPrice;
   const total = subtotal;
 
-  const onSubmit = (values: z.infer<typeof finalCheckoutSchema>) => {
-    console.log('Form submitted with values:', values);
-    setStep(steps.length); // Move to the last step (Invoice)
+  const onSubmit = async (values: z.infer<typeof finalCheckoutSchema>) => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Not logged in",
+            description: "You need to be logged in to book an event."
+        });
+        return;
+    }
+    setIsSubmitting(true);
+    try {
+        // Save booking to firestore
+        await addDoc(collection(db, "bookings"), {
+            userId: user.uid,
+            eventId: event.id,
+            eventName: event.name,
+            eventDate: event.date,
+            seats: selectedSeats.map(s => s.id),
+            total: total,
+            bookingDate: new Date(),
+        });
+        console.log('Form submitted with values:', values);
+        setStep(steps.length); // Move to the last step (Invoice)
+    } catch (error) {
+        console.error("Error saving booking: ", error);
+        toast({
+            variant: "destructive",
+            title: "Booking Failed",
+            description: "There was an error saving your booking. Please try again."
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const handleNext = async () => {
@@ -96,8 +140,8 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={resetAndClose}>
+    <Dialog open={isOpen} onOpenChange={resetAndClose}>
+      <DialogContent className="sm:max-w-2xl" onInteractOutside={(e) => { if (isSubmitting) e.preventDefault()}} onEscapeKeyDown={resetAndClose}>
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">Complete Your Booking</DialogTitle>
            <div className="flex justify-center items-center my-4">
@@ -213,18 +257,18 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
 
             <DialogFooter className="mt-8">
                 {step > 1 && step < steps.length && (
-                    <Button variant="outline" onClick={handleBack} type="button">
+                    <Button variant="outline" onClick={handleBack} type="button" disabled={isSubmitting}>
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
                 )}
                 {step < steps.length -1  && (
-                    <Button onClick={handleNext} type="button" className="ml-auto">
+                    <Button onClick={handleNext} type="button" className="ml-auto" disabled={isSubmitting}>
                         Next <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
                 {step === steps.length - 1 && (
-                     <Button type="submit" className="ml-auto">
-                        {eventIsPaid ? 'Confirm Purchase' : 'Register'}
+                     <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+                        {isSubmitting ? 'Processing...' : (eventIsPaid ? 'Confirm Purchase' : 'Register')}
                     </Button>
                 )}
                  {step === steps.length && (

@@ -5,25 +5,43 @@ import {
   getAuth, 
   onAuthStateChanged, 
   User, 
+  UserCredential,
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   GoogleAuthProvider
 } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { doc, setDoc, getDoc } from "firebase/firestore"; 
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, pass: string) => Promise<any>;
-  signup: (email: string, pass: string) => Promise<any>;
+  signup: (email: string, pass: string, fullName: string) => Promise<any>;
   logout: () => Promise<void>;
   signInWithGoogle: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Helper function to create a user profile in Firestore
+const createUserProfile = async (user: User, fullName?: string) => {
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) {
+        await setDoc(userRef, {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || fullName,
+            photoURL: user.photoURL,
+            createdAt: new Date()
+        });
+    }
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -43,8 +61,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return signInWithEmailAndPassword(auth, email, pass);
   };
   
-  const signup = (email: string, pass: string) => {
-    return createUserWithEmailAndPassword(auth, email, pass);
+  const signup = async (email: string, pass: string, fullName: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    if(userCredential.user) {
+        await createUserProfile(userCredential.user, fullName);
+    }
+    return userCredential;
   };
 
   const logout = async () => {
@@ -52,8 +74,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/');
   };
 
-  const signInWithGoogle = () => {
-    return signInWithPopup(auth, googleProvider);
+  const signInWithGoogle = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    if (result.user) {
+        await createUserProfile(result.user);
+    }
+    return result;
   };
 
 

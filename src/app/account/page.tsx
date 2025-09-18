@@ -1,16 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+
+interface Booking {
+  id: string;
+  eventName: string;
+  eventDate: string;
+}
 
 export default function AccountPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const [registeredEvents, setRegisteredEvents] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -18,15 +28,36 @@ export default function AccountPage() {
     }
   }, [user, loading, router]);
 
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!user) return;
+      setBookingsLoading(true);
+      try {
+        const q = query(
+          collection(db, "bookings"),
+          where("userId", "==", user.uid),
+          orderBy("bookingDate", "desc")
+        );
+        const querySnapshot = await getDocs(q);
+        const bookings = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          eventName: doc.data().eventName,
+          eventDate: doc.data().eventDate,
+        }));
+        setRegisteredEvents(bookings);
+      } catch (error) {
+        console.error("Error fetching bookings: ", error);
+      } finally {
+        setBookingsLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [user]);
+
   if (loading || !user) {
     return <div className="container text-center py-12">Loading your account details...</div>;
   }
-
-  // Mock registered events
-  const registeredEvents = [
-    { id: "1", name: "Starlight Symphony Orchestra", date: "2024-09-15" },
-    { id: "3", name: "Modern Art & Abstract Forms", date: "2024-09-20" },
-  ];
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-12">
@@ -61,14 +92,16 @@ export default function AccountPage() {
               <CardDescription>Events you have booked.</CardDescription>
             </CardHeader>
             <CardContent>
-              {registeredEvents.length > 0 ? (
+              {bookingsLoading ? (
+                 <p className="text-muted-foreground text-center">Loading your events...</p>
+              ) : registeredEvents.length > 0 ? (
                 <ul className="space-y-4">
                   {registeredEvents.map((event, index) => (
                     <li key={event.id}>
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-semibold">{event.name}</p>
-                          <p className="text-sm text-muted-foreground">Date: {new Date(event.date).toLocaleDateString()}</p>
+                          <p className="font-semibold">{event.eventName}</p>
+                          <p className="text-sm text-muted-foreground">Date: {new Date(event.eventDate).toLocaleDateString()}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button variant="outline" size="sm">View Booking</Button>
