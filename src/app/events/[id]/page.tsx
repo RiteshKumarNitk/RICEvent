@@ -4,7 +4,7 @@ import { events as staticEvents } from "@/lib/data";
 import { notFound, useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Share2, Comedy, Languages, PersonStanding } from "lucide-react";
+import { Calendar, Clock, MapPin, Share2, Languages, PersonStanding, Ticket } from "lucide-react";
 import { format } from "date-fns";
 import { useEvents } from "@/app/admin/events/events-provider";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ export default function EventPage() {
                                 <span>{event.venue}, {event.location}</span>
                             </li>
                              <li className="flex items-center gap-4">
-                                <Comedy className="h-5 w-5 text-primary" />
+                                <Ticket className="h-5 w-5 text-primary" />
                                 <span>{event.category}</span>
                             </li>
                              <li className="flex items-center gap-4">
