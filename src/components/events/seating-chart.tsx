@@ -69,7 +69,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     }, 0);
   };
   
-  if (!event.seatingChart) {
+  if (ticketCount > 0 && !event.seatingChart) {
     const price = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
     const totalPrice = price * ticketCount;
     return (
@@ -104,6 +104,11 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
         <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={Array.from({ length: ticketCount }, (_, i) => ({ id: `GA${i + 1}`, number: `${i + 1}`, isAvailable: true }))} />
       </>
     );
+  }
+
+  if (!event.seatingChart) {
+    // If there's no seating chart and no tickets selected, don't render anything for the chart
+    return null;
   }
 
   const { sections } = event.seatingChart;
