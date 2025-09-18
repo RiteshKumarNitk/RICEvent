@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Event, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Ticket, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 import { Separator } from "../ui/separator";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 const RowLabel = ({ label }: { label: string }) => (
   <div className="flex h-8 w-8 items-center justify-center text-sm font-medium text-muted-foreground">
@@ -20,6 +22,15 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const { toast } = useToast();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
+
+  useEffect(() => {
+    if (ticketCount === 0) {
+      toast({
+          title: "No Tickets Selected",
+          description: "Please go back and select the number of tickets you want.",
+      });
+    }
+  }, [ticketCount, toast]);
 
   const isFreeEvent = event.ticketTypes.every(t => t.price === 0);
 
@@ -57,7 +68,8 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   };
   
   const getSeatPrice = (seat: Seat) => {
-      for (const section of event.seatingChart!.sections) {
+      if (!event.seatingChart) return 0;
+      for (const section of event.seatingChart.sections) {
         for (const row of section.rows) {
           if (row.find(s => s?.id === seat.id)) {
             return section.price;
@@ -113,8 +125,8 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   if (!event.seatingChart) {
     return (
         <div className="text-center py-16 text-muted-foreground">
-            <h3 className="text-xl font-semibold mb-2">General Admission</h3>
-            <p>This event does not have a seating chart. Go back to select tickets.</p>
+            <h3 className="text-xl font-semibold mb-2">Seating Not Available</h3>
+            <p>This event does not have a seating chart or you may need to select tickets first.</p>
              <Button asChild variant="outline" className="mt-4">
                 <Link href={`/events/${event.id}`}>
                     <ArrowLeft className="mr-2 h-4 w-4"/>
@@ -160,7 +172,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                                             disabled={!seat.isAvailable}
                                             className={cn(
                                             "flex h-8 w-8 items-center justify-center rounded-md border text-xs font-mono transition-colors",
-                                            "disabled:bg-gray-400 disabled:border-gray-500 disabled:text-gray-600 disabled:cursor-not-allowed",
+                                            !seat.isAvailable && "bg-gray-400 border-gray-500 text-gray-600 cursor-not-allowed",
                                             isSelected ? "bg-blue-400 border-blue-600 text-white" : "bg-green-200 border-green-400 hover:bg-green-300",
                                             seat.isAvailable ? "cursor-pointer" : ""
                                             )}
@@ -228,3 +240,5 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     </>
   );
 }
+
+    
