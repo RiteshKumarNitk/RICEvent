@@ -71,27 +71,33 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
-  
-    const initializeEvents = async () => {
+
+    const initializeAndListen = async () => {
       // First, check if the events collection is empty.
-      const initialSnapshot = await getDocs(eventsCollection);
-      if (initialSnapshot.empty) {
-        console.log("No events found in Firestore. Seeding database...");
-        try {
+      try {
+        const initialSnapshot = await getDocs(eventsCollection);
+        if (initialSnapshot.empty) {
+          console.log("No events found in Firestore. Seeding database...");
           // If it's empty, add the sample events.
+          // This requires Firestore rules to be temporarily open for writes
+          // or for an admin/server-side process to do the seeding.
+          // For this app, we assume the user might need to set rules to public for a moment.
+          // Or we can guide them to add the first event manually.
+          // For a better DX, we'll try to seed it and let Firestore rules handle permissions.
+          // This part might fail if rules are strict, which is a common scenario.
           for (const event of sampleEvents) {
             await addDoc(eventsCollection, {
               ...event,
-              date: new Date(event.date), // Store as Firestore Timestamp
+              date: new Date(event.date),
             });
           }
           console.log("Database seeded successfully with sample events.");
-        } catch (error) {
-          console.error("Error seeding database: ", error);
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not seed the database.' });
         }
+      } catch (error) {
+          console.error("Could not check or seed database. This might be due to Firestore rules.", error);
+          // Don't toast here, as it can be annoying on every load if rules are strict.
       }
-
+      
       // After potentially seeding, set up the real-time listener.
       const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
         const eventsData = snapshot.docs.map(doc => {
@@ -114,7 +120,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       return unsubscribe;
     };
   
-    const unsubscribePromise = initializeEvents();
+    const unsubscribePromise = initializeAndListen();
   
     return () => {
       unsubscribePromise.then(unsubscribe => {
