@@ -95,36 +95,49 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
-    let isInitialLoad = true;
+    
+    const initializeEvents = async () => {
+        try {
+            const initialSnapshot = await getDocs(eventsCollection);
+            if (initialSnapshot.empty) {
+                console.log('Event collection is empty. Attempting to seed.');
+                await seedDatabase();
+            }
+        } catch (error) {
+            console.error("Error checking initial events:", error);
+            // This error might happen due to permissions before a user is logged in.
+            // The onSnapshot listener below will handle subsequent fetches.
+        }
 
-    const unsubscribe = onSnapshot(eventsCollection, async (snapshot) => {
-      if (isInitialLoad && snapshot.empty) {
-        // If it's the first load and the database is empty, seed it.
-        // This requires the user to be logged in if rules are restrictive.
-        console.log('Event collection is empty on initial load. Attempting to seed.');
-        await seedDatabase();
-      }
+        const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
+            const eventsData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                id: doc.id,
+                ...data,
+                date: (data.date as Timestamp).toDate().toISOString(),
+                } as Event;
+            });
+            setEvents(eventsData);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching events snapshot: ", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
+            setLoading(false);
+        });
 
-      const eventsData = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          date: (data.date as Timestamp).toDate().toISOString(),
-        } as Event;
-      });
-      
-      setEvents(eventsData);
-      setLoading(false);
-      isInitialLoad = false;
+        return unsubscribe;
+    };
 
-    }, (error) => {
-      console.error("Error fetching events snapshot: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
-      setLoading(false);
-    });
+    const unsubscribePromise = initializeEvents();
 
-    return () => unsubscribe();
+    return () => {
+        unsubscribePromise.then(unsubscribe => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        });
+    };
   }, [toast, seedDatabase]);
 
   const addEvent = async (eventData: Omit<Event, 'id'>) => {
