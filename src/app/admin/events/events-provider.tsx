@@ -59,6 +59,7 @@ interface EventsContextType {
   addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
   updateEvent: (eventId: string, event: Partial<Omit<Event, 'id'>>) => Promise<void>;
   deleteEvent: (eventId: string) => Promise<void>;
+  seedDatabase: () => Promise<void>;
 }
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
@@ -68,77 +69,27 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const seedDatabase = useCallback(async () => {
-    try {
-      console.log('Seeding database with sample events...');
-      const eventsCollection = collection(db, 'events');
-      for (const eventData of sampleEvents) {
-        await addDoc(eventsCollection, {
-          ...eventData,
-          date: new Date(eventData.date),
-        });
-      }
-      toast({ title: "Database Seeded", description: "Sample events have been added." });
-    } catch (error) {
-      console.error('Error seeding database:', error);
-      let errorMessage = 'An unknown error occurred.';
-      if (error instanceof Error) {
-          errorMessage = error.message;
-      }
-      toast({ 
-          variant: 'destructive', 
-          title: 'Seeding Failed', 
-          description: 'Could not add sample events. Check Firestore security rules.' 
-      });
-    }
-  }, [toast]);
-  
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
-    
-    const initializeEvents = async () => {
-        try {
-            const initialSnapshot = await getDocs(eventsCollection);
-            if (initialSnapshot.empty) {
-                console.log('Event collection is empty. Attempting to seed.');
-                await seedDatabase();
-            }
-        } catch (error) {
-            console.error("Error checking initial events:", error);
-            // This error might happen due to permissions before a user is logged in.
-            // The onSnapshot listener below will handle subsequent fetches.
-        }
-
-        const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
-            const eventsData = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                id: doc.id,
-                ...data,
-                date: (data.date as Timestamp).toDate().toISOString(),
-                } as Event;
-            });
-            setEvents(eventsData);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching events snapshot: ", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
-            setLoading(false);
+    const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
+        const eventsData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+            id: doc.id,
+            ...data,
+            date: (data.date as Timestamp).toDate().toISOString(),
+            } as Event;
         });
+        setEvents(eventsData);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching events snapshot: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
+        setLoading(false);
+    });
 
-        return unsubscribe;
-    };
-
-    const unsubscribePromise = initializeEvents();
-
-    return () => {
-        unsubscribePromise.then(unsubscribe => {
-            if (unsubscribe) {
-                unsubscribe();
-            }
-        });
-    };
-  }, [toast, seedDatabase]);
+    return () => unsubscribe();
+  }, [toast]);
 
   const addEvent = async (eventData: Omit<Event, 'id'>) => {
     try {
@@ -183,13 +134,41 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const seedDatabase = useCallback(async () => {
+    const eventsCollection = collection(db, 'events');
+    const snapshot = await getDocs(eventsCollection);
+    if (!snapshot.empty) {
+        toast({ title: "Database Not Empty", description: "Sample events already exist." });
+        return;
+    }
+
+    try {
+      console.log('Seeding database with sample events...');
+      for (const eventData of sampleEvents) {
+        await addDoc(eventsCollection, {
+          ...eventData,
+          date: new Date(eventData.date),
+        });
+      }
+      toast({ title: "Database Seeded", description: "Sample events have been added." });
+    } catch (error) {
+      console.error('Error seeding database:', error);
+      toast({ 
+          variant: 'destructive', 
+          title: 'Seeding Failed', 
+          description: 'Could not add sample events. Check Firestore security rules and that you are logged in.' 
+      });
+    }
+  }, [toast]);
+
 
   const value = {
     events,
     loading,
     addEvent,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    seedDatabase
   };
 
   return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>;

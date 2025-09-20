@@ -1,12 +1,18 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { DollarSign, Users, Calendar } from "lucide-react";
+"use client";
+
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { DollarSign, Users, Calendar, Database } from "lucide-react";
+import { useEvents } from "./events/events-provider";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
+  const { seedDatabase, events } = useEvents();
+
   // Mock data, to be replaced with real data from backend
   const stats = {
     totalRevenue: 45231.89,
     registeredUsers: 1250,
-    upcomingEvents: 4,
+    upcomingEvents: events.filter(e => new Date(e.date) > new Date()).length,
   };
 
   return (
@@ -44,14 +50,30 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-8">
-        {/* Placeholder for recent activity or more detailed charts */}
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">No recent activity to display.</p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader>
+            <CardTitle>Database Tools</CardTitle>
+            <CardDescription>Use these actions to manage your database.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <Button onClick={seedDatabase}>
+                <Database className="mr-2 h-4 w-4" />
+                Seed Sample Events
+              </Button>
+               <p className="text-sm text-muted-foreground">
+                Adds sample events if the database is empty.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
