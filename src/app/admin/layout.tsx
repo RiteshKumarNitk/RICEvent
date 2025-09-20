@@ -46,7 +46,9 @@ export default function AdminLayout({
                         <ShieldAlert className="h-10 w-10 text-destructive" />
                     </div>
                     <CardTitle className="mt-4">Not Authorized</CardTitle>
-                    <CardDescription>You do not have permission to access this page. Please log in with an administrator account.</CardDescription>
+                    <CardDescription>
+                        You do not have permission to access this page. Please sign in with the admin account (<strong className="text-primary">{ADMIN_EMAIL}</strong>).
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Button asChild>

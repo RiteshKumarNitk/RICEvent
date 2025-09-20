@@ -44,10 +44,20 @@ export default function LoginPage() {
       router.push(redirect || "/account");
     } catch (error: any) {
        let description = "An unexpected error occurred. Please try again.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        description = "Invalid email or password. Please check your credentials and try again.";
-      } else if (error.code === 'auth/too-many-requests') {
-        description = "Too many login attempts. Please try again later.";
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            description = "Invalid email or password. Please check your credentials and try again.";
+            break;
+          case 'auth/too-many-requests':
+            description = "Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later.";
+            break;
+          default:
+            description = `An unexpected error occurred: ${error.message}`;
+            break;
+        }
       }
       toast({ variant: "destructive", title: "Login Failed", description });
     }
