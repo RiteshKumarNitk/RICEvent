@@ -49,11 +49,12 @@ export default function EditEventPage() {
     async function onSubmit(values: z.infer<typeof eventSchema>) {
         if (!event) return;
 
-        const updatedEvent = {
-            ...event,
+        const updatedEventData = {
             ...values,
+            date: new Date(values.date).toISOString(),
         };
-        await updateEvent(updatedEvent);
+
+        await updateEvent(event.id, updatedEventData);
         router.push("/admin/events");
     }
 

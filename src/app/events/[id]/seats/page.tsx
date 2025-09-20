@@ -2,7 +2,6 @@
 
 import { useSearchParams, notFound, useParams } from "next/navigation";
 import { useEvents } from "@/app/admin/events/events-provider";
-import { events as staticEvents } from "@/lib/data";
 import { SeatingChart } from "@/components/events/seating-chart";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Ticket } from "lucide-react";
@@ -33,15 +32,18 @@ const ShowtimeSelector = ({ event, selectedShowtime, onSelect }: { event: Event,
 export default function SeatsPage() {
   const params = useParams();
   const id = params.id as string;
-  const { events } = useEvents();
+  const { events, loading } = useEvents();
   const searchParams = useSearchParams();
   
   const ticketCountParam = searchParams.get('tickets');
   const ticketCount = ticketCountParam ? parseInt(ticketCountParam, 10) : 0;
 
-  const event = events.find((e) => e.id === id) || staticEvents.find(e => e.id === id);
-
+  const event = events.find((e) => e.id === id);
   const [selectedShowtime, setSelectedShowtime] = useState(event?.showtimes[0] || "");
+
+  if (loading) {
+      return <div className="container text-center py-12">Loading seating information...</div>;
+  }
 
   if (!event || !ticketCount) {
     notFound();

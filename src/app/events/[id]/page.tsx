@@ -1,6 +1,5 @@
 "use client";
 
-import { events as staticEvents } from "@/lib/data";
 import { notFound, useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -8,15 +7,19 @@ import { Calendar, Clock, MapPin, Share2, Languages, PersonStanding, Ticket, Ute
 import { format } from "date-fns";
 import { useEvents } from "@/app/admin/events/events-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function EventPage() {
   const params = useParams();
   const id = params.id as string;
-  const { events } = useEvents();
-  const event = events.find((e) => e.id === id) || staticEvents.find(e => e.id === id);
+  const { events, loading } = useEvents();
   const router = useRouter();
 
+  const event = events.find((e) => e.id === id);
+
+  if (loading) {
+    return <div className="container text-center py-12">Loading event details...</div>;
+  }
+  
   if (!event) {
     notFound();
   }

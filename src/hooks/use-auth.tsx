@@ -30,12 +30,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Helper function to create a user profile in Firestore
 const createUserProfile = async (user: User, additionalData: { displayName?: string } = {}) => {
+    if (!user) return;
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
         const { uid, email, photoURL } = user;
-        const displayName = additionalData.displayName || user.displayName;
+        const displayName = additionalData.displayName || user.displayName || "Anonymous User";
         try {
             await setDoc(userRef, {
                 uid,
@@ -46,6 +47,9 @@ const createUserProfile = async (user: User, additionalData: { displayName?: str
             });
         } catch (error) {
             console.error("Error creating user profile in Firestore:", error);
+            // This might happen due to Firestore rules.
+            // We can re-throw or handle it gracefully.
+            throw error;
         }
     }
 }
@@ -72,18 +76,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const user = userCredential.user;
     if (user) {
-      // First, update the user's profile in Firebase Auth
-      await updateProfile(user, { displayName: fullName });
-      
-      // Then, sign in the user to establish an authenticated session for Firestore rules
-      await signInWithEmailAndPassword(auth, email, pass);
-
-      // Now that the user is authenticated, create their profile in Firestore
-      // We need to get the user object again as it might have been updated
-      const currentUser = getAuth().currentUser;
-      if (currentUser) {
-        await createUserProfile(currentUser, { displayName: fullName });
-      }
+        await updateProfile(user, { displayName: fullName });
+        // Manually re-authenticate to ensure Firestore rules see the logged-in user
+        await signInWithEmailAndPassword(auth, email, pass);
+        const currentUser = getAuth().currentUser;
+        if(currentUser){
+            await createUserProfile(currentUser, { displayName: fullName });
+        }
     }
     return userCredential;
   };

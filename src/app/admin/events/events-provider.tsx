@@ -3,14 +3,14 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Event } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocs, setDoc, DocumentData } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface EventsContextType {
   events: Event[];
   loading: boolean;
   addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
-  updateEvent: (event: Event) => Promise<void>;
+  updateEvent: (eventId: string, event: Partial<Omit<Event, 'id'>>) => Promise<void>;
   deleteEvent: (eventId: string) => Promise<void>;
 }
 
@@ -71,37 +71,54 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
-
-    const seedDatabase = async () => {
+  
+    const seedDatabaseAndSubscribe = async () => {
+      try {
         const snapshot = await getDocs(eventsCollection);
         if (snapshot.empty) {
-            console.log("No events found. Seeding database...");
-            for (const event of sampleEvents) {
-                await addDoc(eventsCollection, {
-                    ...event,
-                    date: new Date(event.date),
-                });
-            }
+          console.log("No events found. Seeding database...");
+          for (const event of sampleEvents) {
+            await addDoc(eventsCollection, {
+              ...event,
+              date: new Date(event.date),
+            });
+          }
         }
-    };
-
-    const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
+      } catch (error) {
+        console.error("Error seeding database: ", error);
+        // Don't block the UI if seeding fails.
+      }
+  
+      const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
         const eventsData = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                ...data,
-                date: (data.date as Timestamp).toDate().toISOString(),
-            } as Event;
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            date: (data.date as Timestamp).toDate().toISOString(),
+          } as Event;
         });
         setEvents(eventsData);
         setLoading(false);
-    });
-
-    seedDatabase();
-
-    return () => unsubscribe();
-  }, []);
+      }, (error) => {
+        console.error("Error fetching events snapshot: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check permissions.' });
+        setLoading(false);
+      });
+  
+      return unsubscribe;
+    };
+  
+    const unsubscribePromise = seedDatabaseAndSubscribe();
+  
+    return () => {
+      unsubscribePromise.then(unsubscribe => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      });
+    };
+  }, [toast]);
 
   const addEvent = async (event: Omit<Event, 'id'>) => {
     try {
@@ -116,13 +133,14 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateEvent = async (updatedEvent: Event) => {
+  const updateEvent = async (eventId: string, eventData: Partial<Omit<Event, 'id'>>) => {
     try {
-      const eventRef = doc(db, 'events', updatedEvent.id);
-      await updateDoc(eventRef, {
-        ...updatedEvent,
-        date: new Date(updatedEvent.date),
-      });
+      const eventRef = doc(db, 'events', eventId);
+      const updatePayload: DocumentData = { ...eventData };
+      if (eventData.date) {
+        updatePayload.date = new Date(eventData.date);
+      }
+      await updateDoc(eventRef, updatePayload);
       toast({ title: 'Success', description: 'Event updated successfully.' });
     } catch (error) {
       console.error("Error updating event: ", error);
