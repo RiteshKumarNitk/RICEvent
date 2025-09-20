@@ -1,14 +1,17 @@
-import { NextResponse } from 'next/server';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+"use client";
+
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Event } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 const sampleEvents: Omit<Event, 'id'>[] = [
     {
         name: "Starlight Symphony Orchestra",
         description: "Experience a magical evening with the Starlight Symphony Orchestra, performing classical masterpieces under the stars. A perfect event for music lovers of all ages.",
         category: "Music",
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         location: "Jaipur, Rajasthan",
         venue: "Central Park Amphitheater",
         image: "https://picsum.photos/seed/event1/600/400",
@@ -19,7 +22,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         name: "Future of AI - Tech Summit",
         description: "Join industry leaders and innovators to discuss the future of Artificial Intelligence. This summit will feature keynote speakers, panel discussions, and networking opportunities.",
         category: "Seminar",
-        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks from now
+        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         location: "Jaipur, Rajasthan",
         venue: "RIC Convention Hall",
         image: "https://picsum.photos/seed/event2/600/400",
@@ -30,7 +33,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         name: "Abstract Expressions Art Exhibit",
         description: "A curated collection of abstract art from emerging local artists. Explore the depths of emotion and form through a variety of mediums.",
         category: "Art",
-        date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // 3 weeks from now
+        date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
         location: "Jaipur, Rajasthan",
         venue: "RIC Art Gallery",
         image: "https://picsum.photos/seed/event3/600/400",
@@ -41,7 +44,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         name: "Rajasthan Cultural Festival",
         description: "Celebrate the rich heritage of Rajasthan with a day full of folk music, dance performances, traditional food stalls, and artisan crafts.",
         category: "Cultural",
-        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month from now
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         location: "Jaipur, Rajasthan",
         venue: "Jaipur Exhibition Centre",
         image: "https://picsum.photos/seed/event4/600/400",
@@ -50,40 +53,139 @@ const sampleEvents: Omit<Event, 'id'>[] = [
     },
 ];
 
-// This is a special endpoint to seed the database with initial data.
-// It should only be run once. It is safe to call multiple times, as it will
-// not add duplicate data if events already exist.
-export async function GET() {
-  try {
-    const eventsCollection = collection(db, 'events');
-    const snapshot = await getDocs(eventsCollection);
+interface EventsContextType {
+  events: Event[];
+  loading: boolean;
+  addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
+  updateEvent: (eventId: string, event: Partial<Omit<Event, 'id'>>) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
+}
 
-    if (!snapshot.empty) {
-      return NextResponse.json({ message: 'Database already seeded.' }, { status: 200 });
-    }
+const EventsContext = createContext<EventsContextType | undefined>(undefined);
 
-    console.log('Database is empty. Seeding with sample events...');
-    for (const eventData of sampleEvents) {
-      await addDoc(eventsCollection, {
-        ...eventData,
-        date: new Date(eventData.date), // Store as a proper timestamp
+export const EventsProvider = ({ children }: { children: ReactNode }) => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const seedDatabase = useCallback(async () => {
+    try {
+      console.log('Seeding database with sample events...');
+      const eventsCollection = collection(db, 'events');
+      for (const eventData of sampleEvents) {
+        await addDoc(eventsCollection, {
+          ...eventData,
+          date: new Date(eventData.date),
+        });
+      }
+      toast({ title: "Database Seeded", description: "Sample events have been added." });
+    } catch (error) {
+      console.error('Error seeding database:', error);
+      let errorMessage = 'An unknown error occurred.';
+      if (error instanceof Error) {
+          errorMessage = error.message;
+      }
+      toast({ 
+          variant: 'destructive', 
+          title: 'Seeding Failed', 
+          description: 'Could not add sample events. Check Firestore security rules.' 
       });
     }
-    
-    return NextResponse.json({ message: 'Database seeded successfully!' }, { status: 200 });
-  } catch (error) {
-    console.error('Error seeding database:', error);
-    let errorMessage = 'An unknown error occurred.';
-    if (error instanceof Error) {
-        errorMessage = error.message;
+  }, [toast]);
+  
+  useEffect(() => {
+    const eventsCollection = collection(db, 'events');
+    let isInitialLoad = true;
+
+    const unsubscribe = onSnapshot(eventsCollection, async (snapshot) => {
+      if (isInitialLoad && snapshot.empty) {
+        // If it's the first load and the database is empty, seed it.
+        // This requires the user to be logged in if rules are restrictive.
+        console.log('Event collection is empty on initial load. Attempting to seed.');
+        await seedDatabase();
+      }
+
+      const eventsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          date: (data.date as Timestamp).toDate().toISOString(),
+        } as Event;
+      });
+      
+      setEvents(eventsData);
+      setLoading(false);
+      isInitialLoad = false;
+
+    }, (error) => {
+      console.error("Error fetching events snapshot: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [toast, seedDatabase]);
+
+  const addEvent = async (eventData: Omit<Event, 'id'>) => {
+    try {
+      const eventsCollection = collection(db, 'events');
+      await addDoc(eventsCollection, {
+        ...eventData,
+        date: new Date(eventData.date),
+      });
+      toast({ title: 'Success', description: 'Event created successfully.' });
+    } catch (error) {
+      console.error("Error adding event:", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to create event.' });
+      throw error;
     }
-    // Check for permission errors specifically.
-    if (errorMessage.includes('Missing or insufficient permissions')) {
-        return NextResponse.json({ 
-            message: 'Firestore security rules are blocking the seeding process. Please ensure that your rules allow for writes to the events collection, at least temporarily.',
-            error: errorMessage
-        }, { status: 500 });
+  };
+  
+  const updateEvent = async (eventId: string, eventData: Partial<Omit<Event, 'id'>>) => {
+    try {
+      const eventRef = doc(db, 'events', eventId);
+      const dataToUpdate: { [key: string]: any } = { ...eventData };
+      if (eventData.date) {
+        dataToUpdate.date = new Date(eventData.date);
+      }
+      await updateDoc(eventRef, dataToUpdate);
+      toast({ title: 'Success', description: 'Event updated successfully.' });
+    } catch (error) {
+      console.error("Error updating event:", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update event.' });
+      throw error;
     }
-    return NextResponse.json({ message: 'Failed to seed database.', error: errorMessage }, { status: 500 });
+  };
+
+  const deleteEvent = async (eventId: string) => {
+    try {
+      const eventRef = doc(db, 'events', eventId);
+      await deleteDoc(eventRef);
+      toast({ title: 'Success', description: 'Event deleted successfully.' });
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete event.' });
+      throw error;
+    }
+  };
+
+
+  const value = {
+    events,
+    loading,
+    addEvent,
+    updateEvent,
+    deleteEvent
+  };
+
+  return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>;
+};
+
+export const useEvents = () => {
+  const context = useContext(EventsContext);
+  if (context === undefined) {
+    throw new Error('useEvents must be used within an EventsProvider');
   }
-}
+  return context;
+};
