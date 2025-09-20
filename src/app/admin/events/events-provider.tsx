@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Event } from '@/lib/types';
+import type { Event } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocs, setDoc, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocs, DocumentData } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface EventsContextType {
@@ -72,29 +72,34 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
   
-    const seedDatabaseAndSubscribe = async () => {
-      try {
-        const snapshot = await getDocs(eventsCollection);
-        if (snapshot.empty) {
-          console.log("No events found. Seeding database...");
+    const initializeEvents = async () => {
+      // First, check if the events collection is empty.
+      const initialSnapshot = await getDocs(eventsCollection);
+      if (initialSnapshot.empty) {
+        console.log("No events found in Firestore. Seeding database...");
+        try {
+          // If it's empty, add the sample events.
           for (const event of sampleEvents) {
             await addDoc(eventsCollection, {
               ...event,
-              date: new Date(event.date),
+              date: new Date(event.date), // Store as Firestore Timestamp
             });
           }
+          console.log("Database seeded successfully with sample events.");
+        } catch (error) {
+          console.error("Error seeding database: ", error);
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not seed the database.' });
         }
-      } catch (error) {
-        console.error("Error seeding database: ", error);
-        // Don't block the UI if seeding fails.
       }
-  
+
+      // After potentially seeding, set up the real-time listener.
       const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
         const eventsData = snapshot.docs.map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
+            // Convert Firestore Timestamp back to ISO string for consistency in the app
             date: (data.date as Timestamp).toDate().toISOString(),
           } as Event;
         });
@@ -102,14 +107,14 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       }, (error) => {
         console.error("Error fetching events snapshot: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check permissions.' });
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
         setLoading(false);
       });
   
       return unsubscribe;
     };
   
-    const unsubscribePromise = seedDatabaseAndSubscribe();
+    const unsubscribePromise = initializeEvents();
   
     return () => {
       unsubscribePromise.then(unsubscribe => {
