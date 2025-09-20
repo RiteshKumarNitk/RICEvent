@@ -44,8 +44,21 @@ export default function SignupPage() {
       router.push(redirect || "/account");
     } catch (error: any) {
       let description = "An unexpected error occurred. Please try again.";
-      if (error.code === 'auth/email-already-in-use') {
-        description = "This email is already in use. Please log in instead.";
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            description = "This email is already in use. Please log in instead.";
+            break;
+          case 'auth/weak-password':
+            description = "The password is too weak. Please choose a stronger password.";
+            break;
+          case 'auth/invalid-email':
+            description = "The email address is not valid.";
+            break;
+          default:
+            description = `An unexpected error occurred: ${error.message}`;
+            break;
+        }
       }
       toast({ variant: "destructive", title: "Signup Failed", description });
     }
