@@ -72,32 +72,33 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
 
-    const seedEvents = async () => {
-        for (const event of sampleEvents) {
-            await addDoc(eventsCollection, {
-                ...event,
-                date: new Date(event.date),
-            });
+    const seedDatabase = async () => {
+        const snapshot = await getDocs(eventsCollection);
+        if (snapshot.empty) {
+            console.log("No events found. Seeding database...");
+            for (const event of sampleEvents) {
+                await addDoc(eventsCollection, {
+                    ...event,
+                    date: new Date(event.date),
+                });
+            }
         }
     };
 
     const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
-      if (snapshot.empty) {
-        console.log("No events found. Seeding database...");
-        seedEvents();
-      }
-
-      const eventsData = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          date: (data.date as Timestamp).toDate().toISOString(),
-        } as Event;
-      });
-      setEvents(eventsData);
-      setLoading(false);
+        const eventsData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                date: (data.date as Timestamp).toDate().toISOString(),
+            } as Event;
+        });
+        setEvents(eventsData);
+        setLoading(false);
     });
+
+    seedDatabase();
 
     return () => unsubscribe();
   }, []);
