@@ -4,12 +4,13 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  "projectId": "studio-7798022864-95d4a",
-  "appId": "1:544924222308:web:6a952dc75072b6066f3071",
-  "apiKey": "AIzaSyAbAesQWNzSEmdcHGlkFfyNsT_Y1HVBiH4",
-  "authDomain": "studio-7798022864-95d4a.firebaseapp.com",
-  "storageBucket": "studio-7798022864-95d4a.firebasestorage.app",
-  "messagingSenderId": "544924222308"
+  apiKey: "AIzaSyDXyajMRJG398lt08A7AxtV6PX_j2sbNcA",
+  authDomain: "ricbookshow.firebaseapp.com",
+  projectId: "ricbookshow",
+  storageBucket: "ricbookshow.firebasestorage.app",
+  messagingSenderId: "16164380326",
+  appId: "1:16164380326:web:600d2b0b8aae9a10491e67",
+  measurementId: "G-F1Q0QJH32F"
 };
 
 
