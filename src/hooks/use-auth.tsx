@@ -76,13 +76,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const user = userCredential.user;
     if (user) {
+        // Update the user's profile with the full name
         await updateProfile(user, { displayName: fullName });
-        // Manually re-authenticate to ensure Firestore rules see the logged-in user
-        await signInWithEmailAndPassword(auth, email, pass);
-        const currentUser = getAuth().currentUser;
-        if(currentUser){
-            await createUserProfile(currentUser, { displayName: fullName });
-        }
+        // Create the user document in Firestore
+        // The onAuthStateChanged listener will handle setting the user state
+        // so no manual re-login is needed.
+        await createUserProfile(user, { displayName: fullName });
     }
     return userCredential;
   };
