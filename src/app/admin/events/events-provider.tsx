@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Event } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface EventsContextType {
@@ -16,19 +16,82 @@ interface EventsContextType {
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
 
+const sampleEvents: Omit<Event, 'id'>[] = [
+    {
+        name: "Starlight Symphony Orchestra",
+        description: "Experience a magical evening with the Starlight Symphony Orchestra, performing classical masterpieces under the stars. A perfect event for music lovers of all ages.",
+        category: "Music",
+        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+        location: "Jaipur, Rajasthan",
+        venue: "Central Park Amphitheater",
+        image: "https://picsum.photos/seed/event1/600/400",
+        showtimes: ["19:00"],
+        ticketTypes: [{ type: "Standard", price: 500 }],
+    },
+    {
+        name: "Future of AI - Tech Summit",
+        description: "Join industry leaders and innovators to discuss the future of Artificial Intelligence. This summit will feature keynote speakers, panel discussions, and networking opportunities.",
+        category: "Seminar",
+        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks from now
+        location: "Jaipur, Rajasthan",
+        venue: "RIC Convention Hall",
+        image: "https://picsum.photos/seed/event2/600/400",
+        showtimes: ["09:00", "13:00"],
+        ticketTypes: [{ type: "Standard", price: 1500 }],
+    },
+    {
+        name: "Abstract Expressions Art Exhibit",
+        description: "A curated collection of abstract art from emerging local artists. Explore the depths of emotion and form through a variety of mediums.",
+        category: "Art",
+        date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // 3 weeks from now
+        location: "Jaipur, Rajasthan",
+        venue: "RIC Art Gallery",
+        image: "https://picsum.photos/seed/event3/600/400",
+        showtimes: ["11:00"],
+        ticketTypes: [{ type: "Standard", price: 0 }],
+    },
+     {
+        name: "Rajasthan Cultural Festival",
+        description: "Celebrate the rich heritage of Rajasthan with a day full of folk music, dance performances, traditional food stalls, and artisan crafts.",
+        category: "Cultural",
+        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month from now
+        location: "Jaipur, Rajasthan",
+        venue: "Jaipur Exhibition Centre",
+        image: "https://picsum.photos/seed/event4/600/400",
+        showtimes: ["10:00"],
+        ticketTypes: [{ type: "Standard", price: 250 }],
+    },
+];
+
+
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'events'), (snapshot) => {
+    const eventsCollection = collection(db, 'events');
+
+    const seedEvents = async () => {
+        for (const event of sampleEvents) {
+            await addDoc(eventsCollection, {
+                ...event,
+                date: new Date(event.date),
+            });
+        }
+    };
+
+    const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
+      if (snapshot.empty) {
+        console.log("No events found. Seeding database...");
+        seedEvents();
+      }
+
       const eventsData = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
-          // Convert Firestore Timestamp to string if necessary
           date: (data.date as Timestamp).toDate().toISOString(),
         } as Event;
       });
@@ -43,7 +106,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     try {
       await addDoc(collection(db, 'events'), {
           ...event,
-          date: new Date(event.date), // Store as Firestore Timestamp
+          date: new Date(event.date),
       });
       toast({ title: 'Success', description: 'Event added successfully.' });
     } catch (error) {
@@ -57,7 +120,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       const eventRef = doc(db, 'events', updatedEvent.id);
       await updateDoc(eventRef, {
         ...updatedEvent,
-        date: new Date(updatedEvent.date), // Store as Firestore Timestamp
+        date: new Date(updatedEvent.date),
       });
       toast({ title: 'Success', description: 'Event updated successfully.' });
     } catch (error) {
