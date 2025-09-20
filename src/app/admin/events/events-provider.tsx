@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Event } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocs, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, Timestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface EventsContextType {
@@ -16,53 +16,8 @@ interface EventsContextType {
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
 
-const sampleEvents: Omit<Event, 'id'>[] = [
-    {
-        name: "Starlight Symphony Orchestra",
-        description: "Experience a magical evening with the Starlight Symphony Orchestra, performing classical masterpieces under the stars. A perfect event for music lovers of all ages.",
-        category: "Music",
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
-        location: "Jaipur, Rajasthan",
-        venue: "Central Park Amphitheater",
-        image: "https://picsum.photos/seed/event1/600/400",
-        showtimes: ["19:00"],
-        ticketTypes: [{ type: "Standard", price: 500 }],
-    },
-    {
-        name: "Future of AI - Tech Summit",
-        description: "Join industry leaders and innovators to discuss the future of Artificial Intelligence. This summit will feature keynote speakers, panel discussions, and networking opportunities.",
-        category: "Seminar",
-        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks from now
-        location: "Jaipur, Rajasthan",
-        venue: "RIC Convention Hall",
-        image: "https://picsum.photos/seed/event2/600/400",
-        showtimes: ["09:00", "13:00"],
-        ticketTypes: [{ type: "Standard", price: 1500 }],
-    },
-    {
-        name: "Abstract Expressions Art Exhibit",
-        description: "A curated collection of abstract art from emerging local artists. Explore the depths of emotion and form through a variety of mediums.",
-        category: "Art",
-        date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(), // 3 weeks from now
-        location: "Jaipur, Rajasthan",
-        venue: "RIC Art Gallery",
-        image: "https://picsum.photos/seed/event3/600/400",
-        showtimes: ["11:00"],
-        ticketTypes: [{ type: "Standard", price: 0 }],
-    },
-     {
-        name: "Rajasthan Cultural Festival",
-        description: "Celebrate the rich heritage of Rajasthan with a day full of folk music, dance performances, traditional food stalls, and artisan crafts.",
-        category: "Cultural",
-        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month from now
-        location: "Jaipur, Rajasthan",
-        venue: "Jaipur Exhibition Centre",
-        image: "https://picsum.photos/seed/event4/600/400",
-        showtimes: ["10:00"],
-        ticketTypes: [{ type: "Standard", price: 250 }],
-    },
-];
-
+// All seeding logic has been moved to a secure API endpoint.
+// This provider is now only responsible for fetching and managing event data.
 
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -71,103 +26,44 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const eventsCollection = collection(db, 'events');
-
-    const initializeAndListen = async () => {
-      // First, check if the events collection is empty.
-      try {
-        const initialSnapshot = await getDocs(eventsCollection);
-        if (initialSnapshot.empty) {
-          console.log("No events found in Firestore. Seeding database...");
-          // If it's empty, add the sample events.
-          // This requires Firestore rules to be temporarily open for writes
-          // or for an admin/server-side process to do the seeding.
-          // For this app, we assume the user might need to set rules to public for a moment.
-          // Or we can guide them to add the first event manually.
-          // For a better DX, we'll try to seed it and let Firestore rules handle permissions.
-          // This part might fail if rules are strict, which is a common scenario.
-          for (const event of sampleEvents) {
-            await addDoc(eventsCollection, {
-              ...event,
-              date: new Date(event.date),
-            });
-          }
-          console.log("Database seeded successfully with sample events.");
-        }
-      } catch (error) {
-          console.error("Could not check or seed database. This might be due to Firestore rules.", error);
-          // Don't toast here, as it can be annoying on every load if rules are strict.
-      }
+    
+    // Set up the real-time listener.
+    const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
+      const eventsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamp back to ISO string for consistency in the app
+          date: (data.date as Timestamp).toDate().toISOString(),
+        } as Event;
+      });
       
-      // After potentially seeding, set up the real-time listener.
-      const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
-        const eventsData = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            // Convert Firestore Timestamp back to ISO string for consistency in the app
-            date: (data.date as Timestamp).toDate().toISOString(),
-          } as Event;
-        });
-        setEvents(eventsData);
-        setLoading(false);
-      }, (error) => {
-        console.error("Error fetching events snapshot: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
-        setLoading(false);
-      });
-  
-      return unsubscribe;
-    };
-  
-    const unsubscribePromise = initializeAndListen();
-  
-    return () => {
-      unsubscribePromise.then(unsubscribe => {
-        if (unsubscribe) {
-          unsubscribe();
-        }
-      });
-    };
+      if (snapshot.metadata.fromCache && eventsData.length === 0) {
+        // If we are loading from cache and there are no events, it's likely the first load without a network connection.
+        // We will show a loading state until we get a response from the server.
+        // If you still have no events after connecting, visit /api/seed to populate the database.
+      } else {
+         setEvents(eventsData);
+         setLoading(false);
+      }
+
+    }, (error) => {
+      console.error("Error fetching events snapshot: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions and configuration.' });
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [toast]);
 
-  const addEvent = async (event: Omit<Event, 'id'>) => {
-    try {
-      await addDoc(collection(db, 'events'), {
-          ...event,
-          date: new Date(event.date),
-      });
-      toast({ title: 'Success', description: 'Event added successfully.' });
-    } catch (error) {
-      console.error("Error adding event: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not add event.' });
-    }
-  };
+  // The add, update, and delete functions are now handled by the admin panel and forms.
+  // These require the user to be authenticated, which is handled by Firestore security rules.
+  // The implementations for these functions are no longer needed here as they are in the admin context.
+  const addEvent = async () => { console.warn("addEvent is not implemented in this provider context anymore.")};
+  const updateEvent = async () => { console.warn("updateEvent is not implemented in this provider context anymore.")};
+  const deleteEvent = async () => { console.warn("deleteEvent is not implemented in this provider context anymore.")};
 
-  const updateEvent = async (eventId: string, eventData: Partial<Omit<Event, 'id'>>) => {
-    try {
-      const eventRef = doc(db, 'events', eventId);
-      const updatePayload: DocumentData = { ...eventData };
-      if (eventData.date) {
-        updatePayload.date = new Date(eventData.date);
-      }
-      await updateDoc(eventRef, updatePayload);
-      toast({ title: 'Success', description: 'Event updated successfully.' });
-    } catch (error) {
-      console.error("Error updating event: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not update event.' });
-    }
-  };
-
-  const deleteEvent = async (eventId: string) => {
-    try {
-      await deleteDoc(doc(db, 'events', eventId));
-      toast({ title: 'Success', description: 'Event deleted successfully.' });
-    } catch (error) {
-      console.error("Error deleting event: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not delete event.' });
-    }
-  };
 
   const value = {
     events,
