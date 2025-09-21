@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -6,6 +7,92 @@ import type { Event } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+
+const detailedSeatingChart = {
+  sections: [
+    {
+      sectionName: "Platinum",
+      price: 1500,
+      seats: [
+        // Far back, center section
+        ...Array.from({ length: 34 }, (_, i) => ({ id: `P-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.2 })),
+        ...Array.from({ length: 32 }, (_, i) => ({ id: `P-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.2 })),
+        ...Array.from({ length: 30 }, (_, i) => ({ id: `P-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.2 })),
+      ],
+    },
+    {
+      sectionName: "Gold",
+      price: 1000,
+      seats: [
+        // Center-left block
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 9 }, (_, i) => ({ id: `G-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        // Center-right block
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-F${i + 1}`, row: 'F', col: i + 11, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-G${i + 1}`, row: 'G', col: i + 11, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-H${i + 1}`, row: 'H', col: i + 11, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-I${i + 1}`, row: 'I', col: i + 11, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 9 }, (_, i) => ({ id: `G-J${i + 1}`, row: 'J', col: i + 11, isAvailable: Math.random() > 0.3 })),
+         // Front-center block
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-K${i + 1}`, row: 'K', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-L${i + 1}`, row: 'L', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-M${i + 1}`, row: 'M', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-N${i + 1}`, row: 'N', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 13 }, (_, i) => ({ id: `G-O${i + 1}`, row: 'O', col: i + 2, isAvailable: Math.random() > 0.3 })),
+      ],
+    },
+     {
+      sectionName: "Silver Left",
+      price: 750,
+      seats: [
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `SL-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 11 }, (_, i) => ({ id: `SL-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 12 }, (_, i) => ({ id: `SL-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 13 }, (_, i) => ({ id: `SL-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 14 }, (_, i) => ({ id: `SL-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `SL-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
+      ]
+    },
+    {
+      sectionName: "Silver Right",
+      price: 750,
+      seats: [
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `SR-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 11 }, (_, i) => ({ id: `SR-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 12 }, (_, i) => ({ id: `SR-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 13 }, (_, i) => ({ id: `SR-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 14 }, (_, i) => ({ id: `SR-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 15 }, (_, i) => ({ id: `SR-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
+      ]
+    },
+    {
+      sectionName: "Bronze Left",
+      price: 500,
+      seats: [
+        ...Array.from({ length: 7 }, (_, i) => ({ id: `BL-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 8 }, (_, i) => ({ id: `BL-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 9 }, (_, i) => ({ id: `BL-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `BL-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `BL-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.15 })),
+      ],
+    },
+     {
+      sectionName: "Bronze Right",
+      price: 500,
+      seats: [
+        ...Array.from({ length: 7 }, (_, i) => ({ id: `BR-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 8 }, (_, i) => ({ id: `BR-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 9 }, (_, i) => ({ id: `BR-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `BR-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `BR-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.15 })),
+      ],
+    },
+  ],
+};
+
 
 const sampleEvents: Omit<Event, 'id'>[] = [
     {
@@ -17,27 +104,8 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         venue: "Central Park Amphitheater",
         image: "https://picsum.photos/seed/event1/600/400",
         showtimes: ["19:00"],
-        ticketTypes: [{ type: "Standard", price: 500 }],
-        seatingChart: {
-            sections: [
-                {
-                    sectionName: "Platinum",
-                    price: 750,
-                    seats: [
-                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true }, { id: "A4", row: "A", col: 4, isAvailable: true },
-                        { id: "B1", row: "B", col: 1, isAvailable: false }, { id: "B2", row: "B", col: 2, isAvailable: true }, { id: "B3", row: "B", col: 3, isAvailable: true }, { id: "B4", row: "B", col: 4, isAvailable: false },
-                    ]
-                },
-                {
-                    sectionName: "Gold",
-                    price: 500,
-                    seats: [
-                        { id: "C1", row: "C", col: 1, isAvailable: true }, { id: "C2", row: "C", col: 2, isAvailable: true }, { id: "C3", row: "C", col: 3, isAvailable: true }, { id: "C4", row: "C", col: 4, isAvailable: true }, { id: "C5", row: "C", col: 5, isAvailable: true },
-                        { id: "D1", row: "D", col: 1, isAvailable: true }, { id: "D2", row: "D", col: 2, isAvailable: false }, { id: "D3", row: "D", col: 3, isAvailable: true }, { id: "D4", row: "D", col: 4, isAvailable: true }, { id: "D5", row: "D", col: 5, isAvailable: true },
-                    ]
-                }
-            ]
-        }
+        ticketTypes: [{ type: "Standard", price: 0 }],
+        seatingChart: detailedSeatingChart,
     },
     {
         name: "Future of AI - Tech Summit",
@@ -48,28 +116,8 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         venue: "RIC Convention Hall",
         image: "https://picsum.photos/seed/event2/600/400",
         showtimes: ["09:00", "13:00"],
-        ticketTypes: [{ type: "Standard", price: 1500 }],
-        seatingChart: {
-            sections: [
-                {
-                    sectionName: "Platinum",
-                    price: 1500,
-                    seats: [
-                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true }, { id: "A4", row: "A", col: 4, isAvailable: true },
-                        { id: "B1", row: "B", col: 1, isAvailable: false }, { id: "B2", row: "B", col: 2, isAvailable: true }, { id: "B3", row: "B", col: 3, isAvailable: true }, { id: "B4", row: "B", col: 4, isAvailable: false },
-                    ]
-                },
-                {
-                    sectionName: "Gold",
-                    price: 1000,
-                    seats: [
-                        { id: "C1", row: "C", col: 1, isAvailable: true }, { id: "C2", row: "C", col: 2, isAvailable: true }, { id: "C3", row: "C", col: 3, isAvailable: true }, { id: "C4", row: "C", col: 4, isAvailable: true }, { id: "C5", row: "C", col: 5, isAvailable: true },
-                        { id: "D1", row: "D", col: 1, isAvailable: true }, { id: "D2", row: "D", col: 2, isAvailable: false }, { id: "D3", row: "D", col: 3, isAvailable: true }, { id: "D4", row: "D", col: 4, isAvailable: true }, { id: "D5", row: "D", col: 5, isAvailable: true },
-                        { id: "E1", row: "E", col: 1, isAvailable: true }, { id: "E2", row: "E", col: 2, isAvailable: true }, { id: "E3", row: "E", col: 3, isAvailable: true }, { id: "E4", row: "E", col: 4, isAvailable: false }, { id: "E5", row: "E", col: 5, isAvailable: true },
-                    ]
-                }
-            ]
-        }
+        ticketTypes: [{ type: "Standard", price: 0 }],
+        seatingChart: detailedSeatingChart,
     },
     {
         name: "Abstract Expressions Art Exhibit",
@@ -81,18 +129,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         image: "https://picsum.photos/seed/event3/600/400",
         showtimes: ["11:00"],
         ticketTypes: [{ type: "Standard", price: 0 }],
-        seatingChart: {
-            sections: [
-                {
-                    sectionName: "Main Gallery",
-                    price: 0,
-                    seats: [
-                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true }, { id: "A4", row: "A", col: 4, isAvailable: true },
-                        { id: "B1", row: "B", col: 1, isAvailable: true }, { id: "B2", row: "B", col: 2, isAvailable: false }, { id: "B3", row: "B", col: 3, isAvailable: true }, { id: "B4", row: "B", col: 4, isAvailable: true },
-                    ]
-                }
-            ]
-        }
+        seatingChart: detailedSeatingChart,
     },
      {
         name: "Rajasthan Cultural Festival",
@@ -103,27 +140,8 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         venue: "Jaipur Exhibition Centre",
         image: "https://picsum.photos/seed/event4/600/400",
         showtimes: ["10:00"],
-        ticketTypes: [{ type: "Standard", price: 250 }],
-        seatingChart: {
-            sections: [
-                {
-                    sectionName: "Zone A",
-                    price: 250,
-                    seats: [
-                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true },
-                        { id: "B1", row: "B", col: 1, isAvailable: true }, { id: "B2", row: "B", col: 2, isAvailable: true }, { id: "B3", row: "B", col: 3, isAvailable: true },
-                    ]
-                },
-                 {
-                    sectionName: "Zone B",
-                    price: 250,
-                    seats: [
-                        { id: "C1", row: "C", col: 1, isAvailable: true }, { id: "C2", row: "C", col: 2, isAvailable: true }, { id: "C3", row: "C", col: 3, isAvailable: true },
-                        { id: "D1", row: "D", col: 1, isAvailable: false }, { id: "D2", row: "D", col: 2, isAvailable: true }, { id: "D3", row: "D", col: 3, isAvailable: false },
-                    ]
-                }
-            ]
-        }
+        ticketTypes: [{ type: "Standard", price: 0 }],
+        seatingChart: detailedSeatingChart,
     },
 ];
 
@@ -285,3 +303,5 @@ export const useEvents = () => {
   }
   return context;
 };
+
+    
