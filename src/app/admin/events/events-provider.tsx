@@ -10,28 +10,40 @@ import { useToast } from '@/hooks/use-toast';
 const detailedSeatingChart = {
   sections: [
     {
-      sectionName: "Club",
+      sectionName: "ROYAL",
       price: 499,
-      rows: Array.from({ length: 5 }, (_, i) => String.fromCharCode(65 + i)), // A-E
-      seatsPerRow: 16,
-      className: "bg-red-500/20 border-red-500",
+      rows: [
+        { row: "A", seats: 12 },
+        { row: "B", seats: 14 },
+        { row: "C", seats: 16 },
+      ],
+      className: "bg-pink-500/20 border-pink-500",
     },
     {
-      sectionName: "Executive",
+      sectionName: "CLUB",
       price: 299,
-      rows: Array.from({ length: 7 }, (_, i) => String.fromCharCode(70 + i)), // F-L
-      seatsPerRow: 20,
-      className: "bg-purple-500/20 border-purple-500",
-    },
-    {
-      sectionName: "Normal",
-      price: 99,
-      rows: Array.from({ length: 5 }, (_, i) => String.fromCharCode(77 + i)), // M-Q
-      seatsPerRow: 22,
+      rows: [
+        { row: "D", seats: 18 },
+        { row: "E", seats: 18 },
+        { row: "F", seats: 20 },
+        { row: "G", seats: 20 },
+      ],
       className: "bg-blue-500/20 border-blue-500",
     },
+    {
+      sectionName: "EXECUTIVE",
+      price: 99,
+      rows: [
+        { row: "H", seats: 22 },
+        { row: "I", seats: 22 },
+        { row: "J", seats: 24 },
+        { row: "K", seats: 24 },
+        { row: "L", seats: 24 },
+      ],
+      className: "bg-purple-500/20 border-purple-500",
+    },
   ],
-   bookedSeats: ["A5", "C10", "D1", "F8", "G12", "H3", "L18", "P20", "Q1"],
+  bookedSeats: ["A5", "C10", "D1", "F8", "G12", "H3", "L18", "P20", "Q1"],
 };
 
 
@@ -244,6 +256,3 @@ export const useEvents = () => {
   }
   return context;
 };
-
-    
-    
