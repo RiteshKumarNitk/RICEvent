@@ -17,6 +17,28 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         image: "https://picsum.photos/seed/event1/600/400",
         showtimes: ["19:00"],
         ticketTypes: [{ type: "Standard", price: 500 }],
+        seatingChart: {
+            sections: [
+                {
+                    sectionName: "Platinum",
+                    ticketType: "Standard",
+                    price: 750,
+                    rows: [
+                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, null, { id: "A3", number: "3", isAvailable: true }, { id: "A4", number: "4", isAvailable: true } ],
+                        [ { id: "B1", number: "1", isAvailable: false }, { id: "B2", number: "2", isAvailable: true }, null, { id: "B3", number: "3", isAvailable: true }, { id: "B4", number: "4", isAvailable: false } ],
+                    ]
+                },
+                {
+                    sectionName: "Gold",
+                    ticketType: "Standard",
+                    price: 500,
+                    rows: [
+                        [ { id: "C1", number: "1", isAvailable: true }, { id: "C2", number: "2", isAvailable: true }, { id: "C3", number: "3", isAvailable: true }, null, { id: "C4", number: "4", isAvailable: true }, { id: "C5", number: "5", isAvailable: true } ],
+                        [ { id: "D1", number: "1", isAvailable: true }, { id: "D2", number: "2", isAvailable: false }, { id: "D3", number: "3", isAvailable: true }, null, { id: "D4", number: "4", isAvailable: true }, { id: "D5", number: "5", isAvailable: true } ],
+                    ]
+                }
+            ]
+        }
     },
     {
         name: "Future of AI - Tech Summit",
@@ -62,6 +84,19 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         image: "https://picsum.photos/seed/event3/600/400",
         showtimes: ["11:00"],
         ticketTypes: [{ type: "Standard", price: 0 }],
+        seatingChart: {
+            sections: [
+                {
+                    sectionName: "Main Gallery",
+                    ticketType: "Standard",
+                    price: 0,
+                    rows: [
+                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, { id: "A3", number: "3", isAvailable: true }, { id: "A4", number: "4", isAvailable: true } ],
+                        [ { id: "B1", number: "1", isAvailable: true }, { id: "B2", number: "2", isAvailable: false }, { id: "B3", number: "3", isAvailable: true }, { id: "B4", number: "4", isAvailable: true } ],
+                    ]
+                }
+            ]
+        }
     },
      {
         name: "Rajasthan Cultural Festival",
@@ -73,6 +108,28 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         image: "https://picsum.photos/seed/event4/600/400",
         showtimes: ["10:00"],
         ticketTypes: [{ type: "Standard", price: 250 }],
+        seatingChart: {
+            sections: [
+                {
+                    sectionName: "Zone A",
+                    ticketType: "Standard",
+                    price: 250,
+                    rows: [
+                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, { id: "A3", number: "3", isAvailable: true } ],
+                        [ { id: "B1", number: "1", isAvailable: true }, { id: "B2", number: "2", isAvailable: true }, { id: "B3", number: "3", isAvailable: true } ],
+                    ]
+                },
+                 {
+                    sectionName: "Zone B",
+                    ticketType: "Standard",
+                    price: 250,
+                    rows: [
+                        [ { id: "C1", number: "1", isAvailable: true }, { id: "C2", number: "2", isAvailable: true }, { id: "C3", number: "3", isAvailable: true } ],
+                        [ { id: "D1", number: "1", isAvailable: false }, { id: "D2", number: "2", isAvailable: true }, { id: "D3", number: "3", isAvailable: false } ],
+                    ]
+                }
+            ]
+        }
     },
 ];
 
