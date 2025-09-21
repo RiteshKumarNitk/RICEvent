@@ -9,8 +9,6 @@ import { Ticket, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 import { Separator } from "../ui/separator";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 
 const RowLabel = ({ label }: { label: string }) => (
   <div className="flex h-8 w-8 items-center justify-center text-sm font-medium text-muted-foreground">
@@ -56,6 +54,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   };
 
   const handleCheckout = () => {
+    // For events with a seating chart, ensure the correct number of seats are selected
     if (event.seatingChart && selectedSeats.length !== ticketCount) {
       toast({
         variant: "destructive",
@@ -64,6 +63,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
       });
       return;
     }
+     // For general admission, we don't need a seat selection check.
     setCheckoutOpen(true);
   };
   
@@ -85,9 +85,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     return selectedSeats.reduce((total, seat) => total + getSeatPrice(seat), 0);
   };
 
-  // This is the corrected logic block
   if (!event.seatingChart) {
-    // This part now ONLY runs for true general admission events
     const totalPrice = getTotalPrice();
     return (
       <>
@@ -123,7 +121,6 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     );
   }
 
-  // This part now correctly renders for any event WITH a seating chart.
   const { sections } = event.seatingChart;
   let rowCounter = 0;
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -209,7 +206,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={handleCheckout} className="w-full" disabled={selectedSeats.length !== ticketCount}>
+              <Button onClick={handleCheckout} className="w-full" disabled={ticketCount > 0 && selectedSeats.length !== ticketCount}>
                 <Ticket className="mr-2 h-4 w-4" />
                 {isFreeEvent ? "Register" : "Proceed to Pay"}
               </Button>
