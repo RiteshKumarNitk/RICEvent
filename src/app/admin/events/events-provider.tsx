@@ -10,102 +10,116 @@ import { useToast } from '@/hooks/use-toast';
 const detailedSeatingChart = {
   sections: [
     {
-      sectionName: "ROYAL",
+      sectionName: "PLATINUM",
       price: 499,
-      rows: [
-        { row: "A", seats: 12 },
-        { row: "B", seats: 14 },
-        { row: "C", seats: 16 },
-      ],
-      className: "bg-pink-500/20 border-pink-500",
+      rows: Array.from({ length: 3 }, (_, i) => String.fromCharCode(65 + i)).map(row => ({ row, seats: Array.from({length: 24}, (_, i) => i + 1) })),
+      className: "bg-pink-500/10 border-pink-500",
     },
     {
-      sectionName: "CLUB",
+      sectionName: "GOLD",
       price: 299,
-      rows: [
-        { row: "D", seats: 18 },
-        { row: "E", seats: 18 },
-        { row: "F", seats: 20 },
-        { row: "G", seats: 20 },
-      ],
-      className: "bg-blue-500/20 border-blue-500",
+      rows: Array.from({ length: 6 }, (_, i) => String.fromCharCode(68 + i)).map(row => ({ row, seats: Array.from({length: 28}, (_, i) => i + 1) })),
+      className: "bg-blue-500/10 border-blue-500",
     },
     {
-      sectionName: "EXECUTIVE",
-      price: 99,
-      rows: [
-        { row: "H", seats: 22 },
-        { row: "I", seats: 22 },
-        { row: "J", seats: 24 },
-        { row: "K", seats: 24 },
-        { row: "L", seats: 24 },
-      ],
-      className: "bg-purple-500/20 border-purple-500",
-    },
-  ],
-  bookedSeats: ["A5", "C10", "D1", "F8", "G12", "H3", "L18", "P20", "Q1"],
-};
-
-
-const sampleEvents: Omit<Event, 'id'>[] = [
-    {
-        name: "Starlight Symphony Orchestra",
-        description: "Experience a magical evening with the Starlight Symphony Orchestra, performing classical masterpieces under the stars. A perfect event for music lovers of all ages.",
-        category: "Music",
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        location: "Jaipur, Rajasthan",
-        venue: "Central Park Amphitheater",
-        image: "https://picsum.photos/seed/event1/600/400",
-        showtimes: ["19:00"],
-        ticketTypes: [{ type: "Standard", price: 0 }],
-        seatingChart: detailedSeatingChart,
+      sectionName: "SILVER (Left)",
+      price: 199,
+      rows: Array.from({ length: 6 }, (_, i) => String.fromCharCode(74 + i)).map(row => ({ row, seats: [1,2,3,4,5,6,7,8] })),
+      className: "bg-purple-500/10 border-purple-500",
     },
     {
-        name: "Future of AI - Tech Summit",
-        description: "Join industry leaders and innovators to discuss the future of Artificial Intelligence. This summit will feature keynote speakers, panel discussions, and networking opportunities.",
-        category: "Seminar",
-        date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-        location: "Jaipur, Rajasthan",
-        venue: "RIC Convention Hall",
-        image: "https://picsum.photos/seed/event2/600/400",
-        showtimes: ["09:00", "13:00"],
-        ticketTypes: [{ type: "Standard", price: 0 }],
-        seatingChart: detailedSeatingChart,
-    },
-    {
-        name: "Abstract Expressions Art Exhibit",
-        description: "A curated collection of abstract art from emerging local artists. Explore the depths of emotion and form through a variety of mediums.",
-        category: "Art",
-        date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-        location: "Jaipur, Rajasthan",
-        venue: "RIC Art Gallery",
-        image: "https://picsum.photos/seed/event3/600/400",
-        showtimes: ["11:00"],
-        ticketTypes: [{ type: "Standard", price: 0 }],
-         seatingChart: detailedSeatingChart,
+        sectionName: "SILVER (Right)",
+        price: 199,
+        rows: Array.from({ length: 6 }, (_, i) => String.fromCharCode(74 + i)).map(row => ({ row, seats: Array.from({length: 8}, (_, i) => i + 17) })),
+        className: "bg-purple-500/10 border-purple-500",
     },
      {
-        name: "Rajasthan Cultural Festival",
-        description: "Celebrate the rich heritage of Rajasthan with a day full of folk music, dance performances, traditional food stalls, and artisan crafts.",
-        category: "Cultural",
-        date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        location: "Jaipur, Rajasthan",
-        venue: "Jaipur Exhibition Centre",
-        image: "https://picsum.photos/seed/event4/600/400",
-        showtimes: ["10:00"],
-        ticketTypes: [{ type: "Standard", price: 0 }],
-        seatingChart: detailedSeatingChart,
+      sectionName: "BRONZE (Front Left)",
+      price: 99,
+      rows: Array.from({ length: 4 }, (_, i) => String.fromCharCode(80 + i)).map(row => ({ row, seats: [1,2,3,4,5,6] })),
+      className: "bg-orange-500/10 border-orange-500",
     },
+    {
+      sectionName: "BRONZE (Front Right)",
+      price: 99,
+      rows: Array.from({ length: 4 }, (_, i) => String.fromCharCode(80 + i)).map(row => ({ row, seats: Array.from({length: 6}, (_, i) => i + 19) })),
+      className: "bg-orange-500/10 border-orange-500",
+    }
+  ],
+  bookedSeats: ["C5", "C6", "C7", "F12", "F13", "G10", "G11", "J1", "J2", "P3", "P4"]
+};
+
+const sampleEvents: Omit<Event, 'id'>[] = [
+  {
+    name: 'Starlight Symphony Orchestra',
+    description: 'An enchanting evening with the Starlight Symphony Orchestra, performing timeless classics under the stars. A must-see for music lovers.',
+    category: 'Music',
+    date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
+    location: 'Jaipur, Rajasthan',
+    venue: 'RIC Auditorium',
+    image: 'https://picsum.photos/seed/event1/600/400',
+    showtimes: ['19:00', '21:30'],
+    ticketTypes: [{ type: 'Standard', price: 299 }],
+    seatingChart: detailedSeatingChart
+  },
+  {
+    name: 'Tech Visionaries Summit 2024',
+    description: 'Join industry leaders and innovators for a day of insightful talks on the future of technology, AI, and sustainability.',
+    category: 'Seminar',
+    date: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
+    location: 'Jaipur, Rajasthan',
+    venue: 'Convention Hall',
+    image: 'https://picsum.photos/seed/event2/600/400',
+    showtimes: ['09:00', '11:00', '14:00'],
+    ticketTypes: [{ type: 'Standard', price: 99 }],
+    seatingChart: detailedSeatingChart
+  },
+  {
+    name: 'Abstract Realities: A Modern Art Exhibit',
+    description: 'Explore the vibrant and thought-provoking world of modern abstract art from renowned artists across the globe.',
+    category: 'Art',
+    date: new Date(new Date().setDate(new Date().getDate() + 21)).toISOString(),
+    location: 'Jaipur, Rajasthan',
+    venue: 'Art Gallery',
+    image: 'https://picsum.photos/seed/event3/600/400',
+    showtimes: ['10:00 - 18:00'],
+    ticketTypes: [{ type: 'Standard', price: 0 }],
+  },
+   {
+    name: 'Hamlet: A Contemporary Tragedy',
+    description: 'Experience Shakespeare\'s masterpiece like never before in this gripping, modern-day adaptation of the classic tragedy.',
+    category: 'Theater',
+    date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString(),
+    location: 'Jaipur, Rajasthan',
+    venue: 'Main Auditorium',
+    image: 'https://picsum.photos/seed/event4/600/400',
+    showtimes: ['20:00'],
+    ticketTypes: [{ type: 'Standard', price: 499 }],
+    seatingChart: detailedSeatingChart
+  },
+  {
+    name: 'Global Rhythms: A Cultural Dance Festival',
+    description: 'Celebrate the diversity of world cultures through the universal language of dance. Featuring troupes from five continents.',
+    category: 'Cultural',
+    date: new Date(new Date().setDate(new Date().getDate() + 45)).toISOString(),
+    location: 'Jaipur, Rajasthan',
+    venue: 'Open Air Theatre',
+    image: 'https://picsum.photos/seed/event5/600/400',
+    showtimes: ['18:30'],
+    ticketTypes: [{ type: 'Standard', price: 199 }],
+     seatingChart: detailedSeatingChart
+  },
 ];
+
 
 interface EventsContextType {
   events: Event[];
   loading: boolean;
   addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
-  updateEvent: (eventId: string, event: Partial<Omit<Event, 'id'>>) => Promise<void>;
-  deleteEvent: (eventId: string) => Promise<void>;
-  deleteAllEvents: () => Promise<void>;
+  updateEvent: (id: string, event: Partial<Event>) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
   seedDatabase: () => Promise<void>;
+  deleteAllEvents: () => Promise<void>;
 }
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
@@ -116,137 +130,121 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const eventsCollection = collection(db, 'events');
-    const unsubscribe = onSnapshot(eventsCollection, (snapshot) => {
-        const eventsData = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-            id: doc.id,
-            ...data,
-            date: (data.date as Timestamp).toDate().toISOString(),
-            } as Event;
-        });
-        setEvents(eventsData);
-        setLoading(false);
+    const unsubscribe = onSnapshot(collection(db, 'events'), (snapshot) => {
+      const eventsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data() as Omit<Event, 'id'>,
+        date: (doc.data().date as Timestamp).toDate().toISOString()
+      }));
+      setEvents(eventsData);
+      setLoading(false);
     }, (error) => {
-        console.error("Error fetching events snapshot: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch events. Check Firestore permissions.' });
-        setLoading(false);
+      console.error("Error fetching events: ", error);
+      toast({ variant: 'destructive', title: "Error", description: "Could not fetch events from the database."});
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, [toast]);
 
-  const addEvent = async (eventData: Omit<Event, 'id'>) => {
+  const addEvent = async (event: Omit<Event, 'id'>) => {
     try {
-      const eventsCollection = collection(db, 'events');
-      await addDoc(eventsCollection, {
-        ...eventData,
-        date: new Date(eventData.date),
-      });
-      toast({ title: 'Success', description: 'Event created successfully.' });
+        const eventData = {
+            ...event,
+            date: Timestamp.fromDate(new Date(event.date))
+        }
+        await addDoc(collection(db, "events"), eventData);
+        toast({ title: "Success", description: "Event created successfully."});
     } catch (error) {
-      console.error("Error adding event:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to create event.' });
-      throw error;
-    }
-  };
-  
-  const updateEvent = async (eventId: string, eventData: Partial<Omit<Event, 'id'>>) => {
-    try {
-      const eventRef = doc(db, 'events', eventId);
-      const dataToUpdate: { [key: string]: any } = { ...eventData };
-      if (eventData.date) {
-        dataToUpdate.date = new Date(eventData.date);
-      }
-      await updateDoc(eventRef, dataToUpdate);
-      toast({ title: 'Success', description: 'Event updated successfully.' });
-    } catch (error) {
-      console.error("Error updating event:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update event.' });
-      throw error;
+        console.error("Error adding event: ", error);
+        toast({ variant: 'destructive', title: "Error", description: "Could not create event."});
     }
   };
 
-  const deleteEvent = async (eventId: string) => {
+  const updateEvent = async (id: string, event: Partial<Event>) => {
     try {
-      const eventRef = doc(db, 'events', eventId);
-      await deleteDoc(eventRef);
-      toast({ title: 'Success', description: 'Event deleted successfully.' });
+      const eventRef = doc(db, 'events', id);
+      const updateData: { [key: string]: any } = { ...event };
+
+      if (event.date) {
+        updateData.date = Timestamp.fromDate(new Date(event.date));
+      }
+
+      await updateDoc(eventRef, updateData);
+      toast({ title: "Success", description: "Event updated successfully."});
     } catch (error) {
-      console.error("Error deleting event:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete event.' });
-      throw error;
+      console.error("Error updating event: ", error);
+      toast({ variant: 'destructive', title: "Error", description: "Could not update event."});
+    }
+  };
+
+  const deleteEvent = async (id: string) => {
+    try {
+        await deleteDoc(doc(db, "events", id));
+        toast({ title: "Success", description: "Event deleted successfully."});
+    } catch (error) {
+        console.error("Error deleting event: ", error);
+        toast({ variant: 'destructive', title: "Error", description: "Could not delete event."});
     }
   };
 
   const deleteAllEvents = async () => {
     try {
-      const eventsCollection = collection(db, 'events');
-      const snapshot = await getDocs(eventsCollection);
-      if (snapshot.empty) {
-        toast({ title: "Database Empty", description: "There are no events to delete." });
-        return;
-      }
-      const batch = writeBatch(db);
-      snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-      toast({ title: "All Events Deleted", description: "All events have been removed from the database." });
+        const querySnapshot = await getDocs(collection(db, "events"));
+        if (querySnapshot.empty) {
+            toast({ title: "Database is already empty", description: "No events to delete."});
+            return;
+        }
+        const batch = writeBatch(db);
+        querySnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        toast({ title: "Success", description: "All events have been cleared from the database."});
     } catch (error) {
-      console.error('Error deleting all events:', error);
-      toast({ 
-          variant: 'destructive', 
-          title: 'Deletion Failed', 
-          description: 'Could not delete all events. Check Firestore security rules.' 
-      });
-      throw error;
+        console.error("Error clearing database: ", error);
+        toast({ variant: 'destructive', title: "Deletion Failed", description: "Could not clear events from the database."});
     }
-  };
+  }
 
   const seedDatabase = useCallback(async () => {
-    const eventsCollection = collection(db, 'events');
-    const snapshot = await getDocs(eventsCollection);
-    if (!snapshot.empty) {
-        toast({ title: "Database Not Empty", description: "Sample events already exist. Use 'Clear and Reseed' to start fresh." });
-        return;
-    }
-
     try {
-      console.log('Seeding database with sample events...');
-      const batch = writeBatch(db);
-      for (const eventData of sampleEvents) {
-        const docRef = doc(collection(db, 'events'));
-        batch.set(docRef, {
-            ...eventData,
-            date: new Date(eventData.date),
+      const eventsCollection = collection(db, 'events');
+      const snapshot = await getDocs(eventsCollection);
+
+      if (snapshot.empty) {
+        const batch = writeBatch(db);
+        sampleEvents.forEach((event) => {
+          const eventData = { ...event, date: Timestamp.fromDate(new Date(event.date)) };
+          const docRef = doc(eventsCollection);
+          batch.set(docRef, eventData);
         });
+        await batch.commit();
+        toast({ title: 'Database Seeded', description: 'Sample events have been added.' });
+      } else {
+        toast({ title: 'Database Not Empty', description: 'Seeding was skipped because events already exist.' });
       }
-      await batch.commit();
-      toast({ title: "Database Seeded", description: "Sample events have been added." });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error seeding database:', error);
-      toast({ 
-          variant: 'destructive', 
-          title: 'Seeding Failed', 
-          description: `Could not add sample events. ${error.message}` 
+      toast({
+        variant: 'destructive',
+        title: 'Seeding Failed',
+        description: 'Could not add sample events. Check Firestore security rules and that you are logged in.',
       });
     }
   }, [toast]);
+  
+  useEffect(() => {
+    if (!loading && events.length === 0) {
+      seedDatabase();
+    }
+  }, [loading, events.length, seedDatabase]);
 
-
-  const value = {
-    events,
-    loading,
-    addEvent,
-    updateEvent,
-    deleteEvent,
-    deleteAllEvents,
-    seedDatabase
-  };
-
-  return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>;
+  return (
+    <EventsContext.Provider value={{ events, loading, addEvent, updateEvent, deleteEvent, seedDatabase, deleteAllEvents }}>
+      {children}
+    </EventsContext.Provider>
+  );
 };
 
 export const useEvents = () => {
@@ -256,3 +254,5 @@ export const useEvents = () => {
   }
   return context;
 };
+
+    
