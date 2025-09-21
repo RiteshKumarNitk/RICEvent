@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Event, Seat } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,14 @@ const RowLabel = ({ label }: { label: string }) => (
     {label}
   </div>
 );
+
+// Helper to group seats by row
+const groupSeatsByRow = (seats: Seat[]) => {
+  return seats.reduce((acc, seat) => {
+    (acc[seat.row] = acc[seat.row] || []).push(seat);
+    return acc;
+  }, {} as Record<string, Seat[]>);
+};
 
 export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount: number }) {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
@@ -70,10 +79,8 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   const getSeatPrice = (seat: Seat) => {
       if (!event.seatingChart) return 0;
       for (const section of event.seatingChart.sections) {
-        for (const row of section.rows) {
-          if (row.find(s => s?.id === seat.id)) {
+        if (section.seats.find(s => s.id === seat.id)) {
             return section.price;
-          }
         }
       }
       return 0;
@@ -116,14 +123,19 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
             </Button>
           </CardFooter>
         </Card>
-        <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={Array.from({ length: ticketCount }, (_, i) => ({ id: `GA${i + 1}`, number: `${i + 1}`, isAvailable: true }))} />
+        <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={Array.from({ length: ticketCount }, (_, i) => ({ id: `GA${i + 1}`, row: 'GA', col: i + 1, isAvailable: true }))} />
       </>
     );
   }
 
   const { sections } = event.seatingChart;
-  let rowCounter = 0;
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  
+  const sectionsWithGroupedSeats = useMemo(() => {
+    return sections.map(section => ({
+      ...section,
+      rows: groupSeatsByRow(section.seats)
+    }));
+  }, [sections]);
 
   return (
     <>
@@ -132,22 +144,14 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
             <div className="w-full overflow-x-auto pb-4">
                 <div className="inline-block min-w-full align-middle text-center">
                     <div className="flex flex-col items-center gap-6">
-                        {sections.map((section, sectionIndex) => (
+                        {sectionsWithGroupedSeats.map((section, sectionIndex) => (
                         <div key={sectionIndex} className="w-full">
                             <p className="text-center font-semibold text-muted-foreground my-2">{section.sectionName} - {isFreeEvent ? 'Free' : `₹${section.price}`}</p>
-                            <div className="flex gap-4">
-                            <div className="flex flex-col-reverse justify-end gap-2">
-                                {section.rows.map((_, i) => <RowLabel key={i} label={alphabet[rowCounter + section.rows.length - 1 - i]} />)}
-                            </div>
-                            <div className="flex-grow flex flex-col-reverse gap-2">
-                                {section.rows.map((row, rowIndex) => {
-                                const rowKey = `s${sectionIndex}-r${rowIndex}`;
-                                return (
-                                    <div key={rowKey} className="flex items-center justify-center gap-2">
-                                    {row.map((seat, seatIndex) => {
-                                        if (!seat) {
-                                        return <div key={`${rowKey}-e${seatIndex}`} className="h-8 w-8" />;
-                                        }
+                            <div className="flex flex-col gap-2">
+                                {Object.entries(section.rows).sort(([rowA], [rowB]) => rowA.localeCompare(rowB)).map(([rowLabel, seats]) => (
+                                <div key={`${sectionIndex}-${rowLabel}`} className="flex items-center justify-center gap-2">
+                                  <RowLabel label={rowLabel} />
+                                    {seats.sort((a,b) => a.col - b.col).map((seat) => {
                                         const isSelected = selectedSeats.some(s => s.id === seat.id);
                                         return (
                                         <button
@@ -161,17 +165,12 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                                             seat.isAvailable ? "cursor-pointer" : ""
                                             )}
                                         >
-                                            {seat.number}
+                                            {seat.col}
                                         </button>
                                         );
                                     })}
-                                    </div>
-                                );
-                                })}
-                            </div>
-                            </div>
-                             <div hidden>
-                                {rowCounter += section.rows.length}
+                                  </div>
+                                ))}
                             </div>
                         </div>
                         ))}

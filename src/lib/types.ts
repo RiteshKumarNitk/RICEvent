@@ -1,3 +1,4 @@
+
 export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
@@ -6,18 +7,16 @@ export type TicketType = {
 };
 
 export type Seat = {
-  id: string;
-  number: string;
+  id: string; // e.g., "A1"
+  row: string; // e.g., "A"
+  col: number; // e.g., 1
   isAvailable: boolean;
 };
 
-export type SeatRow = (Seat | null)[];
-
 export type SeatSection = {
   sectionName: string;
-  ticketType: TicketType['type'];
   price: number;
-  rows: SeatRow[];
+  seats: Seat[];
 }
 
 export type SeatingChartData = {

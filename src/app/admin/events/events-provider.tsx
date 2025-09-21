@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -21,20 +22,18 @@ const sampleEvents: Omit<Event, 'id'>[] = [
             sections: [
                 {
                     sectionName: "Platinum",
-                    ticketType: "Standard",
                     price: 750,
-                    rows: [
-                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, null, { id: "A3", number: "3", isAvailable: true }, { id: "A4", number: "4", isAvailable: true } ],
-                        [ { id: "B1", number: "1", isAvailable: false }, { id: "B2", number: "2", isAvailable: true }, null, { id: "B3", number: "3", isAvailable: true }, { id: "B4", number: "4", isAvailable: false } ],
+                    seats: [
+                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true }, { id: "A4", row: "A", col: 4, isAvailable: true },
+                        { id: "B1", row: "B", col: 1, isAvailable: false }, { id: "B2", row: "B", col: 2, isAvailable: true }, { id: "B3", row: "B", col: 3, isAvailable: true }, { id: "B4", row: "B", col: 4, isAvailable: false },
                     ]
                 },
                 {
                     sectionName: "Gold",
-                    ticketType: "Standard",
                     price: 500,
-                    rows: [
-                        [ { id: "C1", number: "1", isAvailable: true }, { id: "C2", number: "2", isAvailable: true }, { id: "C3", number: "3", isAvailable: true }, null, { id: "C4", number: "4", isAvailable: true }, { id: "C5", number: "5", isAvailable: true } ],
-                        [ { id: "D1", number: "1", isAvailable: true }, { id: "D2", number: "2", isAvailable: false }, { id: "D3", number: "3", isAvailable: true }, null, { id: "D4", number: "4", isAvailable: true }, { id: "D5", number: "5", isAvailable: true } ],
+                    seats: [
+                        { id: "C1", row: "C", col: 1, isAvailable: true }, { id: "C2", row: "C", col: 2, isAvailable: true }, { id: "C3", row: "C", col: 3, isAvailable: true }, { id: "C4", row: "C", col: 4, isAvailable: true }, { id: "C5", row: "C", col: 5, isAvailable: true },
+                        { id: "D1", row: "D", col: 1, isAvailable: true }, { id: "D2", row: "D", col: 2, isAvailable: false }, { id: "D3", row: "D", col: 3, isAvailable: true }, { id: "D4", row: "D", col: 4, isAvailable: true }, { id: "D5", row: "D", col: 5, isAvailable: true },
                     ]
                 }
             ]
@@ -54,21 +53,19 @@ const sampleEvents: Omit<Event, 'id'>[] = [
             sections: [
                 {
                     sectionName: "Platinum",
-                    ticketType: "Standard",
                     price: 1500,
-                    rows: [
-                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, null, { id: "A3", number: "3", isAvailable: true }, { id: "A4", number: "4", isAvailable: true } ],
-                        [ { id: "B1", number: "1", isAvailable: false }, { id: "B2", number: "2", isAvailable: true }, null, { id: "B3", number: "3", isAvailable: true }, { id: "B4", number: "4", isAvailable: false } ],
+                    seats: [
+                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true }, { id: "A4", row: "A", col: 4, isAvailable: true },
+                        { id: "B1", row: "B", col: 1, isAvailable: false }, { id: "B2", row: "B", col: 2, isAvailable: true }, { id: "B3", row: "B", col: 3, isAvailable: true }, { id: "B4", row: "B", col: 4, isAvailable: false },
                     ]
                 },
                 {
                     sectionName: "Gold",
-                    ticketType: "Standard",
                     price: 1000,
-                    rows: [
-                        [ { id: "C1", number: "1", isAvailable: true }, { id: "C2", number: "2", isAvailable: true }, { id: "C3", number: "3", isAvailable: true }, null, { id: "C4", number: "4", isAvailable: true }, { id: "C5", number: "5", isAvailable: true } ],
-                        [ { id: "D1", number: "1", isAvailable: true }, { id: "D2", number: "2", isAvailable: false }, { id: "D3", number: "3", isAvailable: true }, null, { id: "D4", number: "4", isAvailable: true }, { id: "D5", number: "5", isAvailable: true } ],
-                        [ { id: "E1", number: "1", isAvailable: true }, { id: "E2", number: "2", isAvailable: true }, { id: "E3", number: "3", isAvailable: true }, null, { id: "E4", number: "4", isAvailable: false }, { id: "E5", number: "5", isAvailable: true } ],
+                    seats: [
+                        { id: "C1", row: "C", col: 1, isAvailable: true }, { id: "C2", row: "C", col: 2, isAvailable: true }, { id: "C3", row: "C", col: 3, isAvailable: true }, { id: "C4", row: "C", col: 4, isAvailable: true }, { id: "C5", row: "C", col: 5, isAvailable: true },
+                        { id: "D1", row: "D", col: 1, isAvailable: true }, { id: "D2", row: "D", col: 2, isAvailable: false }, { id: "D3", row: "D", col: 3, isAvailable: true }, { id: "D4", row: "D", col: 4, isAvailable: true }, { id: "D5", row: "D", col: 5, isAvailable: true },
+                        { id: "E1", row: "E", col: 1, isAvailable: true }, { id: "E2", row: "E", col: 2, isAvailable: true }, { id: "E3", row: "E", col: 3, isAvailable: true }, { id: "E4", row: "E", col: 4, isAvailable: false }, { id: "E5", row: "E", col: 5, isAvailable: true },
                     ]
                 }
             ]
@@ -88,11 +85,10 @@ const sampleEvents: Omit<Event, 'id'>[] = [
             sections: [
                 {
                     sectionName: "Main Gallery",
-                    ticketType: "Standard",
                     price: 0,
-                    rows: [
-                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, { id: "A3", number: "3", isAvailable: true }, { id: "A4", number: "4", isAvailable: true } ],
-                        [ { id: "B1", number: "1", isAvailable: true }, { id: "B2", number: "2", isAvailable: false }, { id: "B3", number: "3", isAvailable: true }, { id: "B4", number: "4", isAvailable: true } ],
+                    seats: [
+                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true }, { id: "A4", row: "A", col: 4, isAvailable: true },
+                        { id: "B1", row: "B", col: 1, isAvailable: true }, { id: "B2", row: "B", col: 2, isAvailable: false }, { id: "B3", row: "B", col: 3, isAvailable: true }, { id: "B4", row: "B", col: 4, isAvailable: true },
                     ]
                 }
             ]
@@ -112,20 +108,18 @@ const sampleEvents: Omit<Event, 'id'>[] = [
             sections: [
                 {
                     sectionName: "Zone A",
-                    ticketType: "Standard",
                     price: 250,
-                    rows: [
-                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, { id: "A3", number: "3", isAvailable: true } ],
-                        [ { id: "B1", number: "1", isAvailable: true }, { id: "B2", number: "2", isAvailable: true }, { id: "B3", number: "3", isAvailable: true } ],
+                    seats: [
+                        { id: "A1", row: "A", col: 1, isAvailable: true }, { id: "A2", row: "A", col: 2, isAvailable: true }, { id: "A3", row: "A", col: 3, isAvailable: true },
+                        { id: "B1", row: "B", col: 1, isAvailable: true }, { id: "B2", row: "B", col: 2, isAvailable: true }, { id: "B3", row: "B", col: 3, isAvailable: true },
                     ]
                 },
                  {
                     sectionName: "Zone B",
-                    ticketType: "Standard",
                     price: 250,
-                    rows: [
-                        [ { id: "C1", number: "1", isAvailable: true }, { id: "C2", number: "2", isAvailable: true }, { id: "C3", number: "3", isAvailable: true } ],
-                        [ { id: "D1", number: "1", isAvailable: false }, { id: "D2", number: "2", isAvailable: true }, { id: "D3", number: "3", isAvailable: false } ],
+                    seats: [
+                        { id: "C1", row: "C", col: 1, isAvailable: true }, { id: "C2", row: "C", col: 2, isAvailable: true }, { id: "C3", row: "C", col: 3, isAvailable: true },
+                        { id: "D1", row: "D", col: 1, isAvailable: false }, { id: "D2", row: "D", col: 2, isAvailable: true }, { id: "D3", row: "D", col: 3, isAvailable: false },
                     ]
                 }
             ]
@@ -260,12 +254,12 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       }
       await batch.commit();
       toast({ title: "Database Seeded", description: "Sample events have been added." });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error seeding database:', error);
       toast({ 
           variant: 'destructive', 
           title: 'Seeding Failed', 
-          description: 'Could not add sample events. Check Firestore security rules and that you are logged in.' 
+          description: `Could not add sample events. ${error.message}` 
       });
     }
   }, [toast]);
