@@ -10,55 +10,28 @@ import { useToast } from '@/hooks/use-toast';
 const detailedSeatingChart = {
   sections: [
     {
-      sectionName: "Orchestra",
-      price: 1500,
-      className: "fill-blue-400/50 stroke-blue-600",
-      seats: [
-        ...Array.from({ length: 16 }, (_, i) => ({ id: `O-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.2 })),
-        ...Array.from({ length: 18 }, (_, i) => ({ id: `O-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.2 })),
-        ...Array.from({ length: 20 }, (_, i) => ({ id: `O-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.2 })),
-      ],
+      sectionName: "Club",
+      price: 499,
+      rows: Array.from({ length: 5 }, (_, i) => String.fromCharCode(65 + i)), // A-E
+      seatsPerRow: 16,
+      className: "bg-red-500/20 border-red-500",
     },
     {
-      sectionName: "Mezzanine Center",
-      price: 1000,
-      className: "fill-purple-400/50 stroke-purple-600",
-      seats: [
-        ...Array.from({ length: 12 }, (_, i) => ({ id: `MC-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 12 }, (_, i) => ({ id: `MC-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 12 }, (_, i) => ({ id: `MC-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.3 })),
-      ],
-    },
-     {
-      sectionName: "Mezzanine Left",
-      price: 850,
-      className: "fill-pink-400/50 stroke-pink-600",
-      seats: [
-        ...Array.from({ length: 6 }, (_, i) => ({ id: `ML-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 6 }, (_, i) => ({ id: `ML-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 6 }, (_, i) => ({ id: `ML-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
-      ]
+      sectionName: "Executive",
+      price: 299,
+      rows: Array.from({ length_from: 6, length: 7 }, (_, i) => String.fromCharCode(65 + i)), // F-L
+      seatsPerRow: 20,
+      className: "bg-purple-500/20 border-purple-500",
     },
     {
-      sectionName: "Mezzanine Right",
-      price: 850,
-      className: "fill-pink-400/50 stroke-pink-600",
-      seats: [
-        ...Array.from({ length: 6 }, (_, i) => ({ id: `MR-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 6 }, (_, i) => ({ id: `MR-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 6 }, (_, i) => ({ id: `MR-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
-      ]
-    },
-    {
-      sectionName: "Balcony",
-      price: 500,
-      className: "fill-teal-400/50 stroke-teal-600",
-      seats: [
-        ...Array.from({ length: 22 }, (_, i) => ({ id: `B-G${i + 1}`, row: 'G', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 22 }, (_, i) => ({ id: `B-H${i + 1}`, row: 'H', col: i + 1, isAvailable: Math.random() > 0.15 })),
-      ],
+      sectionName: "Normal",
+      price: 99,
+      rows: Array.from({ length_from: 13, length: 5 }, (_, i) => String.fromCharCode(65 + i)), // M-Q
+      seatsPerRow: 22,
+      className: "bg-blue-500/20 border-blue-500",
     },
   ],
+   bookedSeats: ["A5", "C10", "D1", "F8", "G12", "H3", "L18", "P20", "Q1"],
 };
 
 
@@ -97,7 +70,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         image: "https://picsum.photos/seed/event3/600/400",
         showtimes: ["11:00"],
         ticketTypes: [{ type: "Standard", price: 0 }],
-        seatingChart: detailedSeatingChart,
+         seatingChart: detailedSeatingChart,
     },
      {
         name: "Rajasthan Cultural Festival",
@@ -271,3 +244,5 @@ export const useEvents = () => {
   }
   return context;
 };
+
+    
