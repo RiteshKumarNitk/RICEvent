@@ -85,7 +85,9 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     return selectedSeats.reduce((total, seat) => total + getSeatPrice(seat), 0);
   };
 
-  if (ticketCount > 0 && !event.seatingChart) {
+  // This is the corrected logic block
+  if (!event.seatingChart) {
+    // This part now ONLY runs for true general admission events
     const totalPrice = getTotalPrice();
     return (
       <>
@@ -121,22 +123,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     );
   }
 
-
-  if (!event.seatingChart) {
-    return (
-        <div className="text-center py-16 text-muted-foreground">
-            <h3 className="text-xl font-semibold mb-2">Seating Not Available</h3>
-            <p>This event does not have a seating chart or you may need to select tickets first.</p>
-             <Button asChild variant="outline" className="mt-4">
-                <Link href={`/events/${event.id}`}>
-                    <ArrowLeft className="mr-2 h-4 w-4"/>
-                    Back to Event
-                </Link>
-            </Button>
-        </div>
-    );
-  }
-
+  // This part now correctly renders for any event WITH a seating chart.
   const { sections } = event.seatingChart;
   let rowCounter = 0;
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -240,5 +227,3 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     </>
   );
 }
-
-    
