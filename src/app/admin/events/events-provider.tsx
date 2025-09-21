@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Event } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 const sampleEvents: Omit<Event, 'id'>[] = [
@@ -139,6 +139,7 @@ interface EventsContextType {
   addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
   updateEvent: (eventId: string, event: Partial<Omit<Event, 'id'>>) => Promise<void>;
   deleteEvent: (eventId: string) => Promise<void>;
+  deleteAllEvents: () => Promise<void>;
   seedDatabase: () => Promise<void>;
 }
 
@@ -214,22 +215,50 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteAllEvents = async () => {
+    try {
+      const eventsCollection = collection(db, 'events');
+      const snapshot = await getDocs(eventsCollection);
+      if (snapshot.empty) {
+        toast({ title: "Database Empty", description: "There are no events to delete." });
+        return;
+      }
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      toast({ title: "All Events Deleted", description: "All events have been removed from the database." });
+    } catch (error) {
+      console.error('Error deleting all events:', error);
+      toast({ 
+          variant: 'destructive', 
+          title: 'Deletion Failed', 
+          description: 'Could not delete all events. Check Firestore security rules.' 
+      });
+      throw error;
+    }
+  };
+
   const seedDatabase = useCallback(async () => {
     const eventsCollection = collection(db, 'events');
     const snapshot = await getDocs(eventsCollection);
     if (!snapshot.empty) {
-        toast({ title: "Database Not Empty", description: "Sample events already exist." });
+        toast({ title: "Database Not Empty", description: "Sample events already exist. Use 'Clear and Reseed' to start fresh." });
         return;
     }
 
     try {
       console.log('Seeding database with sample events...');
+      const batch = writeBatch(db);
       for (const eventData of sampleEvents) {
-        await addDoc(eventsCollection, {
-          ...eventData,
-          date: new Date(eventData.date),
+        const docRef = doc(collection(db, 'events'));
+        batch.set(docRef, {
+            ...eventData,
+            date: new Date(eventData.date),
         });
       }
+      await batch.commit();
       toast({ title: "Database Seeded", description: "Sample events have been added." });
     } catch (error) {
       console.error('Error seeding database:', error);
@@ -248,6 +277,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     addEvent,
     updateEvent,
     deleteEvent,
+    deleteAllEvents,
     seedDatabase
   };
 

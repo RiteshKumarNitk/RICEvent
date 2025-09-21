@@ -1,12 +1,23 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { DollarSign, Users, Calendar, Database } from "lucide-react";
+import { DollarSign, Users, Calendar, Database, AlertTriangle } from "lucide-react";
 import { useEvents } from "./events/events-provider";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminDashboard() {
-  const { seedDatabase, events } = useEvents();
+  const { seedDatabase, events, deleteAllEvents } = useEvents();
 
   // Mock data, to be replaced with real data from backend
   const stats = {
@@ -14,6 +25,11 @@ export default function AdminDashboard() {
     registeredUsers: 1250,
     upcomingEvents: events.filter(e => new Date(e.date) > new Date()).length,
   };
+  
+  const handleClearAndReseed = async () => {
+    await deleteAllEvents();
+    await seedDatabase();
+  }
 
   return (
     <div>
@@ -65,13 +81,35 @@ export default function AdminDashboard() {
             <CardDescription>Use these actions to manage your database.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
-              <Button onClick={seedDatabase}>
-                <Database className="mr-2 h-4 w-4" />
-                Seed Sample Events
-              </Button>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+               <div className="flex items-center gap-2">
+                    <Button onClick={seedDatabase}>
+                        <Database className="mr-2 h-4 w-4" />
+                        Seed Sample Events
+                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                Clear and Reseed
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action will permanently delete all events from the database and replace them with the default sample events. This cannot be undone.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleClearAndReseed}>Yes, clear and reseed</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+               </div>
                <p className="text-sm text-muted-foreground">
-                Adds sample events if the database is empty.
+                Seed adds sample events if the database is empty. Clear and Reseed will delete all current events first.
               </p>
             </div>
           </CardContent>
