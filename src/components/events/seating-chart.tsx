@@ -1,48 +1,75 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Event, Seat } from "@/lib/types";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Event, Seat, SeatSection } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ticket, User } from "lucide-react";
+import { Ticket, User, ZoomIn, ZoomOut, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 import { Separator } from "../ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const RowLabel = ({ label }: { label: string }) => (
-  <div className="flex h-8 w-8 items-center justify-center text-sm font-medium text-muted-foreground">
-    {label}
-  </div>
-);
+const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, section: SeatSection, isSelected: boolean, onSelect: (seat: Seat) => void }) => {
+  const fillClass = isSelected ? 'fill-accent' : (seat.isAvailable ? 'fill-background' : 'fill-muted-foreground/50');
 
-// Helper to group seats by row
-const groupSeatsByRow = (seats: Seat[]) => {
-  return seats.reduce((acc, seat) => {
-    (acc[seat.row] = acc[seat.row] || []).push(seat);
-    return acc;
-  }, {} as Record<string, Seat[]>);
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <g
+            key={seat.id}
+            onClick={() => onSelect(seat)}
+            className={cn(
+              "cursor-pointer transition-transform duration-150 ease-in-out hover:scale-125",
+              !seat.isAvailable && "cursor-not-allowed opacity-70 hover:scale-100",
+              isSelected && "hover:scale-110"
+            )}
+          >
+            <circle
+              cx={(seat.col * 25)}
+              cy={(seat.row.charCodeAt(0) - 65) * 25 + 50}
+              r="8"
+              className={cn("stroke-[1.5px]", section.className, fillClass, isSelected && 'stroke-accent-foreground')}
+            />
+          </g>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Seat: {seat.id}</p>
+          <p>Price: ₹{section.price}</p>
+          <p>Status: {seat.isAvailable ? (isSelected ? "Selected" : "Available") : "Sold"}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
+
 
 export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount: number }) {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const { toast } = useToast();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (ticketCount === 0) {
+    if (ticketCount === 0 && !isCheckoutOpen) {
       toast({
           title: "No Tickets Selected",
           description: "Please go back and select the number of tickets you want.",
       });
     }
-  }, [ticketCount, toast]);
+  }, [ticketCount, toast, isCheckoutOpen]);
 
   const isFreeEvent = event.ticketTypes.every(t => t.price === 0);
 
   const handleSelectSeat = (seat: Seat) => {
-    if (!seat.isAvailable) return;
+    if (!seat.isAvailable) {
+      toast({ variant: 'destructive', title: "Seat Sold", description: "This seat is already sold." });
+      return;
+    }
 
     setSelectedSeats((prev) => {
       const isSelected = prev.some((s) => s.id === seat.id);
@@ -63,7 +90,6 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
   };
 
   const handleCheckout = () => {
-    // For events with a seating chart, ensure the correct number of seats are selected
     if (event.seatingChart && selectedSeats.length !== ticketCount) {
       toast({
         variant: "destructive",
@@ -72,7 +98,6 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
       });
       return;
     }
-     // For general admission, we don't need a seat selection check.
     setCheckoutOpen(true);
   };
   
@@ -91,9 +116,12 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
     if (!event.seatingChart) return (event.ticketTypes.find(t => t.type === 'Standard')?.price || 0) * ticketCount;
     return selectedSeats.reduce((total, seat) => total + getSeatPrice(seat), 0);
   };
+  
+  const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 2));
+  const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
 
   if (!event.seatingChart) {
-    const totalPrice = getTotalPrice();
+    // Fallback for general admission
     return (
       <>
         <Card className="max-w-md mx-auto">
@@ -112,7 +140,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
             {!isFreeEvent && (
               <div className="flex justify-between items-center font-bold text-lg mt-4">
                 <span>Total Price:</span>
-                <span>₹{totalPrice.toFixed(2)}</span>
+                <span>₹{getTotalPrice().toFixed(2)}</span>
               </div>
             )}
           </CardContent>
@@ -127,62 +155,53 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
       </>
     );
   }
-
-  const { sections } = event.seatingChart;
   
-  const sectionsWithGroupedSeats = useMemo(() => {
-    return sections.map(section => ({
-      ...section,
-      rows: groupSeatsByRow(section.seats)
-    }));
-  }, [sections]);
+  const allSeats = event.seatingChart.sections.flatMap(s => s.seats);
+  const maxCol = Math.max(...allSeats.map(s => s.col)) + 1;
+  const maxRowCharCode = Math.max(...allSeats.map(s => s.row.charCodeAt(0)));
+  const viewboxWidth = maxCol * 25;
+  const viewboxHeight = (maxRowCharCode - 65 + 4) * 25;
 
   return (
     <>
       <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-grow">
-            <div className="w-full overflow-x-auto pb-4">
-                <div className="inline-block min-w-full align-middle text-center">
-                    <div className="flex flex-col items-center gap-6">
-                        {sectionsWithGroupedSeats.map((section, sectionIndex) => (
-                        <div key={sectionIndex} className="w-full">
-                            <p className="text-center font-semibold text-muted-foreground my-2">{section.sectionName} - {isFreeEvent ? 'Free' : `₹${section.price}`}</p>
-                            <div className="flex flex-col gap-2">
-                                {Object.entries(section.rows).sort(([rowA], [rowB]) => rowA.localeCompare(rowB)).map(([rowLabel, seats]) => (
-                                <div key={`${sectionIndex}-${rowLabel}`} className="flex items-center justify-center gap-2">
-                                  <RowLabel label={rowLabel} />
-                                    {seats.sort((a,b) => a.col - b.col).map((seat) => {
-                                        const isSelected = selectedSeats.some(s => s.id === seat.id);
-                                        return (
-                                        <button
-                                            key={seat.id}
-                                            onClick={() => handleSelectSeat(seat)}
-                                            disabled={!seat.isAvailable}
-                                            className={cn(
-                                            "flex h-8 w-8 items-center justify-center rounded-md border text-xs font-mono transition-colors",
-                                            !seat.isAvailable && "bg-gray-400 border-gray-500 text-gray-600 cursor-not-allowed",
-                                            isSelected ? "bg-blue-400 border-blue-600 text-white" : "bg-green-200 border-green-400 hover:bg-green-300",
-                                            seat.isAvailable ? "cursor-pointer" : ""
-                                            )}
-                                        >
-                                            {seat.col}
-                                        </button>
-                                        );
-                                    })}
-                                  </div>
-                                ))}
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                </div>
+        <div ref={containerRef} className="flex-grow bg-muted/20 border rounded-lg p-4 overflow-auto">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full border bg-background" /> Available</div>
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-accent" /> Selected</div>
+                <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-muted-foreground/50" /> Sold</div>
             </div>
-          <div className="w-full border-t-4 border-gray-400 p-2 rounded-md text-center my-8 text-sm font-semibold tracking-widest text-muted-foreground">SCREEN</div>
-
-          <div className="flex justify-center flex-wrap gap-x-6 gap-y-2 mt-4 text-sm">
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-md border-green-400 bg-green-200" /> Available</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-md border-blue-600 bg-blue-400" /> Selected</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-md bg-gray-400 border-gray-500" /> Sold</div>
+            <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={handleZoomOut}><ZoomOut /></Button>
+                <Button variant="outline" size="icon" onClick={handleZoomIn}><ZoomIn /></Button>
+            </div>
+          </div>
+          <div className="w-full flex justify-center items-center">
+             <svg 
+                viewBox={`0 0 ${viewboxWidth} ${viewboxHeight}`} 
+                className="transition-transform duration-300"
+                style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
+                >
+                <rect width={viewboxWidth} height={viewboxHeight} className="fill-transparent" />
+                {event.seatingChart.sections.map((section) => (
+                    <g key={section.sectionName}>
+                    {section.seats.map((seat) => (
+                        <SeatComponent
+                            key={seat.id}
+                            seat={seat}
+                            section={section}
+                            isSelected={selectedSeats.some(s => s.id === seat.id)}
+                            onSelect={handleSelectSeat}
+                        />
+                    ))}
+                    </g>
+                ))}
+                <g transform={`translate(${viewboxWidth/2}, ${viewboxHeight - 10})`}>
+                    <path d={`M-150,0 Q-120,-20 0,-20 T150,0`} className="fill-none stroke-foreground" strokeWidth="2"/>
+                    <text x="0" y="-2" textAnchor="middle" className="text-lg font-bold tracking-widest fill-foreground">STAGE</text>
+                </g>
+            </svg>
           </div>
         </div>
 
@@ -201,7 +220,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event; ticketCount
                 <div className="flex justify-between text-muted-foreground">
                     <span>Seats ({selectedSeats.length}/{ticketCount})</span>
                 </div>
-                 <p className="font-mono text-lg font-semibold break-words min-h-[2rem]">{selectedSeats.length > 0 ? selectedSeats.map(s => s.id).join(', ') : "No seats selected"}</p>
+                 <p className="font-mono text-base font-semibold break-words min-h-[4rem] max-h-32 overflow-y-auto">{selectedSeats.length > 0 ? selectedSeats.map(s => s.id).join(', ') : "No seats selected"}</p>
               </div>
             </CardContent>
             <CardFooter>

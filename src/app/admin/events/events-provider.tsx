@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -11,83 +10,52 @@ import { useToast } from '@/hooks/use-toast';
 const detailedSeatingChart = {
   sections: [
     {
-      sectionName: "Platinum",
+      sectionName: "Orchestra",
       price: 1500,
+      className: "fill-blue-400/50 stroke-blue-600",
       seats: [
-        // Far back, center section
-        ...Array.from({ length: 34 }, (_, i) => ({ id: `P-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.2 })),
-        ...Array.from({ length: 32 }, (_, i) => ({ id: `P-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.2 })),
-        ...Array.from({ length: 30 }, (_, i) => ({ id: `P-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.2 })),
+        ...Array.from({ length: 16 }, (_, i) => ({ id: `O-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.2 })),
+        ...Array.from({ length: 18 }, (_, i) => ({ id: `O-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.2 })),
+        ...Array.from({ length: 20 }, (_, i) => ({ id: `O-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.2 })),
       ],
     },
     {
-      sectionName: "Gold",
+      sectionName: "Mezzanine Center",
       price: 1000,
+      className: "fill-purple-400/50 stroke-purple-600",
       seats: [
-        // Center-left block
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 9 }, (_, i) => ({ id: `G-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        // Center-right block
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-F${i + 1}`, row: 'F', col: i + 11, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-G${i + 1}`, row: 'G', col: i + 11, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-H${i + 1}`, row: 'H', col: i + 11, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `G-I${i + 1}`, row: 'I', col: i + 11, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 9 }, (_, i) => ({ id: `G-J${i + 1}`, row: 'J', col: i + 11, isAvailable: Math.random() > 0.3 })),
-         // Front-center block
-        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-K${i + 1}`, row: 'K', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-L${i + 1}`, row: 'L', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-M${i + 1}`, row: 'M', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 15 }, (_, i) => ({ id: `G-N${i + 1}`, row: 'N', col: i + 1, isAvailable: Math.random() > 0.3 })),
-        ...Array.from({ length: 13 }, (_, i) => ({ id: `G-O${i + 1}`, row: 'O', col: i + 2, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 12 }, (_, i) => ({ id: `MC-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 12 }, (_, i) => ({ id: `MC-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.3 })),
+        ...Array.from({ length: 12 }, (_, i) => ({ id: `MC-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.3 })),
       ],
     },
      {
-      sectionName: "Silver Left",
-      price: 750,
+      sectionName: "Mezzanine Left",
+      price: 850,
+      className: "fill-pink-400/50 stroke-pink-600",
       seats: [
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `SL-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 11 }, (_, i) => ({ id: `SL-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 12 }, (_, i) => ({ id: `SL-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 13 }, (_, i) => ({ id: `SL-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 14 }, (_, i) => ({ id: `SL-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 15 }, (_, i) => ({ id: `SL-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `ML-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `ML-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `ML-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
       ]
     },
     {
-      sectionName: "Silver Right",
-      price: 750,
+      sectionName: "Mezzanine Right",
+      price: 850,
+      className: "fill-pink-400/50 stroke-pink-600",
       seats: [
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `SR-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 11 }, (_, i) => ({ id: `SR-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 12 }, (_, i) => ({ id: `SR-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 13 }, (_, i) => ({ id: `SR-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 14 }, (_, i) => ({ id: `SR-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
-        ...Array.from({ length: 15 }, (_, i) => ({ id: `SR-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `MR-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `MR-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.1 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ id: `MR-F${i + 1}`, row: 'F', col: i + 1, isAvailable: Math.random() > 0.1 })),
       ]
     },
     {
-      sectionName: "Bronze Left",
+      sectionName: "Balcony",
       price: 500,
+      className: "fill-teal-400/50 stroke-teal-600",
       seats: [
-        ...Array.from({ length: 7 }, (_, i) => ({ id: `BL-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 8 }, (_, i) => ({ id: `BL-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 9 }, (_, i) => ({ id: `BL-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `BL-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `BL-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.15 })),
-      ],
-    },
-     {
-      sectionName: "Bronze Right",
-      price: 500,
-      seats: [
-        ...Array.from({ length: 7 }, (_, i) => ({ id: `BR-A${i + 1}`, row: 'A', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 8 }, (_, i) => ({ id: `BR-B${i + 1}`, row: 'B', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 9 }, (_, i) => ({ id: `BR-C${i + 1}`, row: 'C', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `BR-D${i + 1}`, row: 'D', col: i + 1, isAvailable: Math.random() > 0.15 })),
-        ...Array.from({ length: 10 }, (_, i) => ({ id: `BR-E${i + 1}`, row: 'E', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 22 }, (_, i) => ({ id: `B-G${i + 1}`, row: 'G', col: i + 1, isAvailable: Math.random() > 0.15 })),
+        ...Array.from({ length: 22 }, (_, i) => ({ id: `B-H${i + 1}`, row: 'H', col: i + 1, isAvailable: Math.random() > 0.15 })),
       ],
     },
   ],
@@ -303,5 +271,3 @@ export const useEvents = () => {
   }
   return context;
 };
-
-    

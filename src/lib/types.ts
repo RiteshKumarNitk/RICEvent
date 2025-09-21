@@ -17,6 +17,7 @@ export type SeatSection = {
   sectionName: string;
   price: number;
   seats: Seat[];
+  className: string;
 }
 
 export type SeatingChartData = {
