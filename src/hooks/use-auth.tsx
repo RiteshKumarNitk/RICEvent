@@ -2,16 +2,13 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
-  getAuth, 
-  onAuthStateChanged, 
   User, 
-  UserCredential,
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
-  GoogleAuthProvider,
-  updateProfile
+  updateProfile,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -28,20 +25,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function to create a user profile in Firestore
-const createUserProfile = async (user: User, additionalData: { displayName?: string } = {}) => {
+// Helper function to create or update a user profile in Firestore
+const createUserProfile = async (user: User) => {
     if (!user) return;
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-        const { uid, email, photoURL } = user;
-        const displayName = additionalData.displayName || user.displayName || "Anonymous User";
+        const { uid, email, photoURL, displayName } = user;
         try {
             await setDoc(userRef, {
                 uid,
                 email,
-                displayName,
+                displayName: displayName || "Anonymous User",
                 photoURL,
                 createdAt: serverTimestamp(),
             });
@@ -58,11 +54,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        // When a user logs in or signs up, ensure their profile exists.
-        createUserProfile(user);
+        await createUserProfile(user);
       }
       setLoading(false);
     });
@@ -76,9 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const signup = async (email: string, pass: string, fullName: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    // After creating the user, update their profile with the full name.
-    // The onAuthStateChanged listener will handle the rest (setting user state, creating firestore doc).
     await updateProfile(userCredential.user, { displayName: fullName });
+    // The onAuthStateChanged listener will handle creating the firestore doc.
     return userCredential;
   };
 
@@ -92,7 +86,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // The onAuthStateChanged listener will handle creating the user profile.
     return result;
   };
-
 
   const value = {
     user,
