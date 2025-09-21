@@ -15,7 +15,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, setDoc, getDoc } from "firebase/firestore"; 
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"; 
 
 interface AuthContextType {
   user: User | null;
@@ -43,12 +43,10 @@ const createUserProfile = async (user: User, additionalData: { displayName?: str
                 email,
                 displayName,
                 photoURL,
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
             });
         } catch (error) {
             console.error("Error creating user profile in Firestore:", error);
-            // This might happen due to Firestore rules.
-            // We can re-throw or handle it gracefully.
             throw error;
         }
     }
@@ -62,6 +60,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        // When a user logs in or signs up, ensure their profile exists.
+        createUserProfile(user);
+      }
       setLoading(false);
     });
 
@@ -74,15 +76,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const signup = async (email: string, pass: string, fullName: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const user = userCredential.user;
-    if (user) {
-        // Update the user's profile with the full name
-        await updateProfile(user, { displayName: fullName });
-        // Create the user document in Firestore
-        // The onAuthStateChanged listener will handle setting the user state
-        // so no manual re-login is needed.
-        await createUserProfile(user, { displayName: fullName });
-    }
+    // After creating the user, update their profile with the full name.
+    // The onAuthStateChanged listener will handle the rest (setting user state, creating firestore doc).
+    await updateProfile(userCredential.user, { displayName: fullName });
     return userCredential;
   };
 
@@ -93,9 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
-    if (result.user) {
-        await createUserProfile(result.user);
-    }
+    // The onAuthStateChanged listener will handle creating the user profile.
     return result;
   };
 
