@@ -19,14 +19,14 @@ const detailedSeatingChart = {
     {
       sectionName: "Executive",
       price: 299,
-      rows: Array.from({ length_from: 6, length: 7 }, (_, i) => String.fromCharCode(65 + i)), // F-L
+      rows: Array.from({ length: 7 }, (_, i) => String.fromCharCode(70 + i)), // F-L
       seatsPerRow: 20,
       className: "bg-purple-500/20 border-purple-500",
     },
     {
       sectionName: "Normal",
       price: 99,
-      rows: Array.from({ length_from: 13, length: 5 }, (_, i) => String.fromCharCode(65 + i)), // M-Q
+      rows: Array.from({ length: 5 }, (_, i) => String.fromCharCode(77 + i)), // M-Q
       seatsPerRow: 22,
       className: "bg-blue-500/20 border-blue-500",
     },
@@ -245,4 +245,5 @@ export const useEvents = () => {
   return context;
 };
 
+    
     
