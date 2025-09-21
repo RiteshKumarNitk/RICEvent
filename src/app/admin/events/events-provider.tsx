@@ -28,6 +28,29 @@ const sampleEvents: Omit<Event, 'id'>[] = [
         image: "https://picsum.photos/seed/event2/600/400",
         showtimes: ["09:00", "13:00"],
         ticketTypes: [{ type: "Standard", price: 1500 }],
+        seatingChart: {
+            sections: [
+                {
+                    sectionName: "Platinum",
+                    ticketType: "Standard",
+                    price: 1500,
+                    rows: [
+                        [ { id: "A1", number: "1", isAvailable: true }, { id: "A2", number: "2", isAvailable: true }, null, { id: "A3", number: "3", isAvailable: true }, { id: "A4", number: "4", isAvailable: true } ],
+                        [ { id: "B1", number: "1", isAvailable: false }, { id: "B2", number: "2", isAvailable: true }, null, { id: "B3", number: "3", isAvailable: true }, { id: "B4", number: "4", isAvailable: false } ],
+                    ]
+                },
+                {
+                    sectionName: "Gold",
+                    ticketType: "Standard",
+                    price: 1000,
+                    rows: [
+                        [ { id: "C1", number: "1", isAvailable: true }, { id: "C2", number: "2", isAvailable: true }, { id: "C3", number: "3", isAvailable: true }, null, { id: "C4", number: "4", isAvailable: true }, { id: "C5", number: "5", isAvailable: true } ],
+                        [ { id: "D1", number: "1", isAvailable: true }, { id: "D2", number: "2", isAvailable: false }, { id: "D3", number: "3", isAvailable: true }, null, { id: "D4", number: "4", isAvailable: true }, { id: "D5", number: "5", isAvailable: true } ],
+                        [ { id: "E1", number: "1", isAvailable: true }, { id: "E2", number: "2", isAvailable: true }, { id: "E3", number: "3", isAvailable: true }, null, { id: "E4", number: "4", isAvailable: false }, { id: "E5", number: "5", isAvailable: true } ],
+                    ]
+                }
+            ]
+        }
     },
     {
         name: "Abstract Expressions Art Exhibit",
