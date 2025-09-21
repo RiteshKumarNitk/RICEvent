@@ -2,10 +2,10 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Event, Seat, SeatSection, SeatRow } from "@/lib/types";
+import { Event, Seat, SeatSection, SeatRowArray } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut } from "lucide-react";
+import { ZoomIn, ZoomOut, ScreenShare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
@@ -16,9 +16,9 @@ const SeatComponent = ({ seat, section, isSelected, isBooked, onSelect, showTool
   const status = isBooked ? 'booked' : isSelected ? 'selected' : 'available';
 
   const seatStyles = {
-    available: "bg-gray-300 dark:bg-gray-700 hover:bg-green-500 dark:hover:bg-green-600",
-    booked: "bg-muted-foreground/30 cursor-not-allowed",
-    selected: "bg-primary text-primary-foreground transform scale-110 shadow-lg",
+    available: "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
+    booked: "bg-gray-500 dark:bg-gray-800 cursor-not-allowed",
+    selected: "bg-primary text-primary-foreground scale-110",
   };
 
   const handleClick = () => {
@@ -26,7 +26,7 @@ const SeatComponent = ({ seat, section, isSelected, isBooked, onSelect, showTool
       onSelect(seat);
     }
   };
-
+  
   const handleMouseEnter = () => {
     if (seatRef.current) {
         showTooltip(seat, section, seatRef.current);
@@ -38,10 +38,11 @@ const SeatComponent = ({ seat, section, isSelected, isBooked, onSelect, showTool
       ref={seatRef}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
-      className={cn("w-4 h-4 md:w-5 md:h-5 rounded-full cursor-pointer transition-all duration-150 flex-shrink-0", seatStyles[status])}
+      className={cn("w-5 h-5 rounded-full cursor-pointer transition-all duration-200 flex-shrink-0", seatStyles[status])}
     />
   );
 };
+
 
 const SeatTooltip = ({ tooltipData, onMouseLeave }: { tooltipData: { seat: Seat, section: SeatSection, style: React.CSSProperties } | null, onMouseLeave: () => void }) => {
     if (!tooltipData) return null;
@@ -66,10 +67,9 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
   const containerRef = useRef<HTMLDivElement>(null);
   let tooltipTimeout = useRef<NodeJS.Timeout | null>(null);
 
-
   useEffect(() => {
     if (!event.seatingChart) {
-      toast({
+       toast({
         title: "General Admission",
         description: "This event does not have a seating chart.",
       });
@@ -161,13 +161,6 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
 
   const { sections, bookedSeats = [] } = event.seatingChart;
   
-  const getSectionStyle = (sectionName: string) => {
-      if (sectionName === "ROYAL") return { color: 'hsl(var(--seat-color-royal))' };
-      if (sectionName === "CLUB") return { color: 'hsl(var(--seat-color-club))' };
-      if (sectionName === "EXECUTIVE") return { color: 'hsl(var(--seat-color-executive))' };
-      return {};
-  }
-  
   return (
     <>
       <div className="w-full bg-background relative" onMouseLeave={hideTooltip}>
@@ -176,52 +169,57 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
           <Button variant="outline" size="icon" onClick={handleZoomIn}><ZoomIn /></Button>
         </div>
         
-        <div ref={containerRef} className="overflow-auto py-8 px-4" >
+        <div ref={containerRef} className="overflow-auto p-4 md:p-8" >
           <SeatTooltip tooltipData={tooltip} onMouseLeave={hideTooltip} />
           <div 
             className="mx-auto transition-transform duration-300"
-            style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+            style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
           >
             <div className="flex flex-col items-center gap-6">
 
-                {/* Seats */}
-                <div className="flex flex-col-reverse gap-4 w-full items-center">
-                    {sections.map((section, sectionIndex) => (
-                        <div key={section.sectionName} className="flex flex-col-reverse items-center gap-1">
-                            <p className="font-semibold text-xs mt-2" style={getSectionStyle(section.sectionName)}>{section.sectionName} - ₹{section.price}</p>
-                            <div className={cn("flex flex-col-reverse gap-1 p-2 rounded-lg")}>
-                                {section.rows.map((rowInfo, rowIndex) => (
-                                    <div key={rowInfo.row} className="flex items-center justify-center gap-1 md:gap-2">
-                                        <div className="seat-row-label">{rowInfo.row}</div>
-                                        <div className="flex justify-center gap-1 md:gap-2" style={{ width: `${rowInfo.seats * 1.75}rem` }}>
-                                            {Array.from({ length: rowInfo.seats }).map((_, i) => {
-                                                const seatNum = i + 1;
-                                                const seat: Seat = { id: `${rowInfo.row}${seatNum}`, row: rowInfo.row, col: seatNum };
-                                                return <SeatComponent key={seat.id} seat={seat} section={section} isSelected={selectedSeats.some(s => s.id === seat.id)} isBooked={bookedSeats.includes(seat.id)} onSelect={handleSelectSeat} showTooltip={showTooltip} />;
-                                            })}
-                                        </div>
-                                        <div className="seat-row-label">{rowInfo.row}</div>
-                                    </div>
-                                ))}
-                            </div>
+                {/* Legend */}
+                 <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 mt-4 text-sm w-full">
+                    {sections.map(s => (
+                        <div key={s.sectionName} className="flex items-center gap-2">
+                           <div className={cn("w-4 h-4 rounded-sm border", s.className.replace('bg-', 'border-'))}></div>
+                            <span>{s.sectionName} - ₹{s.price}</span>
                         </div>
                     ))}
+                </div>
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm">
+                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600" /> Available</div>
+                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-primary" /> Selected</div>
+                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-gray-500 dark:bg-gray-800" /> Booked</div>
                 </div>
 
                 {/* Stage */}
                 <div className="w-2/3 h-10 mt-8 flex items-center justify-center">
-                    <div className="w-full h-full border-b-4 border-t-2 border-x-2 border-primary rounded-t-[100%]">
-                       <p className="text-center font-bold text-primary tracking-widest mt-2">STAGE</p>
+                    <div className="w-full h-full border-b-4 border-t-2 border-x-2 border-primary/50 rounded-t-[100%] flex items-center justify-center">
+                       <p className="text-center font-bold text-primary/80 tracking-widest mt-2">STAGE</p>
                     </div>
                 </div>
 
-
-                {/* Legend */}
-                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-4 text-sm">
-                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-700" /> Available</div>
-                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-primary" /> Selected</div>
-                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-muted-foreground/30" /> Sold</div>
+                {/* Seats */}
+                 <div className="flex flex-col-reverse gap-4 w-full items-center">
+                    {sections.map((section) => (
+                        <div key={section.sectionName} className={cn("flex flex-col-reverse items-center gap-2 border-2 rounded-lg p-2 md:p-4", section.className)}>
+                             <p className="font-semibold text-xs mt-2">{section.sectionName}</p>
+                            {section.rows.map(rowInfo => (
+                                <div key={rowInfo.row} className="flex items-center justify-center gap-1 md:gap-2">
+                                    <div className="seat-row-label">{rowInfo.row}</div>
+                                    <div className="flex justify-center gap-1 md:gap-2">
+                                        {rowInfo.seats.map((seatNum) => {
+                                            const seat: Seat = { id: `${rowInfo.row}${seatNum}`, row: rowInfo.row, col: seatNum };
+                                            return <SeatComponent key={seat.id} seat={seat} section={section} isSelected={selectedSeats.some(s => s.id === seat.id)} isBooked={bookedSeats.includes(seat.id)} onSelect={handleSelectSeat} showTooltip={showTooltip} />;
+                                        })}
+                                    </div>
+                                    <div className="seat-row-label">{rowInfo.row}</div>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
                 </div>
+
             </div>
           </div>
         </div>

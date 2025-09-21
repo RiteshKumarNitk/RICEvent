@@ -12,15 +12,15 @@ export type Seat = {
   col: number;
 };
 
-export type SeatRow = {
+export type SeatRowArray = {
   row: string;
-  seats: number;
+  seats: number[];
 }
 
 export type SeatSection = {
   sectionName: string;
   price: number;
-  rows: SeatRow[];
+  rows: SeatRowArray[];
   className: string;
 }
 
@@ -42,3 +42,4 @@ export type Event = {
   ticketTypes: TicketType[];
   seatingChart?: SeatingChartData;
 };
+
