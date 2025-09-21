@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, Timestamp } from "firebase/firestore";
 
 interface Booking {
   id: string;
@@ -43,11 +43,19 @@ export default function AccountPage() {
           orderBy("bookingDate", "desc")
         );
         const querySnapshot = await getDocs(q);
-        const bookings = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          eventName: doc.data().eventName,
-          eventDate: doc.data().eventDate,
-        }));
+        const bookings = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            // Ensure date fields are correctly converted from Firestore Timestamps
+            const eventDate = data.eventDate instanceof Timestamp 
+                ? data.eventDate.toDate().toISOString() 
+                : data.eventDate;
+          
+            return {
+              id: doc.id,
+              eventName: data.eventName,
+              eventDate: eventDate,
+            };
+        });
         setRegisteredEvents(bookings);
       } catch (error) {
         console.error("Error fetching bookings: ", error);
