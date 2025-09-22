@@ -63,16 +63,21 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             if (!event.id) return;
             setLoadingBookings(true);
             try {
-                const bookingsQuery = query(collection(db, 'bookings'), where('eventId', '==', event.id));
-                const querySnapshot = await getDocs(bookingsQuery);
-                const seatIds = querySnapshot.docs.flatMap(doc => doc.data().attendees.map((attendee: any) => attendee.seatId));
+                // Workaround: Fetch all bookings and filter on the client to avoid index issue.
+                const bookingsCollection = collection(db, 'bookings');
+                const allBookingsSnapshot = await getDocs(bookingsCollection);
+                const allBookings = allBookingsSnapshot.docs.map(doc => doc.data());
+                
+                const eventBookings = allBookings.filter(booking => booking.eventId === event.id);
+                const seatIds = eventBookings.flatMap(booking => booking.attendees.map((attendee: any) => attendee.seatId));
+                
                 setBookedSeats(seatIds);
             } catch (error) {
                 console.error("Error fetching booked seats:", error);
                 toast({
                     variant: "destructive",
                     title: "Could not load booked seats.",
-                    description: "This usually means a Firestore index is required. Please check the browser console for a link to create the index.",
+                    description: "There was a problem fetching seat availability from the database.",
                 })
             } finally {
                 setLoadingBookings(false);
@@ -255,5 +260,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             />
         </>
     );
+
+    
 
     
