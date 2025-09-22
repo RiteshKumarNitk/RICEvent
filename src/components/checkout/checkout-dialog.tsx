@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import * as React from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,9 +62,6 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   const { user } = useAuth();
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
-  
-  const [forceRender, setForceRender] = useState(false);
-
 
   const steps = eventIsPaid ? ['Seats', 'Details', 'Payment', 'Invoice'] : ['Seats', 'Details', 'Invoice'];
   const icons = eventIsPaid ? [User, FileText, CreditCard, CheckCircle2] : [User, FileText, CheckCircle2];
@@ -86,7 +83,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     },
   });
 
-  const { fields, update } = useFieldArray({
+  const { fields, update, replace } = useFieldArray({
     control: form.control,
     name: "attendees",
   });
@@ -96,8 +93,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     return watchedAttendees.reduce((acc, attendee) => {
         return acc + (attendee.isMember ? 0 : attendee.price);
     }, 0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedAttendees, forceRender]);
+  }, [watchedAttendees]);
 
 
   useEffect(() => {
@@ -111,18 +107,17 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
             isMember: false,
             memberIdVerified: false,
         }));
-        form.setValue('attendees', attendeesData);
+        replace(attendeesData);
     }
-  }, [selectedSeats, event, form, isOpen, user]);
+  }, [selectedSeats, event, replace, isOpen, user]);
 
 
   const handleVerifyMemberId = (index: number) => {
-    const attendees = form.getValues('attendees');
-    const currentAttendee = attendees[index];
+    const currentAttendees = form.getValues('attendees');
+    const currentAttendee = currentAttendees[index];
     const memberIdToVerify = currentAttendee.memberId;
     
-    // Check if this member ID is already used by another attendee
-    const isIdAlreadyUsed = attendees.some((attendee, idx) => 
+    const isIdAlreadyUsed = currentAttendees.some((attendee, idx) => 
         idx !== index && attendee.isMember && String(attendee.memberId) === String(memberIdToVerify)
     );
 
@@ -134,20 +129,19 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     const memberData = membersData.find(m => String(m["Member ID"]) === String(memberIdToVerify));
 
     if (memberData) {
-      const updatedAttendee = {
+      currentAttendees[index] = {
         ...currentAttendee,
         isMember: true,
         memberIdVerified: true,
         attendeeName: memberData["Member Details"].Name,
       };
-      update(index, updatedAttendee);
-      toast({ title: "Member Verified", description: `${updatedAttendee.attendeeName} gets a free ticket!`});
+      toast({ title: "Member Verified", description: `${currentAttendees[index].attendeeName} gets a free ticket!`});
     } else {
-      update(index, { ...currentAttendee, isMember: false, memberIdVerified: true });
+      currentAttendees[index] = { ...currentAttendee, isMember: false, memberIdVerified: true };
       toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
     
-    setForceRender(p => !p);
+    replace(currentAttendees);
   };
 
 
@@ -183,7 +177,6 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     } else if (step === 2) { // Transition from Details to Payment/Invoice
       isValid = await form.trigger('attendees');
       if (isValid && eventIsPaid && totalAmount === 0) {
-        // If all tickets are free, submit directly
         onSubmit(form.getValues());
         return;
       }
@@ -210,7 +203,6 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} />;
       case 3: // Payment (if applicable) or Invoice
         if (eventIsPaid) return <PaymentStep form={form} total={totalAmount} />;
-        // For free events, this step is skipped or goes directly to invoice logic
         return <InvoiceStep event={event} form={form} />;
       case 4: // Invoice for paid events
         return <InvoiceStep event={event} form={form} />;
@@ -352,7 +344,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                         )}
                     />
                     {!form.getValues(`attendees.${index}.isMember`) ? (
-                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.attendeeName`) || !form.watch(`attendees.${index}.memberId`)}>Verify ID</Button>
+                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.memberId`)}>Verify ID</Button>
                     ) : null}
                 </div>
             </div>
@@ -426,7 +418,5 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
-
-    
 
     
