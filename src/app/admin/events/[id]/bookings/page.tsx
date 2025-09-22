@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, Ticket, DollarSign } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
 
 interface EnrichedBooking extends Booking {
   userDisplayName?: string;
@@ -24,6 +25,8 @@ export default function EventBookingsPage() {
   const { events, loading: eventsLoading } = useEvents();
   const [bookings, setBookings] = useState<EnrichedBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const router = useRouter();
 
   const event = events.find(e => e.id === eventId);
   
@@ -31,6 +34,11 @@ export default function EventBookingsPage() {
   const totalSeatsSold = bookings.reduce((acc, booking) => acc + booking.attendees.length, 0);
 
   useEffect(() => {
+    if (!user) {
+        setLoading(false);
+        return;
+    };
+    
     const fetchBookings = async () => {
       if (!eventId) return;
       setLoading(true);
@@ -83,7 +91,7 @@ export default function EventBookingsPage() {
     };
 
     fetchBookings();
-  }, [eventId]);
+  }, [eventId, user]);
   
   if (eventsLoading) return <div className="container text-center py-12">Loading event details...</div>;
 

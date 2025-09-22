@@ -1,25 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Allow admin (any authenticated user) to manage events
+    
+    // Public read access for events, but only authenticated users can create/edit.
     match /events/{eventId} {
-      allow read, write, list: if request.auth != null;
-    }
-
-    // Allow admin (any authenticated user) to read/list all bookings.
-    // Allow users to create bookings for themselves and read their own.
-    match /bookings/{bookingId} {
-      allow read, list: if request.auth != null;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
-    // Allow admin (any authenticated user) to read all user profiles.
-    // Allow users to create their own user document.
+    // An authenticated user can create bookings for themselves.
+    // An authenticated user can read their own bookings.
+    // The admin needs to be able to list bookings to check for member ID usage and view booking lists.
+    match /bookings/{bookingId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null;
+    }
+
+    // A user can create their own user document.
+    // An authenticated user can read any user document (needed for admin to show names).
     match /users/{userId} {
-      allow read: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
     }
   }
 }

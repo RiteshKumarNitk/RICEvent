@@ -17,17 +17,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Booking } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function AdminDashboard() {
   const { seedDatabase, events, deleteAllEvents } = useEvents();
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const [loadingStats, setLoadingStats] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) {
+        setLoadingStats(false);
+        return;
+    }
     const fetchStats = async () => {
       setLoadingStats(true);
       try {
@@ -49,7 +55,7 @@ export default function AdminDashboard() {
     };
 
     fetchStats();
-  }, [events]); // Re-fetch stats if events change
+  }, [events, user]); // Re-fetch stats if events change or user logs in
 
   const upcomingEvents = events.filter(e => new Date(e.date) > new Date()).length;
   
