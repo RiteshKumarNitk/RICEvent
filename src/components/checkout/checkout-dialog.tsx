@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import * as React from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -80,6 +80,14 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     control: form.control,
     name: "attendees",
   });
+  
+  const watchedAttendees = form.watch('attendees');
+  const totalAmount = useMemo(() => {
+    return watchedAttendees.reduce((acc, attendee) => {
+        return acc + (attendee.isMember ? 0 : attendee.price);
+    }, 0);
+  }, [watchedAttendees]);
+
 
   useEffect(() => {
     if (selectedSeats.length > 0 && isOpen) {
@@ -96,10 +104,6 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     }
   }, [selectedSeats, event, form, isOpen, user]);
 
-
-  const totalAmount = form.watch('attendees').reduce((acc, attendee) => {
-    return acc + (attendee.isMember ? 0 : attendee.price);
-  }, 0);
 
   const handleVerifyMemberId = (index: number) => {
     const attendees = form.getValues('attendees');
@@ -179,7 +183,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       case 2: // Attendee Details
         return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} />;
       case 3: // Payment (if applicable) or Invoice
-        if (eventIsPaid) return <PaymentStep form={form} />;
+        if (eventIsPaid) return <PaymentStep form={form} total={totalAmount} />;
         return <InvoiceStep event={event} form={form} />;
       case 4: // Invoice for paid events
         return <InvoiceStep event={event} form={form} />;
@@ -334,7 +338,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
   </div>
 );
 
-const PaymentStep = ({ form }: { form: any }) => (
+const PaymentStep = ({ form, total }: { form: any, total: number }) => (
   <div>
     <h3 className="font-semibold mb-4 text-lg">Payment Details</h3>
     <div className="space-y-4 max-w-md mx-auto">
@@ -351,6 +355,11 @@ const PaymentStep = ({ form }: { form: any }) => (
             <FormField control={form.control} name="payment.cvc" render={({ field }) => (
                 <FormItem className="flex-1"><FormLabel>CVC</FormLabel><FormControl><Input {...field} placeholder="123" /></FormControl><FormMessage /></FormItem>
             )} />
+        </div>
+        <Separator className="my-4" />
+        <div className="flex justify-between font-bold text-xl">
+            <span>Total Amount</span>
+            <span>₹{total.toFixed(2)}</span>
         </div>
     </div>
   </div>
@@ -377,5 +386,3 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
-
-    
