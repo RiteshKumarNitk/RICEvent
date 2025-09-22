@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import * as React from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +15,7 @@ import { Event, Seat, SeatSection } from '@/lib/types';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, ArrowRight, ArrowLeft, CreditCard, User, FileText, BadgeCheck, XCircle } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, CreditCard, User, FileText, BadgeCheck, XCircle, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,9 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
 import membersData from '@/lib/members.json';
+import QRCode from "react-qr-code";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 
 const isPaidEvent = (event: Event) => {
@@ -59,6 +62,7 @@ interface CheckoutDialogProps {
 export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: CheckoutDialogProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
@@ -83,7 +87,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     },
   });
 
-  const { fields, update, replace } = useFieldArray({
+  const { fields, replace } = useFieldArray({
     control: form.control,
     name: "attendees",
   });
@@ -108,10 +112,10 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         }));
         replace(attendeesData);
     }
-  }, [selectedSeats, event, replace, isOpen, user]);
+  }, [selectedSeats, replace, isOpen, user]);
 
 
-  const handleVerifyMemberId = (index: number) => {
+ const handleVerifyMemberId = (index: number) => {
     const currentAttendees = form.getValues('attendees');
     const currentAttendee = currentAttendees[index];
     const memberIdToVerify = currentAttendee.memberId;
@@ -127,20 +131,23 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
 
     const memberData = membersData.find(m => String(m["Member ID"]) === String(memberIdToVerify));
 
+    let updatedAttendee;
     if (memberData) {
-      currentAttendees[index] = {
+      updatedAttendee = {
         ...currentAttendee,
         isMember: true,
         memberIdVerified: true,
         attendeeName: memberData["Member Details"].Name,
       };
-      toast({ title: "Member Verified", description: `${currentAttendees[index].attendeeName} gets a free ticket!`});
+      toast({ title: "Member Verified", description: `${updatedAttendee.attendeeName} gets a free ticket!`});
     } else {
-      currentAttendees[index] = { ...currentAttendee, isMember: false, memberIdVerified: true };
+      updatedAttendee = { ...currentAttendee, isMember: false, memberIdVerified: true };
       toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
     
-    replace(currentAttendees);
+    const newAttendees = [...currentAttendees];
+    newAttendees[index] = updatedAttendee;
+    replace(newAttendees);
   };
 
 
@@ -151,7 +158,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     }
     setIsSubmitting(true);
     try {
-        await addDoc(collection(db, "bookings"), {
+        const docRef = await addDoc(collection(db, "bookings"), {
             userId: user.uid,
             eventId: event.id,
             eventName: event.name,
@@ -160,6 +167,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
             total: totalAmount,
             bookingDate: new Date(),
         });
+        setBookingId(docRef.id);
         setStep(steps.length);
     } catch (error) {
         console.error("Error saving booking: ", error);
@@ -191,6 +199,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   const resetAndClose = () => {
     form.reset();
     setStep(1);
+    setBookingId(null);
     onOpenChange(false);
   }
 
@@ -202,9 +211,9 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} />;
       case 3: // Payment (if applicable) or Invoice
         if (eventIsPaid) return <PaymentStep form={form} total={totalAmount} />;
-        return <InvoiceStep event={event} form={form} />;
+        return <InvoiceStep event={event} form={form} bookingId={bookingId} />;
       case 4: // Invoice for paid events
-        return <InvoiceStep event={event} form={form} />;
+        return <InvoiceStep event={event} form={form} bookingId={bookingId}/>;
       default:
         return null;
     }
@@ -259,22 +268,28 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
                 </Button>
               )}
               {step < steps.length -1 && (
-                 !(step === 2 && eventIsPaid && totalAmount === 0) &&
+                 !(step === 2 && eventIsPaid && totalAmount > 0) &&
                 <Button onClick={handleNext} type="button" className="ml-auto" disabled={isSubmitting}>
                   Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
 
-              {step === steps.length - 1 && eventIsPaid && (
+              {step === steps.length - 1 && eventIsPaid && totalAmount > 0 && (
                  <Button type="submit" className="ml-auto" disabled={isSubmitting}>
                   {isSubmitting ? 'Processing...' : `Pay ₹${totalAmount.toFixed(2)}`}
                 </Button>
               )}
-               {step === steps.length - 1 && !eventIsPaid && (
+              {step === steps.length - 1 && !eventIsPaid && (
                  <Button type="submit" className="ml-auto" disabled={isSubmitting}>
                   {isSubmitting ? 'Processing...' : `Confirm Booking`}
                 </Button>
               )}
+              {step === 2 && eventIsPaid && totalAmount > 0 &&
+                <Button onClick={handleNext} type="button" className="ml-auto">
+                    Next <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              }
+
             </DialogFooter>
           </form>
         </Form>
@@ -396,19 +411,84 @@ const PaymentStep = ({ form, total }: { form: any, total: number }) => (
   </div>
 );
 
-const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
+const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, bookingId: string | null }) => {
     const { user } = useAuth();
+    const invoiceRef = useRef<HTMLDivElement>(null);
+
+    const handleDownload = () => {
+        const input = invoiceRef.current;
+        if (!input) return;
+
+        html2canvas(input, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
+            const width = pdfWidth - 20;
+            const height = width / ratio;
+            
+            let y = 10;
+            if (height > pdfHeight - 20) {
+                 y = 10;
+            }
+
+            pdf.addImage(imgData, 'PNG', 10, y, width, height);
+            pdf.save(`ric-booking-${bookingId}.pdf`);
+        });
+    };
+
+    const qrValue = JSON.stringify({
+        bookingId,
+        eventName: event.name,
+        user: user?.email,
+        seats: form.getValues('attendees').map((a: any) => a.seatId).join(', '),
+    });
+
     return (
         <div className="text-center py-8">
             <div className="mx-auto bg-green-100 dark:bg-green-900/50 rounded-full h-16 w-16 flex items-center justify-center mb-4">
                 <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Booking Confirmed!</h2>
-            <p className="text-muted-foreground">Thank you. Your booking for {event.name} is complete.</p>
+            <p className="text-muted-foreground">Your booking for {event.name} is complete.</p>
             <p className="text-muted-foreground text-sm mt-2">A confirmation has been sent to {user?.email}.</p>
+            
+            <div ref={invoiceRef} className="my-8 p-6 rounded-lg border bg-background text-left max-w-md mx-auto">
+                <h3 className="font-bold text-lg mb-4 text-center">E-Ticket / Invoice</h3>
+                 <div className="flex justify-center mb-4">
+                    <div className="bg-white p-2 rounded-md">
+                        <QRCode value={qrValue} size={128} />
+                    </div>
+                 </div>
+                <Separator className="my-4" />
+                <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span className="font-semibold">Booking ID:</span> <span>{bookingId}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold">Event:</span> <span>{event.name}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold">Date:</span> <span>{format(new Date(event.date), 'PP')}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold">Booked By:</span> <span>{user?.displayName || user?.email}</span></div>
+                </Grid>
+                <Separator className="my-4" />
+                <h4 className="font-semibold mb-2">Attendees & Seats</h4>
+                {form.getValues('attendees').map((attendee: any) => (
+                    <div key={attendee.seatId} className="flex justify-between text-sm">
+                        <span>{attendee.attendeeName} ({attendee.seatId.split('-')[1]})</span>
+                        <span>{attendee.isMember ? 'Free' : `₹${attendee.price.toFixed(2)}`}</span>
+                    </div>
+                ))}
+                <Separator className="my-4" />
+                <div className="flex justify-between font-bold text-base">
+                    <span>Total Paid:</span>
+                    <span>₹{form.getValues('attendees').reduce((acc: number, att: any) => acc + (att.isMember ? 0 : att.price), 0).toFixed(2)}</span>
+                </div>
+            </div>
+
             <div className="mt-6 flex justify-center gap-4">
-                <Button asChild variant="outline">
-                    <Link href="/account">View My Bookings</Link>
+                 <Button onClick={handleDownload} variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Invoice
                 </Button>
                 <DialogClose asChild>
                     <Button type="button">Close</Button>
@@ -417,7 +497,3 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
-
-    
-
-    
