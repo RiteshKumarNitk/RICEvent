@@ -8,30 +8,10 @@ import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
-const bookedSeatsSample: string[] = [];
-
-const middleRightSection = {
-    "sectionName": "Middle Right",
-    "price": 299,
-    "rows": [
-      { "rowId": "M", "seats": 12 },
-      { "rowId": "L", "seats": 12 },
-      { "rowId": "K", "seats": 12 },
-      { "rowId": "J", "seats": 12 },
-      { "rowId": "I", "seats": 12 },
-      { "rowId": "H", "seats": 12 }
-    ]
-};
-
-middleRightSection.rows.forEach(row => {
-    for (let i = 1; i <= row.seats; i++) {
-        bookedSeatsSample.push(`Middle Right-${row.rowId}${i}`);
-    }
-});
-
-
-const generateSeats = (sectionName: string, row: SeatRow): Seat[] => {
+const generateSeats = (sectionName: string, row: SeatRow, bookedSeats: string[]): Seat[] => {
     const start = row.offset || 1;
     return Array.from({ length: row.seats }, (_, i) => {
         const seatNum = start + i;
@@ -40,7 +20,7 @@ const generateSeats = (sectionName: string, row: SeatRow): Seat[] => {
             id: seatId,
             row: row.rowId,
             col: seatNum,
-            isBooked: bookedSeatsSample.includes(seatId),
+            isBooked: bookedSeats.includes(seatId),
         };
     });
 };
@@ -69,6 +49,8 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
 
 export function SeatingChart({ event, ticketCount, onTicketCountChange }: { event: Event, ticketCount: number, onTicketCountChange: (count: number) => void }) {
     const [selectedSeats, setSelectedSeats] = useState<{ seat: Seat, section: SeatSection }[]>([]);
+    const [bookedSeats, setBookedSeats] = useState<string[]>([]);
+    const [loadingBookings, setLoadingBookings] = useState(true);
     const { toast } = useToast();
     const [isCheckoutOpen, setCheckoutOpen] = useState(false);
     const [zoom, setZoom] = useState(1);
@@ -76,6 +58,30 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
 
     const seatingData = event.seatingChart;
     
+    useEffect(() => {
+        const fetchBookedSeats = async () => {
+            if (!event.id) return;
+            setLoadingBookings(true);
+            try {
+                const bookingsQuery = query(collection(db, 'bookings'), where('eventId', '==', event.id));
+                const querySnapshot = await getDocs(bookingsQuery);
+                const seatIds = querySnapshot.docs.flatMap(doc => doc.data().attendees.map((attendee: any) => attendee.seatId));
+                setBookedSeats(seatIds);
+            } catch (error) {
+                console.error("Error fetching booked seats:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Could not load booked seats",
+                    description: "There was an error fetching seat availability. Please refresh.",
+                })
+            } finally {
+                setLoadingBookings(false);
+            }
+        };
+
+        fetchBookedSeats();
+    }, [event.id, toast]);
+
     useEffect(() => {
         // If the number of selected seats exceeds the new ticket count, truncate the selection
         if (selectedSeats.length > ticketCount) {
@@ -124,7 +130,15 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
     };
 
     const handleGeneralAdmissionCheckout = () => {
-        setCheckoutOpen(true);
+        if (ticketCount > 0) {
+            setCheckoutOpen(true);
+        } else {
+             toast({
+                variant: "destructive",
+                title: "No tickets selected",
+                description: `Please select at least one ticket to proceed.`,
+            });
+        }
     }
 
     const getTotalPrice = () => {
@@ -143,6 +157,10 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                 <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={[]} />
             </div>
         );
+    }
+    
+    if (loadingBookings) {
+        return <div className="text-center py-12">Loading seat availability...</div>
     }
 
     return (
@@ -180,7 +198,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                                                     <div key={row.rowId} className="flex items-center justify-center gap-2">
                                                         <div className="w-8 text-center font-semibold text-gray-500">{row.rowId.replace('-2','')}</div>
                                                         <div className="flex gap-2 flex-wrap justify-center">
-                                                            {generateSeats(section.sectionName, row).map(seat => (
+                                                            {generateSeats(section.sectionName, row, bookedSeats).map(seat => (
                                                                 <SeatComponent
                                                                     key={seat.id}
                                                                     seat={seat}
