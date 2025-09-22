@@ -71,16 +71,20 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                 console.error("Error fetching booked seats:", error);
                 toast({
                     variant: "destructive",
-                    title: "Could not load booked seats",
-                    description: "There was an error fetching seat availability. Please refresh.",
+                    title: "Could not load booked seats.",
+                    description: "This usually means a Firestore index is required. Please check the browser console for a link to create the index.",
                 })
             } finally {
                 setLoadingBookings(false);
             }
         };
 
-        fetchBookedSeats();
-    }, [event.id, toast]);
+        if(event.seatingChart) {
+            fetchBookedSeats();
+        } else {
+            setLoadingBookings(false);
+        }
+    }, [event.id, event.seatingChart, toast]);
 
     useEffect(() => {
         // If the number of selected seats exceeds the new ticket count, truncate the selection
@@ -131,6 +135,11 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
 
     const handleGeneralAdmissionCheckout = () => {
         if (ticketCount > 0) {
+            // General admission seats don't have IDs, so we pass an empty array
+            setSelectedSeats(Array.from({ length: ticketCount }).map(() => ({
+                seat: { id: 'GA', row: 'GA', col: 0, isBooked: false },
+                section: { sectionName: 'General Admission', price: event.ticketTypes[0]?.price || 0, rows: [], className: '' }
+            })));
             setCheckoutOpen(true);
         } else {
              toast({
@@ -148,19 +157,19 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
     const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.5));
     const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
 
+    if (loadingBookings) {
+        return <div className="text-center py-12">Loading seat availability...</div>
+    }
+
     if (!seatingData || !seatingData.tiers) {
         return (
             <div className="text-center text-muted-foreground py-12">
                 <h2 className="text-xl font-semibold">General Admission Event</h2>
-                <p>No reserved seating. Click proceed to confirm your booking for {ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}.</p>
+                <p>Click proceed to confirm your booking for {ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}.</p>
                 <Button className="mt-4" onClick={handleGeneralAdmissionCheckout}>Proceed</Button>
-                <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={[]} />
+                <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={selectedSeats} />
             </div>
         );
-    }
-    
-    if (loadingBookings) {
-        return <div className="text-center py-12">Loading seat availability...</div>
     }
 
     return (
@@ -246,6 +255,5 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             />
         </>
     );
-}
 
     
