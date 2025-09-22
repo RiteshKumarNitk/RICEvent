@@ -469,7 +469,7 @@ const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, book
                     <div className="flex justify-between"><span className="font-semibold">Event:</span> <span>{event.name}</span></div>
                     <div className="flex justify-between"><span className="font-semibold">Date:</span> <span>{format(new Date(event.date), 'PP')}</span></div>
                     <div className="flex justify-between"><span className="font-semibold">Booked By:</span> <span>{user?.displayName || user?.email}</span></div>
-                </Grid>
+                </div>
                 <Separator className="my-4" />
                 <h4 className="font-semibold mb-2">Attendees & Seats</h4>
                 {form.getValues('attendees').map((attendee: any) => (
@@ -497,3 +497,5 @@ const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, book
         </div>
     )
 };
+
+    
