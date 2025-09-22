@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Event, Seat, SeatSection } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut } from "lucide-react";
+import { ZoomIn, ZoomOut, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
@@ -14,12 +14,12 @@ const middleRightSection = {
     "sectionName": "Middle Right",
     "price": 299,
     "rows": [
-      { "rowId": "F", "seats": 12 },
-      { "rowId": "G", "seats": 12 },
       { "rowId": "H", "seats": 12 },
       { "rowId": "I", "seats": 12 },
       { "rowId": "J", "seats": 12 },
-      { "rowId": "K", "seats": 12 }
+      { "rowId": "K", "seats": 12 },
+      { "rowId": "L", "seats": 12 },
+      { "rowId": "M", "seats": 12 }
     ],
     "className": "bg-blue-600/20 border-blue-600"
 };
@@ -66,7 +66,7 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
     );
 };
 
-export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount: number }) {
+export function SeatingChart({ event, ticketCount, onTicketCountChange }: { event: Event, ticketCount: number, onTicketCountChange: (count: number) => void }) {
     const [selectedSeats, setSelectedSeats] = useState<{ seat: Seat, section: SeatSection }[]>([]);
     const { toast } = useToast();
     const [isCheckoutOpen, setCheckoutOpen] = useState(false);
@@ -76,7 +76,14 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
     const seatingData = event.seatingChart;
     
     useEffect(() => {
-        if (!seatingData || !seatingData.tiers) {
+        // If the number of selected seats exceeds the new ticket count, truncate the selection
+        if (selectedSeats.length > ticketCount) {
+            setSelectedSeats(prev => prev.slice(0, ticketCount));
+        }
+    }, [ticketCount, selectedSeats.length]);
+    
+    useEffect(() => {
+        if (!seatingData) {
             toast({
                 title: "General Admission",
                 description: "This event does not have a seating chart.",
@@ -130,7 +137,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
     const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.5));
     const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
 
-    if (!seatingData || !seatingData.tiers) {
+    if (!seatingData) {
         return (
             <div className="text-center text-muted-foreground py-12">
                 <h2 className="text-xl font-semibold">General Admission Event</h2>
@@ -144,11 +151,23 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
     return (
         <>
             <div className="w-full bg-background relative rounded-lg border shadow-lg overflow-hidden">
+                 <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                    <p className="font-semibold hidden sm:block">Tickets:</p>
+                     <div className="flex items-center gap-2 bg-background p-1 rounded-md border">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onTicketCountChange(Math.max(1, ticketCount - 1))} disabled={ticketCount <= 1}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="text-lg font-bold w-10 text-center">{ticketCount}</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onTicketCountChange(Math.min(6, ticketCount + 1))}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
                 <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
                     <Button variant="outline" size="icon" onClick={handleZoomOut}><ZoomOut /></Button>
                     <Button variant="outline" size="icon" onClick={handleZoomIn}><ZoomIn /></Button>
                 </div>
-                <div ref={containerRef} className="overflow-auto p-4 md:p-8">
+                <div ref={containerRef} className="overflow-auto p-4 md:p-8 pt-20">
                     <div
                         className="transition-transform duration-300 inline-block"
                         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
@@ -192,13 +211,13 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
                 <div className={cn("fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg z-30 transition-transform duration-300", selectedSeats.length > 0 ? "translate-y-0" : "translate-y-full")}>
                     <div className="container mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="flex flex-col text-center sm:text-left">
-                            <p className="text-lg font-bold">₹{getTotalPrice().toFixed(2)}</p>
+                             <p className="text-lg font-bold">₹{getTotalPrice().toFixed(2)}</p>
                             <p className="text-sm text-muted-foreground truncate max-w-xs">
-                                {selectedSeats.map(s => s.seat.id).join(', ')}
+                                {selectedSeats.map(s => s.seat.id).join(', ') || 'No seats selected'}
                             </p>
                         </div>
-                        <Button onClick={handleCheckout} size="lg" className="w-full sm:w-auto" disabled={selectedSeats.length === 0}>
-                           Proceed
+                        <Button onClick={handleCheckout} size="lg" className="w-full sm:w-auto">
+                           {`Proceed with ${selectedSeats.length} ${selectedSeats.length === 1 ? 'seat' : 'seats'}`}
                         </Button>
                     </div>
                 </div>
