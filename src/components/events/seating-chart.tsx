@@ -82,14 +82,6 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
         }
     }, [ticketCount, selectedSeats.length]);
     
-    useEffect(() => {
-        if (!seatingData) {
-            toast({
-                title: "General Admission",
-                description: "This event does not have a seating chart.",
-            });
-        }
-    }, [seatingData, toast]);
 
     const handleSelectSeat = (seat: Seat, section: SeatSection) => {
         setSelectedSeats((prev) => {
@@ -130,6 +122,14 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
         setCheckoutOpen(true);
     };
 
+    const handleGeneralAdmissionCheckout = () => {
+        toast({
+            title: "General Admission",
+            description: "This event does not have a seating chart.",
+        });
+        setCheckoutOpen(true);
+    }
+
     const getTotalPrice = () => {
         return selectedSeats.reduce((total, s) => total + s.section.price, 0);
     };
@@ -142,7 +142,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             <div className="text-center text-muted-foreground py-12">
                 <h2 className="text-xl font-semibold">General Admission Event</h2>
                 <p>No reserved seating. Click proceed to confirm your booking for {ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}.</p>
-                <Button className="mt-4" onClick={() => setCheckoutOpen(true)}>Proceed</Button>
+                <Button className="mt-4" onClick={handleGeneralAdmissionCheckout}>Proceed</Button>
                 <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={[]} />
             </div>
         );
