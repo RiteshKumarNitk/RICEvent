@@ -18,6 +18,10 @@ export default function AdminEventsPage() {
     router.push(`/admin/events/edit/${id}`);
   };
 
+  const handleViewBookings = (id: string) => {
+    router.push(`/admin/events/${id}/bookings`);
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this event?')) {
       await deleteEvent(id);
@@ -73,7 +77,7 @@ export default function AdminEventsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleEdit(event.id)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>View Bookings</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewBookings(event.id)}>View Bookings</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(event.id)} className="text-destructive">Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
