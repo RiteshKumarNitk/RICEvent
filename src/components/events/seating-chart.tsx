@@ -65,21 +65,18 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             if (!event.id) return;
             setLoadingBookings(true);
             try {
-                // Workaround: Fetch all bookings and filter on the client to avoid index issue.
-                const bookingsCollection = collection(db, 'bookings');
-                const allBookingsSnapshot = await getDocs(bookingsCollection);
-                const allBookings = allBookingsSnapshot.docs.map(doc => doc.data());
-                
-                const eventBookings = allBookings.filter(booking => booking.eventId === event.id);
-                const seatIds = eventBookings.flatMap(booking => booking.attendees.map((attendee: any) => attendee.seatId));
-                
+                // This is less efficient but avoids needing an index. For larger apps, an index is recommended.
+                const bookingsSnapshot = await getDocs(collection(db, 'bookings'));
+                const seatIds = bookingsSnapshot.docs
+                    .filter(doc => doc.data().eventId === event.id)
+                    .flatMap(doc => doc.data().attendees.map((attendee: any) => attendee.seatId));
                 setBookedSeats(seatIds);
             } catch (error) {
                 console.error("Error fetching booked seats:", error);
                 toast({
                     variant: "destructive",
                     title: "Could not load booked seats.",
-                    description: "There was a problem fetching seat availability from the database. This usually means a Firestore index is required. Please check the browser console for a link to create the index.",
+                    description: "There was a problem fetching seat availability from the database.",
                 })
             } finally {
                 setLoadingBookings(false);
@@ -100,6 +97,15 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
         }
     }, [ticketCount, selectedSeats.length]);
     
+    useEffect(() => {
+        if (selectedSeats.length > ticketCount) {
+            toast({
+                variant: "destructive",
+                title: `You can only select a maximum of ${ticketCount} seats.`,
+                description: "Deselect a seat to choose another.",
+            });
+        }
+    }, [selectedSeats, ticketCount, toast]);
 
     const handleSelectSeat = (seat: Seat, section: SeatSection) => {
         setSelectedSeats((prev) => {
@@ -109,14 +115,8 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             }
             if (prev.length < ticketCount) {
                 return [...prev, { seat, section }];
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: `You can only select a maximum of ${ticketCount} seats.`,
-                    description: "Deselect a seat to choose another.",
-                });
-                return prev;
             }
+            return prev;
         });
     };
 
@@ -276,7 +276,4 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
             />
         </>
     );
-
-    
-
-    
+}
