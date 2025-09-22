@@ -87,14 +87,14 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         const attendeesData = selectedSeats.map(seat => ({
             seatId: seat.id,
             price: ticketPrice,
-            attendeeName: '',
+            attendeeName: user?.displayName || '',
             memberId: '',
             isMember: false,
             memberIdVerified: false,
         }));
         form.setValue('attendees', attendeesData);
     }
-  }, [selectedSeats, event, form, isOpen]);
+  }, [selectedSeats, event, form, isOpen, user]);
 
 
   const totalAmount = form.watch('attendees').reduce((acc, attendee) => {
@@ -102,13 +102,26 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   }, 0);
 
   const handleVerifyMemberId = (index: number) => {
-    const attendee = form.getValues(`attendees.${index}`);
-    if (attendee.memberId?.toUpperCase() === VALID_MEMBER_ID) {
-      update(index, { ...attendee, isMember: true, memberIdVerified: true });
-      toast({ title: "Member Verified", description: `${attendee.attendeeName} is now a member.`});
+    const attendees = form.getValues('attendees');
+    const currentAttendee = attendees[index];
+    const memberId = currentAttendee.memberId;
+    
+    // Check if this member ID is already used by another attendee
+    const isIdAlreadyUsed = attendees.some((attendee, idx) => 
+        idx !== index && attendee.isMember && attendee.memberId?.toUpperCase() === memberId?.toUpperCase()
+    );
+
+    if (isIdAlreadyUsed) {
+        toast({ variant: "destructive", title: "Member ID in Use", description: "This Member ID has already been applied to another ticket." });
+        return;
+    }
+
+    if (memberId?.toUpperCase() === VALID_MEMBER_ID) {
+      update(index, { ...currentAttendee, isMember: true, memberIdVerified: true });
+      toast({ title: "Member Verified", description: `${currentAttendee.attendeeName} gets a free ticket!`});
     } else {
-      update(index, { ...attendee, isMember: false, memberIdVerified: true });
-      toast({ variant: "destructive", title: "Invalid Member ID", description: "The Member ID is not valid."});
+      update(index, { ...currentAttendee, isMember: false, memberIdVerified: true });
+      toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
   };
 
@@ -295,7 +308,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                         )}
                     />
                     {!form.getValues(`attendees.${index}.isMember`) ? (
-                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.attendeeName`)}>Verify ID</Button>
+                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.attendeeName`) || !form.watch(`attendees.${index}.memberId`)}>Verify ID</Button>
                     ) : null}
                 </div>
             </div>
@@ -305,7 +318,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                     form.getValues(`attendees.${index}.isMember`) ? (
                         <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                             <BadgeCheck className="mr-2 h-4 w-4" />
-                            Member
+                            Member (Ticket is Free)
                         </Badge>
                     ) : (
                         <Badge variant="destructive">
@@ -364,3 +377,5 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
+
+    
