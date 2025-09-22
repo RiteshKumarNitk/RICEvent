@@ -22,19 +22,18 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
         <div
             onClick={handleClick}
             className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
+                "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
                 seat.isBooked ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
                 isSelected && "!bg-green-500 !text-white",
                 !seat.isBooked && section.className.replace('bg-', 'hover:bg-'),
             )}
             title={`Seat ${seat.id} - ₹${section.price}`}
         >
-            {seat.col}
         </div>
     );
 };
 
-export function SeatingChart({ event }: { event: Event }) {
+export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount: number }) {
     const [selectedSeats, setSelectedSeats] = useState<{ seat: Seat, section: SeatSection }[]>([]);
     const { toast } = useToast();
     const [isCheckoutOpen, setCheckoutOpen] = useState(false);
@@ -56,12 +55,12 @@ export function SeatingChart({ event }: { event: Event }) {
             if (isSelected) {
                 return prev.filter(s => s.seat.id !== seat.id);
             }
-            if (prev.length < MAX_SEATS) {
+            if (prev.length < ticketCount) {
                 return [...prev, { seat, section }];
             } else {
                 toast({
                     variant: "destructive",
-                    title: `You can only select a maximum of ${MAX_SEATS} seats.`,
+                    title: `You can only select a maximum of ${ticketCount} seats.`,
                     description: "Deselect a seat to choose another.",
                 });
                 return prev;
@@ -75,6 +74,14 @@ export function SeatingChart({ event }: { event: Event }) {
                 variant: "destructive",
                 title: "No seats selected",
                 description: `Please select at least one seat to proceed.`,
+            });
+            return;
+        }
+        if (selectedSeats.length !== ticketCount) {
+            toast({
+                variant: "destructive",
+                title: `Incorrect number of seats`,
+                description: `Please select exactly ${ticketCount} seats.`,
             });
             return;
         }
@@ -94,7 +101,7 @@ export function SeatingChart({ event }: { event: Event }) {
         return (
             <div className="text-center text-muted-foreground py-12">
                 <h2 className="text-xl font-semibold">General Admission Event</h2>
-                <p>This event does not have reserved seating.</p>
+                <p>No reserved seating. Click proceed to confirm your booking for {ticketCount} {ticketCount === 1 ? 'ticket' : 'tickets'}.</p>
                 <Button className="mt-4" onClick={() => setCheckoutOpen(true)}>Proceed</Button>
                 <CheckoutDialog isOpen={isCheckoutOpen} onOpenChange={setCheckoutOpen} event={event} selectedSeats={[]} />
             </div>
@@ -113,32 +120,30 @@ export function SeatingChart({ event }: { event: Event }) {
                         className="transition-transform duration-300 inline-block"
                         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
                     >
-                        <div className="space-y-8">
-                            {seatingData.tiers.map((tier, tierIndex) => (
-                                <div key={tierIndex} className="flex justify-center items-start gap-4">
-                                    {tier.sections.map((section, sectionIndex) => (
-                                        <div key={sectionIndex} className={cn("p-4 rounded-lg border-2", section.className)}>
-                                            <p className="font-semibold text-lg text-center mb-2">{section.sectionName}</p>
-                                            <div className="space-y-2">
-                                                {section.rows.map(row => (
-                                                    <div key={row.rowId} className="flex items-center gap-2">
-                                                        <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
-                                                        <div className="flex gap-2 flex-wrap">
-                                                            {row.seats.map(seat => (
-                                                                <SeatComponent
-                                                                    key={seat.id}
-                                                                    seat={seat}
-                                                                    section={section}
-                                                                    isSelected={selectedSeats.some(s => s.seat.id === seat.id)}
-                                                                    onSelect={handleSelectSeat}
-                                                                />
-                                                            ))}
-                                                        </div>
+                        <div className="space-y-4">
+                            {seatingData.map((section, sectionIndex) => (
+                                <div key={sectionIndex}>
+                                     <p className="font-semibold text-center text-lg mb-2">{section.sectionName} - ₹{section.price}</p>
+                                    <div className={cn("p-4 rounded-lg", section.className)}>
+                                        <div className="space-y-2">
+                                            {section.rows.map(row => (
+                                                <div key={row.rowId} className="flex items-center justify-center gap-2">
+                                                    <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
+                                                    <div className="flex gap-2 flex-wrap justify-center">
+                                                        {row.seats.map(seat => (
+                                                            <SeatComponent
+                                                                key={seat.id}
+                                                                seat={seat}
+                                                                section={section}
+                                                                isSelected={selectedSeats.some(s => s.seat.id === seat.id)}
+                                                                onSelect={handleSelectSeat}
+                                                            />
+                                                        ))}
                                                     </div>
-                                                ))}
-                                            </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -158,7 +163,7 @@ export function SeatingChart({ event }: { event: Event }) {
                             </p>
                         </div>
                         <Button onClick={handleCheckout} size="lg" className="w-full sm:w-auto" disabled={selectedSeats.length === 0}>
-                            Proceed ({selectedSeats.length} {selectedSeats.length === 1 ? 'Seat' : 'Seats'})
+                           Proceed
                         </Button>
                     </div>
                 </div>
