@@ -51,8 +51,8 @@ export default function AccountPage() {
             return {
               id: doc.id,
               ...data,
-              eventDate: data.eventDate instanceof Timestamp ? data.eventDate.toDate().toISOString() : data.eventDate,
-              bookingDate: data.bookingDate instanceof Timestamp ? data.bookingDate.toDate().toISOString() : data.bookingDate,
+              eventDate: (data.eventDate as Timestamp).toDate().toISOString(),
+              bookingDate: (data.bookingDate as Timestamp).toDate().toISOString(),
             } as Booking;
         });
         setRegisteredBookings(bookingsData);

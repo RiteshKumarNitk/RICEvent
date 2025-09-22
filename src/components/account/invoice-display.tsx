@@ -4,7 +4,7 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Event, Booking } from '@/lib/types';
+import { Event, Booking, Attendee } from '@/lib/types';
 import { format } from 'date-fns';
 import { Download } from 'lucide-react';
 import QRCode from "react-qr-code";
@@ -55,7 +55,7 @@ export function InvoiceDisplay({ booking, event, user }: InvoiceDisplayProps) {
         seats: booking.attendees.map((a) => a.seatId).join(', '),
     });
 
-    const totalPaid = booking.attendees.reduce((acc: number, att: any) => acc + (att.isMember ? 0 : att.price), 0);
+    const totalPaid = booking.attendees.reduce((acc: number, att: Attendee) => acc + (att.isMember ? 0 : att.price), 0);
 
     return (
         <div className="text-left">
@@ -75,7 +75,7 @@ export function InvoiceDisplay({ booking, event, user }: InvoiceDisplayProps) {
                 </div>
                 <Separator className="my-4" />
                 <h4 className="font-semibold mb-2">Attendees & Seats</h4>
-                {booking.attendees.map((attendee: any) => (
+                {booking.attendees.map((attendee: Attendee) => (
                     <div key={attendee.seatId} className="flex justify-between text-sm">
                         <span className="truncate">{attendee.attendeeName} ({attendee.seatId.split('-')[1]})</span>
                         <span>{attendee.isMember ? 'Free' : `₹${attendee.price.toFixed(2)}`}</span>
