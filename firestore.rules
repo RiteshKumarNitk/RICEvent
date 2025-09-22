@@ -1,27 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
+  
+    // Allow admin (any authenticated user) to manage events
     match /events/{eventId} {
-      // Admins can do anything, others can only read.
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == 'admin@example.com';
+      allow read, write, list: if request.auth != null;
     }
 
-    match /users/{userId} {
-      // Users can create and read their own profile.
-      // Authenticated users can read other user profiles (needed for admin).
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow read: if request.auth != null;
-      allow update: if request.auth != null && request.auth.uid == userId;
-    }
-
+    // Allow admin (any authenticated user) to read/list all bookings.
+    // Allow users to create bookings for themselves and read their own.
     match /bookings/{bookingId} {
-       // Users can create their own bookings.
+      allow read, list: if request.auth != null;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      // Users can read their own bookings. Authenticated users can list all bookings (for seat availability).
-      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || request.auth.token.email == 'admin@example.com');
-      allow list: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Allow admin (any authenticated user) to read all user profiles.
+    // Allow users to create their own user document.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
