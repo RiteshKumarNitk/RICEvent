@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Event, Seat } from '@/lib/types';
+import { Event, Seat, SeatSection } from '@/lib/types';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -53,7 +53,7 @@ interface CheckoutDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   event: Event;
-  selectedSeats: Seat[];
+  selectedSeats: { seat: Seat, section: SeatSection }[];
 }
 
 export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: CheckoutDialogProps) {
@@ -98,10 +98,9 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
 
   useEffect(() => {
     if (selectedSeats.length > 0 && isOpen) {
-        const ticketPrice = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
-        const attendeesData = selectedSeats.map(seat => ({
+        const attendeesData = selectedSeats.map(({seat, section}) => ({
             seatId: seat.id,
-            price: ticketPrice,
+            price: section.price,
             attendeeName: user?.displayName || '',
             memberId: '',
             isMember: false,
@@ -286,7 +285,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
 
 // --- Step Components ---
 
-const OrderSummaryStep = ({ event, selectedSeats, total, isPaid }: { event: Event, selectedSeats: Seat[], total: number, isPaid: boolean }) => (
+const OrderSummaryStep = ({ event, selectedSeats, total, isPaid }: { event: Event, selectedSeats: { seat: Seat, section: SeatSection }[], total: number, isPaid: boolean }) => (
   <div>
     <h3 className="font-semibold mb-4 text-lg text-center">Your Selection</h3>
     <div className="space-y-4 rounded-lg border p-4 max-w-md mx-auto">
@@ -300,7 +299,7 @@ const OrderSummaryStep = ({ event, selectedSeats, total, isPaid }: { event: Even
         <Separator />
         <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Seats</span>
-            <span className="font-medium">{selectedSeats.map(s => s.id.split('-')[1]).join(', ')} ({selectedSeats.length})</span>
+            <span className="font-medium">{selectedSeats.map(s => s.seat.id.split('-')[1]).join(', ')} ({selectedSeats.length})</span>
         </div>
         {isPaid && <>
             <Separator />
@@ -418,5 +417,7 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
+
+    
 
     

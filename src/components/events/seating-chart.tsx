@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -123,10 +124,6 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
     };
 
     const handleGeneralAdmissionCheckout = () => {
-        toast({
-            title: "General Admission",
-            description: "This event does not have a seating chart.",
-        });
         setCheckoutOpen(true);
     }
 
@@ -227,8 +224,10 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                 isOpen={isCheckoutOpen}
                 onOpenChange={setCheckoutOpen}
                 event={event}
-                selectedSeats={selectedSeats.map(s => s.seat)}
+                selectedSeats={selectedSeats}
             />
         </>
     );
 }
+
+    
