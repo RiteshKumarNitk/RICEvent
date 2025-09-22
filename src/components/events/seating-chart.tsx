@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -10,8 +8,28 @@ import { ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
-const MAX_SEATS = 6;
-const bookedSeatsSample = ["A5", "A6", "C10", "D1", "D2", "H5", "K12", "K13", "F20", "G1", "J15", "P2", "M4", "R7", "S10"];
+const bookedSeatsSample: string[] = [];
+// Programmatically book the "Balcony Center" section
+const balconyCenterSection = {
+    "sectionName": "Balcony Center",
+    "price": 99,
+    "rows": [
+        { "rowId": "N", "seats": 12 },
+        { "rowId": "O", "seats": 12 },
+        { "rowId": "P", "seats": 12 },
+        { "rowId": "Q", "seats": 12 },
+        { "rowId": "R", "seats": 12 },
+        { "rowId": "S", "seats": 12 }
+    ],
+    "className": "bg-purple-600/20 border-purple-600"
+};
+
+balconyCenterSection.rows.forEach(row => {
+    for (let i = 1; i <= row.seats; i++) {
+        bookedSeatsSample.push(`${row.rowId}${i}`);
+    }
+});
+
 
 const generateSeats = (rowId: string, count: number): Seat[] => {
     return Array.from({ length: count }, (_, i) => {

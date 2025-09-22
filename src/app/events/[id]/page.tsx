@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, Share2, Languages, PersonStanding, Ticket, Ute
 import { format } from "date-fns";
 import { useEvents } from "@/app/admin/events/events-provider";
 import { Button } from "@/components/ui/button";
+import { TicketSelection } from "@/components/events/ticket-selection";
 
 export default function EventPage() {
   const params = useParams();
@@ -24,12 +25,10 @@ export default function EventPage() {
     notFound();
   }
 
-  const handleBookNow = () => {
-    router.push(`/events/${event.id}/seats?tickets=1`);
+  const handleProceed = (ticketCount: number) => {
+    router.push(`/events/${event.id}/seats?tickets=${ticketCount}`);
   };
   
-  const ticketPrice = event.ticketTypes.find(t => t.type === 'Standard')?.price || 0;
-
   return (
     <div className="bg-muted/40">
         <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
@@ -55,60 +54,55 @@ export default function EventPage() {
                      <Badge variant="outline" className="text-base py-1 px-3">
                         {event.category}
                     </Badge>
+                     <div className="prose prose-lg max-w-none mt-8 bg-background p-8 rounded-lg shadow">
+                        <h2 className="font-bold text-2xl mb-4">About the event</h2>
+                        <p className="text-base text-muted-foreground">{event.description}</p>
+                    </div>
                 </div>
                 <div className="lg:col-span-1">
-                    <div className="bg-background rounded-lg shadow-lg p-6 sticky top-24">
-                        <ul className="space-y-4 text-muted-foreground mb-6">
+                   <TicketSelection event={event} onProceed={handleProceed} />
+                </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                 <div className="bg-background p-8 rounded-lg shadow">
+                    <h2 className="font-bold text-2xl mb-4">Event Details</h2>
+                     <ul className="space-y-4 text-muted-foreground">
+                        <li className="flex items-center gap-4">
+                            <Calendar className="h-5 w-5 text-primary" />
+                            <span>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</span>
+                        </li>
                             <li className="flex items-center gap-4">
-                                <Calendar className="h-5 w-5 text-primary" />
-                                <span>{format(new Date(event.date), "EEEE, MMMM d, yyyy")}</span>
-                            </li>
-                             <li className="flex items-center gap-4">
-                                <Clock className="h-5 w-5 text-primary" />
-                                <span>{event.showtimes.join(' / ')}</span>
-                            </li>
-                             <li className="flex items-center gap-4">
-                                <MapPin className="h-5 w-5 text-primary" />
-                                <span>{event.venue}, {event.location}</span>
-                            </li>
-                             <li className="flex items-center gap-4">
-                                <Ticket className="h-5 w-5 text-primary" />
-                                <span>{event.category}</span>
-                            </li>
-                             <li className="flex items-center gap-4">
-                                <PersonStanding className="h-5 w-5 text-primary" />
-                                <span>18+</span>
-                            </li>
-                             <li className="flex items-center gap-4">
-                                <Languages className="h-5 w-5 text-primary" />
-                                <span>English, Hindi</span>
-                            </li>
-                        </ul>
-                        
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <p className="text-2xl font-bold">₹{ticketPrice.toFixed(2)}</p>
-                                <p className="text-sm text-green-600">Available</p>
-                            </div>
-                        </div>
-
-                        <Button size="lg" className="w-full" onClick={handleBookNow}>
-                            Book Now
-                        </Button>
+                            <Clock className="h-5 w-5 text-primary" />
+                            <span>{event.showtimes.join(' / ')}</span>
+                        </li>
+                            <li className="flex items-center gap-4">
+                            <MapPin className="h-5 w-5 text-primary" />
+                            <span>{event.venue}, {event.location}</span>
+                        </li>
+                            <li className="flex items-center gap-4">
+                            <Ticket className="h-5 w-5 text-primary" />
+                            <span>{event.category}</span>
+                        </li>
+                            <li className="flex items-center gap-4">
+                            <PersonStanding className="h-5 w-5 text-primary" />
+                            <span>18+</span>
+                        </li>
+                            <li className="flex items-center gap-4">
+                            <Languages className="h-5 w-5 text-primary" />
+                            <span>English, Hindi</span>
+                        </li>
+                    </ul>
+                </div>
+                 <div className="bg-background p-8 rounded-lg shadow">
+                    <h2 className="font-bold text-2xl mb-4">Facilities</h2>
+                    <div className="border rounded-lg p-4 flex items-center gap-4">
+                        <UtensilsCrossed className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-muted-foreground">Outside Food Not Allowed</span>
                     </div>
                 </div>
             </div>
-             <div className="prose prose-lg max-w-none mt-12 bg-background p-8 rounded-lg shadow">
-                <h2 className="font-bold text-2xl mb-4">About the event</h2>
-                <p className="text-base text-muted-foreground">{event.description}</p>
-            </div>
-            <div className="bg-background p-8 rounded-lg shadow mt-8">
-                <h2 className="font-bold text-2xl mb-4">Facilities</h2>
-                <div className="border rounded-lg p-4 flex items-center gap-4">
-                    <UtensilsCrossed className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-muted-foreground">Outside Food Not Allowed</span>
-                </div>
-            </div>
+
             <div className="bg-background p-8 rounded-lg shadow mt-8">
                 <h2 className="font-bold text-2xl mb-4">M-Ticket</h2>
                 <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 flex items-center gap-4">
