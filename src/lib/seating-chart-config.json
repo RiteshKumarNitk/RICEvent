@@ -7,7 +7,7 @@
             "sectionName": "Balcony Left",
             "price": 99,
             "rows": [
-              { "rowId": "S", "seats": 12 },
+              { "rowId": "S", "seats": 11 },
               { "rowId": "R", "seats": 12 },
               { "rowId": "Q", "seats": 12 },
               { "rowId": "P", "seats": 12 },
