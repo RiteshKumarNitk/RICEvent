@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -9,8 +10,22 @@ import { ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
-
 const MAX_SEATS = 6;
+const bookedSeatsSample = ["A5", "A6", "C10", "D1", "D2", "H5", "K12", "K13", "F20", "G1", "J15", "P2", "M4", "R7", "S10"];
+
+const generateSeats = (rowId: string, count: number): Seat[] => {
+    return Array.from({ length: count }, (_, i) => {
+        const seatNum = i + 1;
+        const seatId = `${rowId}${seatNum}`;
+        return {
+            id: seatId,
+            row: rowId,
+            col: seatNum,
+            isBooked: bookedSeatsSample.includes(seatId),
+        };
+    });
+};
+
 
 const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, section: SeatSection, isSelected: boolean, onSelect: (seat: Seat, section: SeatSection) => void }) => {
     const handleClick = () => {
@@ -23,10 +38,9 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
         <div
             onClick={handleClick}
             className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
-                seat.isBooked ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
-                isSelected && "!bg-green-500 !text-white",
-                !seat.isBooked && section.className.replace('bg-', 'hover:bg-'),
+                "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
+                seat.isBooked ? "bg-muted text-muted-foreground/50 cursor-not-allowed" : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
+                isSelected && "!bg-primary !text-primary-foreground",
             )}
             title={`Seat ${seat.id} - ₹${section.price}`}
         >
@@ -132,7 +146,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
                                                     <div key={row.rowId} className="flex items-center justify-center gap-2">
                                                         <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
                                                         <div className="flex gap-2 flex-wrap justify-center">
-                                                            {row.seats.map(seat => (
+                                                            {generateSeats(row.rowId, row.seats).map(seat => (
                                                                 <SeatComponent
                                                                     key={seat.id}
                                                                     seat={seat}

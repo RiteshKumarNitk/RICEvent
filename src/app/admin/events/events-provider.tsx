@@ -7,159 +7,7 @@ import type { Event, SeatingChartData } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-
-const generateSeats = (rowId: string, count: number, bookedSeats: string[]): { id: string, row: string, col: number, isBooked: boolean }[] => {
-    return Array.from({ length: count }, (_, i) => {
-        const seatNum = i + 1;
-        const seatId = `${rowId}${seatNum}`;
-        return {
-            id: seatId,
-            row: rowId,
-            col: seatNum,
-            isBooked: bookedSeats.includes(seatId),
-        };
-    });
-};
-
-const bookedSeatsSample = ["A5", "A6", "C10", "D1", "D2", "H5", "K12", "K13", "F20", "G1", "J15", "P2", "M4", "R7", "S10"];
-
-
-const detailedSeatingChart: SeatingChartData = {
-  tiers: [
-    {
-      tierName: 'Balcony',
-      sections: [
-        {
-          sectionName: 'Balcony Left',
-          price: 99,
-          rows: [
-            { rowId: 'S', seats: generateSeats('S', 12, bookedSeatsSample) },
-            { rowId: 'R', seats: generateSeats('R', 12, bookedSeatsSample) },
-            { rowId: 'Q', seats: generateSeats('Q', 12, bookedSeatsSample) },
-            { rowId: 'P', seats: generateSeats('P', 12, bookedSeatsSample) },
-            { rowId: 'O', seats: generateSeats('O', 12, bookedSeatsSample) },
-            { rowId: 'N', seats: generateSeats('N', 12.0, bookedSeatsSample) },
-          ],
-          className: 'bg-purple-600/20 border-purple-600',
-        },
-        {
-          sectionName: 'Balcony Center',
-          price: 99,
-          rows: [
-             { rowId: 'S', seats: generateSeats('S', 12, bookedSeatsSample) },
-             { rowId: 'R', seats: generateSeats('R', 12, bookedSeatsSample) },
-             { rowId: 'Q', seats: generateSeats('Q', 12, bookedSeatsSample) },
-             { rowId: 'P', seats: generateSeats('P', 12, bookedSeatsSample) },
-             { rowId: 'O', seats: generateSeats('O', 12, bookedSeatsSample) },
-             { rowId: 'N', seats: generateSeats('N', 12, bookedSeatsSample) },
-          ],
-          className: 'bg-purple-600/20 border-purple-600',
-        },
-        {
-          sectionName: 'Balcony Right',
-          price: 99,
-          rows: [
-            { rowId: 'S', seats: generateSeats('S', 12, bookedSeatsSample) },
-            { rowId: 'R', seats: generateSeats('R', 12, bookedSeatsSample) },
-            { rowId: 'Q', seats: generateSeats('Q', 12, bookedSeatsSample) },
-            { rowId: 'P', seats: generateSeats('P', 12, bookedSeatsSample) },
-            { rowId: 'O', seats: generateSeats('O', 12, bookedSeatsSample) },
-            { rowId: 'N', seats: generateSeats('N', 12, bookedSeatsSample) },
-          ],
-          className: 'bg-purple-600/20 border-purple-600',
-        },
-      ],
-    },
-    {
-      tierName: 'Middle',
-      sections: [
-        {
-          sectionName: 'Middle Left',
-          price: 299,
-          rows: [
-            { rowId: 'M', seats: generateSeats('M', 12, bookedSeatsSample) },
-            { rowId: 'L', seats: generateSeats('L', 12, bookedSeatsSample) },
-            { rowId: 'K', seats: generateSeats('K', 12, bookedSeatsSample) },
-            { rowId: 'J', seats: generateSeats('J', 12, bookedSeatsSample) },
-            { rowId: 'I', seats: generateSeats('I', 12, bookedSeatsSample) },
-            { rowId: 'H', seats: generateSeats('H', 12, bookedSeatsSample) },
-          ],
-          className: 'bg-blue-600/20 border-blue-600',
-        },
-        {
-          sectionName: 'Middle Center',
-          price: 299,
-          rows: [
-            { rowId: 'M', seats: generateSeats('M', 12, bookedSeatsSample) },
-            { rowId: 'L', seats: generateSeats('L', 12, bookedSeatsSample) },
-            { rowId: 'K', seats: generateSeats('K', 12, bookedSeatsSample) },
-            { rowId: 'J', seats: generateSeats('J', 12, bookedSeatsSample) },
-            { rowId: 'I', seats: generateSeats('I', 12, bookedSeatsSample) },
-            { rowId: 'H', seats: generateSeats('H', 12, bookedSeatsSample) },
-          ],
-          className: 'bg-blue-600/20 border-blue-600',
-        },
-        {
-          sectionName: 'Middle Right',
-          price: 299,
-          rows: [
-            { rowId: 'M', seats: generateSeats('M', 12, bookedSeatsSample) },
-            { rowId: 'L', seats: generateSeats('L', 12, bookedSeatsSample) },
-            { rowId: 'K', seats: generateSeats('K', 12, bookedSeatsSample) },
-            { rowId: 'J', seats: generateSeats('J', 12, bookedSeatsSample) },
-            { rowId: 'I', seats: generateSeats('I', 12, bookedSeatsSample) },
-            { rowId: 'H', seats: generateSeats('H', 12, bookedSeatsSample) },
-          ],
-          className: 'bg-blue-600/20 border-blue-600',
-        },
-      ],
-    },
-    {
-        tierName: 'Premium',
-        sections: [
-           {
-                sectionName: 'Premium Left',
-                price: 499,
-                rows: [
-                    { rowId: 'G', seats: generateSeats('G', 12, bookedSeatsSample) },
-                    { rowId: 'F', seats: generateSeats('F', 12, bookedSeatsSample) },
-                    { rowId: 'E', seats: generateSeats('E', 12, bookedSeatsSample) },
-                    { rowId: 'D', seats: generateSeats('D', 12, bookedSeatsSample) },
-                    { rowId: 'C', seats: generateSeats('C', 12, bookedSeatsSample) },
-                    { rowId: 'B', seats: generateSeats('B', 12, bookedSeatsSample) },
-                ],
-                className: 'bg-pink-600/20 border-pink-600',
-            },
-            {
-                sectionName: 'Premium Center',
-                price: 499,
-                rows: [
-                    { rowId: 'G', seats: generateSeats('G', 12, bookedSeatsSample) },
-                    { rowId: 'F', seats: generateSeats('F', 12, bookedSeatsSample) },
-                    { rowId: 'E', seats: generateSeats('E', 12, bookedSeatsSample) },
-                    { rowId: 'D', seats: generateSeats('D', 12, bookedSeatsSample) },
-                    { rowId: 'C', seats: generateSeats('C', 12, bookedSeatsSample) },
-                    { rowId: 'B', seats: generateSeats('B', 12, bookedSeatsSample) },
-                ],
-                className: 'bg-pink-600/20 border-pink-600',
-            },
-            {
-                sectionName: 'Premium Right',
-                price: 499,
-                rows: [
-                    { rowId: 'G', seats: generateSeats('G', 12, bookedSeatsSample) },
-                    { rowId: 'F', seats: generateSeats('F', 12, bookedSeatsSample) },
-                    { rowId: 'E', seats: generateSeats('E', 12, bookedSeatsSample) },
-                    { rowId: 'D', seats: generateSeats('D', 12, bookedSeatsSample) },
-                    { rowId: 'C', seats: generateSeats('C', 12, bookedSeatsSample) },
-                    { rowId: 'B', seats: generateSeats('B', 12, bookedSeatsSample) },
-                ],
-                className: 'bg-pink-600/20 border-pink-600',
-            }
-        ]
-    }
-  ],
-};
+import detailedSeatingChart from '@/lib/seating-chart-config.json';
 
 
 const sampleEvents: Omit<Event, 'id'>[] = [
@@ -173,7 +21,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
     image: 'https://picsum.photos/seed/event1/600/400',
     showtimes: ['19:00', '21:30'],
     ticketTypes: [{ type: 'Standard', price: 299 }],
-    seatingChart: detailedSeatingChart
+    seatingChart: detailedSeatingChart as SeatingChartData
   },
   {
     name: 'Tech Visionaries Summit 2024',
@@ -185,7 +33,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
     image: 'https://picsum.photos/seed/event2/600/400',
     showtimes: ['09:00', '11:00', '14:00'],
     ticketTypes: [{ type: 'Standard', price: 99 }],
-    seatingChart: detailedSeatingChart
+    seatingChart: detailedSeatingChart as SeatingChartData
   },
   {
     name: 'Abstract Realities: A Modern Art Exhibit',
@@ -208,7 +56,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
     image: 'https://picsum.photos/seed/event4/600/400',
     showtimes: ['20:00'],
     ticketTypes: [{ type: 'Standard', price: 499 }],
-    seatingChart: detailedSeatingChart
+    seatingChart: detailedSeatingChart as SeatingChartData
   },
   {
     name: 'Global Rhythms: A Cultural Dance Festival',
@@ -220,7 +68,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
     image: 'https://picsum.photos/seed/event5/600/400',
     showtimes: ['18:30'],
     ticketTypes: [{ type: 'Standard', price: 199 }],
-     seatingChart: detailedSeatingChart
+     seatingChart: detailedSeatingChart as SeatingChartData
   },
 ];
 
