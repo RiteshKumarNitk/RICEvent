@@ -182,6 +182,11 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       isValid = true; 
     } else if (step === 2) { // Transition from Details to Payment/Invoice
       isValid = await form.trigger('attendees');
+      if (isValid && eventIsPaid && totalAmount === 0) {
+        // If all tickets are free, submit directly
+        onSubmit(form.getValues());
+        return;
+      }
     } else if (step === 3 && eventIsPaid) { // Transition from Payment to Invoice
       isValid = await form.trigger('payment');
     }
@@ -204,12 +209,8 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       case 2: // Attendee Details
         return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} />;
       case 3: // Payment (if applicable) or Invoice
-        if (eventIsPaid && totalAmount > 0) return <PaymentStep form={form} total={totalAmount} />;
-        if (eventIsPaid && totalAmount === 0) {
-            // Skip payment step if total is 0
-            onSubmit(form.getValues());
-            return <div className="text-center py-8">Processing your free booking...</div>
-        }
+        if (eventIsPaid) return <PaymentStep form={form} total={totalAmount} />;
+        // For free events, this step is skipped or goes directly to invoice logic
         return <InvoiceStep event={event} form={form} />;
       case 4: // Invoice for paid events
         return <InvoiceStep event={event} form={form} />;
@@ -267,17 +268,18 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
                 </Button>
               )}
               {step < steps.length -1 && (
+                 !(step === 2 && eventIsPaid && totalAmount === 0) &&
                 <Button onClick={handleNext} type="button" className="ml-auto" disabled={isSubmitting}>
                   Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
 
-              {step === steps.length - 1 && eventIsPaid && totalAmount > 0 && (
+              {step === steps.length - 1 && eventIsPaid && (
                  <Button type="submit" className="ml-auto" disabled={isSubmitting}>
                   {isSubmitting ? 'Processing...' : `Pay ₹${totalAmount.toFixed(2)}`}
                 </Button>
               )}
-               {step === steps.length -1 && !eventIsPaid && (
+               {step === steps.length - 1 && !eventIsPaid && (
                  <Button type="submit" className="ml-auto" disabled={isSubmitting}>
                   {isSubmitting ? 'Processing...' : `Confirm Booking`}
                 </Button>
@@ -424,5 +426,7 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
+
+    
 
     
