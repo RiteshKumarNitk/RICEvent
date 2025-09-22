@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Event, Seat, SeatSection } from "@/lib/types";
+import { Event, Seat, SeatSection, SeatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Plus, Minus } from "lucide-react";
@@ -30,13 +30,14 @@ middleRightSection.rows.forEach(row => {
 });
 
 
-const generateSeats = (sectionName: string, rowId: string, count: number): Seat[] => {
-    return Array.from({ length: count }, (_, i) => {
-        const seatNum = i + 1;
-        const seatId = `${sectionName}-${rowId}${seatNum}`;
+const generateSeats = (sectionName: string, row: SeatRow): Seat[] => {
+    const start = row.offset || 1;
+    return Array.from({ length: row.seats }, (_, i) => {
+        const seatNum = start + i;
+        const seatId = `${sectionName}-${row.rowId.replace('-2','')}${seatNum}`;
         return {
             id: seatId,
-            row: rowId,
+            row: row.rowId,
             col: seatNum,
             isBooked: bookedSeatsSample.includes(seatId),
         };
@@ -180,9 +181,9 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                                             <div className="space-y-2">
                                                 {section.rows.map(row => (
                                                     <div key={row.rowId} className="flex items-center justify-center gap-2">
-                                                        <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
+                                                        <div className="w-8 text-center font-semibold text-gray-500">{row.rowId.replace('-2','')}</div>
                                                         <div className="flex gap-2 flex-wrap justify-center">
-                                                            {generateSeats(section.sectionName, row.rowId, row.seats).map(seat => (
+                                                            {generateSeats(section.sectionName, row).map(seat => (
                                                                 <SeatComponent
                                                                     key={seat.id}
                                                                     seat={seat}
