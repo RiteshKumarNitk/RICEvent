@@ -58,6 +58,7 @@ interface CheckoutDialogProps {
 export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: CheckoutDialogProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_, setForceRender] = useState(0); // Used to force a re-render
   const { user } = useAuth();
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
@@ -127,6 +128,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       update(index, { ...currentAttendee, isMember: false, memberIdVerified: true });
       toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
+    setForceRender(Math.random()); // Force re-render to update totalAmount
   };
 
 
