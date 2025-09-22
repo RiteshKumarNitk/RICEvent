@@ -22,7 +22,7 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
 
-const VALID_MEMBER_ID = "RICMEMBER";
+const VALID_MEMBER_ID = "RIC24MEMBER01";
 
 const isPaidEvent = (event: Event) => {
     return event.ticketTypes.some(t => t.price > 0);
@@ -58,7 +58,7 @@ interface CheckoutDialogProps {
 export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: CheckoutDialogProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [_, setForceRender] = useState(0); // Used to force a re-render
+  const [forceRender, setForceRender] = useState(0); // Used to force a re-render
   const { user } = useAuth();
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
@@ -87,7 +87,8 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     return watchedAttendees.reduce((acc, attendee) => {
         return acc + (attendee.isMember ? 0 : attendee.price);
     }, 0);
-  }, [watchedAttendees]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAttendees, forceRender]);
 
 
   useEffect(() => {
@@ -185,7 +186,12 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       case 2: // Attendee Details
         return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} />;
       case 3: // Payment (if applicable) or Invoice
-        if (eventIsPaid) return <PaymentStep form={form} total={totalAmount} />;
+        if (eventIsPaid && totalAmount > 0) return <PaymentStep form={form} total={totalAmount} />;
+        if (eventIsPaid && totalAmount === 0) {
+            // Skip payment step if total is 0
+            onSubmit(form.getValues());
+            return <div className="text-center py-8">Processing your free booking...</div>
+        }
         return <InvoiceStep event={event} form={form} />;
       case 4: // Invoice for paid events
         return <InvoiceStep event={event} form={form} />;
@@ -204,6 +210,10 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
               const Icon = icons[index];
               const isActive = step === index + 1;
               const isCompleted = step > index + 1;
+              
+              const shouldSkipPaymentStep = eventIsPaid && totalAmount === 0 && s === 'Payment';
+              if (shouldSkipPaymentStep) return null;
+
               return (
                 <React.Fragment key={s}>
                   <div className="flex flex-col items-center">
@@ -217,7 +227,9 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
                     </div>
                     <p className={cn("text-sm mt-2", isActive ? "text-primary font-semibold" : "text-muted-foreground")}>{s}</p>
                   </div>
-                  {index < steps.length - 1 && <div className="flex-1 h-0.5 bg-border mx-2"></div>}
+                  {index < steps.length - 1 && !shouldSkipPaymentStep && (
+                     (eventIsPaid && totalAmount === 0 && index === steps.indexOf('Details')) ? null : <div className="flex-1 h-0.5 bg-border mx-2"></div>
+                  )}
                 </React.Fragment>
               )
             })}
@@ -236,14 +248,20 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
               )}
-              {step < steps.length - 1 && (
+              {step < steps.length -1 && (
                 <Button onClick={handleNext} type="button" className="ml-auto" disabled={isSubmitting}>
                   Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
-              {step === steps.length - 1 && (
-                <Button type="submit" className="ml-auto" disabled={isSubmitting}>
-                  {isSubmitting ? 'Processing...' : (eventIsPaid && totalAmount > 0 ? `Pay ₹${totalAmount.toFixed(2)}` : 'Confirm Booking')}
+
+              {step === steps.length - 1 && eventIsPaid && totalAmount > 0 && (
+                 <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : `Pay ₹${totalAmount.toFixed(2)}`}
+                </Button>
+              )}
+               {step === steps.length -1 && !eventIsPaid && (
+                 <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+                  {isSubmitting ? 'Processing...' : `Confirm Booking`}
                 </Button>
               )}
             </DialogFooter>
@@ -310,7 +328,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                         control={form.control}
                         name={`attendees.${index}.memberId`}
                         render={({ field }) => (
-                            <Input {...field} placeholder="e.g. RICMEMBER" disabled={form.getValues(`attendees.${index}.isMember`)} />
+                            <Input {...field} placeholder="e.g. RIC24MEMBER01" disabled={form.getValues(`attendees.${index}.isMember`)} />
                         )}
                     />
                     {!form.getValues(`attendees.${index}.isMember`) ? (
@@ -388,3 +406,5 @@ const InvoiceStep = ({ event, form }: { event: Event, form: any }) => {
         </div>
     )
 };
+
+    
