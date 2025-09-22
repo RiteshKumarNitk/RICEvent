@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Events are public and can be read by anyone.
+    // Writing events should be restricted (e.g. only by admin), so we deny writes here.
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if false; // Lock down writes for client, should be done via admin SDK
+    }
+
+    // Users can be created by anyone who signs up.
+    match /users/{userId} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if request.auth.uid == userId;
+    }
+
+    // Bookings can be created by any authenticated user.
+    // Users can only read their own bookings.
+    match /bookings/{bookingId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if false; // Disallow updates/deletes for now
+    }
+  }
+}
