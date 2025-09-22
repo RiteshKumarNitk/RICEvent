@@ -14,12 +14,12 @@ const middleRightSection = {
     "sectionName": "Middle Right",
     "price": 299,
     "rows": [
-        { "rowId": "H", "seats": 12 },
-        { "rowId": "I", "seats": 12 },
-        { "rowId": "J", "seats": 12 },
-        { "rowId": "K", "seats": 12 },
-        { "rowId": "L", "seats": 12 },
-        { "rowId": "M", "seats": 12 }
+      { "rowId": "F", "seats": 12 },
+      { "rowId": "G", "seats": 12 },
+      { "rowId": "H", "seats": 12 },
+      { "rowId": "I", "seats": 12 },
+      { "rowId": "J", "seats": 12 },
+      { "rowId": "K", "seats": 12 }
     ],
     "className": "bg-blue-600/20 border-blue-600"
 };
