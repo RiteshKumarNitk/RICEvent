@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -21,8 +22,8 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
+import membersData from '@/lib/members.json';
 
-const VALID_MEMBER_ID = "RIC24MEMBER01";
 
 const isPaidEvent = (event: Event) => {
     return event.ticketTypes.some(t => t.price > 0);
@@ -61,6 +62,9 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   const { user } = useAuth();
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
+  
+  const [forceRender, setForceRender] = useState(false);
+
 
   const steps = eventIsPaid ? ['Seats', 'Details', 'Payment', 'Invoice'] : ['Seats', 'Details', 'Invoice'];
   const icons = eventIsPaid ? [User, FileText, CreditCard, CheckCircle2] : [User, FileText, CheckCircle2];
@@ -92,7 +96,8 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     return watchedAttendees.reduce((acc, attendee) => {
         return acc + (attendee.isMember ? 0 : attendee.price);
     }, 0);
-  }, [watchedAttendees]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAttendees, forceRender]);
 
 
   useEffect(() => {
@@ -114,11 +119,11 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   const handleVerifyMemberId = (index: number) => {
     const attendees = form.getValues('attendees');
     const currentAttendee = attendees[index];
-    const memberId = currentAttendee.memberId;
+    const memberIdToVerify = currentAttendee.memberId;
     
     // Check if this member ID is already used by another attendee
     const isIdAlreadyUsed = attendees.some((attendee, idx) => 
-        idx !== index && attendee.isMember && attendee.memberId?.toUpperCase() === memberId?.toUpperCase()
+        idx !== index && attendee.isMember && String(attendee.memberId) === String(memberIdToVerify)
     );
 
     if (isIdAlreadyUsed) {
@@ -126,15 +131,23 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         return;
     }
 
-    if (memberId?.toUpperCase() === VALID_MEMBER_ID) {
-      update(index, { ...currentAttendee, isMember: true, memberIdVerified: true });
-      toast({ title: "Member Verified", description: `${currentAttendee.attendeeName} gets a free ticket!`});
+    const memberData = membersData.find(m => String(m["Member ID"]) === String(memberIdToVerify));
+
+    if (memberData) {
+      const updatedAttendee = {
+        ...currentAttendee,
+        isMember: true,
+        memberIdVerified: true,
+        attendeeName: memberData["Member Details"].Name,
+      };
+      update(index, updatedAttendee);
+      toast({ title: "Member Verified", description: `${updatedAttendee.attendeeName} gets a free ticket!`});
     } else {
       update(index, { ...currentAttendee, isMember: false, memberIdVerified: true });
       toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
-    // Trigger a re-render by setting the form value again to update the total amount
-    form.setValue('attendees', form.getValues('attendees'), { shouldDirty: true, shouldValidate: true });
+    
+    setForceRender(p => !p);
   };
 
 
@@ -321,7 +334,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>Attendee Name</FormLabel>
-                        <FormControl><Input {...field} placeholder="Full Name" /></FormControl>
+                        <FormControl><Input {...field} placeholder="Full Name" disabled={form.getValues(`attendees.${index}.isMember`)} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )}
@@ -333,7 +346,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                         control={form.control}
                         name={`attendees.${index}.memberId`}
                         render={({ field }) => (
-                            <Input {...field} placeholder="e.g. RIC24MEMBER01" disabled={form.getValues(`attendees.${index}.isMember`)} />
+                            <Input {...field} placeholder="e.g. 13" disabled={form.getValues(`attendees.${index}.isMember`)} />
                         )}
                     />
                     {!form.getValues(`attendees.${index}.isMember`) ? (
