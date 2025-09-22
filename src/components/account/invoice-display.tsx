@@ -56,6 +56,7 @@ export function InvoiceDisplay({ booking, event, user }: InvoiceDisplayProps) {
     });
 
     const totalPaid = booking.total;
+    const primaryAttendee = booking.attendees[0];
 
     return (
         <div className="text-left">
@@ -71,7 +72,7 @@ export function InvoiceDisplay({ booking, event, user }: InvoiceDisplayProps) {
                     <div className="flex justify-between"><span className="font-semibold">Booking ID:</span> <span className="truncate">{booking.id}</span></div>
                     <div className="flex justify-between"><span className="font-semibold">Event:</span> <span>{event.name}</span></div>
                     <div className="flex justify-between"><span className="font-semibold">Date:</span> <span>{format(new Date(event.date), 'PP')}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold">Booked By:</span> <span className="truncate">{user?.displayName || user?.email}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold">Booked By:</span> <span className="truncate">{primaryAttendee?.attendeeName || user?.displayName || user?.email}</span></div>
                 </div>
                 <Separator className="my-4" />
                 <h4 className="font-semibold mb-2">Attendees & Seats</h4>
