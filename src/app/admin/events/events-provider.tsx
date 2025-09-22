@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -10,43 +11,43 @@ import { useToast } from '@/hooks/use-toast';
 const detailedSeatingChart = {
   sections: [
     {
-      sectionName: "PLATINUM",
+      sectionName: "₹499 Zone",
       price: 499,
-      rows: Array.from({ length: 3 }, (_, i) => String.fromCharCode(65 + i)).map(row => ({ row, seats: Array.from({length: 24}, (_, i) => i + 1) })),
-      className: "bg-pink-500/10 border-pink-500",
+      rows: [
+        { row: "A", seats: Array.from({ length: 18 }, (_, i) => i + 1), offset: 3 },
+        { row: "B", seats: Array.from({ length: 20 }, (_, i) => i + 1), offset: 2 },
+        { row: "C", seats: Array.from({ length: 22 }, (_, i) => i + 1), offset: 1 },
+      ],
+      className: "fill-pink-500/10 stroke-pink-500",
     },
     {
-      sectionName: "GOLD",
+      sectionName: "₹299 Zone",
       price: 299,
-      rows: Array.from({ length: 6 }, (_, i) => String.fromCharCode(68 + i)).map(row => ({ row, seats: Array.from({length: 28}, (_, i) => i + 1) })),
-      className: "bg-blue-500/10 border-blue-500",
+      rows: [
+        { row: "D", seats: Array.from({ length: 8 }, (_, i) => i + 1) },
+        { row: "D", seats: Array.from({ length: 12 }, (_, i) => i + 9), offset: 2 },
+        { row: "D", seats: Array.from({ length: 8 }, (_, i) => i + 21), offset: 2 },
+        { row: "E", seats: Array.from({ length: 8 }, (_, i) => i + 1) },
+        { row: "E", seats: Array.from({ length: 12 }, (_, i) => i + 9), offset: 2 },
+        { row: "E", seats: Array.from({ length: 8 }, (_, i) => i + 21), offset: 2 },
+        { row: "F", seats: Array.from({ length: 8 }, (_, i) => i + 1) },
+        { row: "F", seats: Array.from({ length: 12 }, (_, i) => i + 9), offset: 2 },
+        { row: "F", seats: Array.from({ length: 8 }, (_, i) => i + 21), offset: 2 },
+      ],
+      className: "fill-blue-500/10 stroke-blue-500",
     },
     {
-      sectionName: "SILVER (Left)",
-      price: 199,
-      rows: Array.from({ length: 6 }, (_, i) => String.fromCharCode(74 + i)).map(row => ({ row, seats: [1,2,3,4,5,6,7,8] })),
-      className: "bg-purple-500/10 border-purple-500",
-    },
-    {
-        sectionName: "SILVER (Right)",
-        price: 199,
-        rows: Array.from({ length: 6 }, (_, i) => String.fromCharCode(74 + i)).map(row => ({ row, seats: Array.from({length: 8}, (_, i) => i + 17) })),
-        className: "bg-purple-500/10 border-purple-500",
-    },
-     {
-      sectionName: "BRONZE (Front Left)",
+      sectionName: "₹99 Zone",
       price: 99,
-      rows: Array.from({ length: 4 }, (_, i) => String.fromCharCode(80 + i)).map(row => ({ row, seats: [1,2,3,4,5,6] })),
-      className: "bg-orange-500/10 border-orange-500",
+      rows: [
+        { row: "G", seats: Array.from({ length: 28 }, (_, i) => i + 1) },
+        { row: "H", seats: Array.from({ length: 28 }, (_, i) => i + 1) },
+        { row: "I", seats: Array.from({ length: 28 }, (_, i) => i + 1) },
+      ],
+      className: "fill-purple-500/10 stroke-purple-500",
     },
-    {
-      sectionName: "BRONZE (Front Right)",
-      price: 99,
-      rows: Array.from({ length: 4 }, (_, i) => String.fromCharCode(80 + i)).map(row => ({ row, seats: Array.from({length: 6}, (_, i) => i + 19) })),
-      className: "bg-orange-500/10 border-orange-500",
-    }
   ],
-  bookedSeats: ["C5", "C6", "C7", "F12", "F13", "G10", "G11", "J1", "J2", "P3", "P4"]
+  bookedSeats: ["C5", "C6", "C7", "F12", "F13", "G10", "G11", "I1", "I2", "A3", "A4"]
 };
 
 const sampleEvents: Omit<Event, 'id'>[] = [
@@ -254,5 +255,7 @@ export const useEvents = () => {
   }
   return context;
 };
+
+    
 
     

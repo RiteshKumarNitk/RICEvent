@@ -1,25 +1,24 @@
 
+
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Event, Seat, SeatSection, SeatRowArray } from "@/lib/types";
+import { useState, useEffect, useRef } from "react";
+import { Event, Seat, SeatSection, SeatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, ScreenShare } from "lucide-react";
+import { ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
 const MAX_SEATS = 6;
+const SEAT_RADIUS = 8;
+const SEAT_SPACING = 22;
+const ROW_SPACING = 24;
 
-const SeatComponent = ({ seat, section, isSelected, isBooked, onSelect, showTooltip }: { seat: Seat, section: SeatSection, isSelected: boolean, isBooked: boolean, onSelect: (seat: Seat) => void, showTooltip: (seat: Seat, section: SeatSection, element: HTMLDivElement) => void }) => {
-  const seatRef = useRef<HTMLDivElement>(null);
+const SeatComponent = ({ seat, section, isSelected, isBooked, onSelect, showTooltip }: { seat: Seat, section: SeatSection, isSelected: boolean, isBooked: boolean, onSelect: (seat: Seat) => void, showTooltip: (seat: Seat, section: SeatSection, element: SVGCircleElement) => void }) => {
+  const seatRef = useRef<SVGCircleElement>(null);
+
   const status = isBooked ? 'booked' : isSelected ? 'selected' : 'available';
-
-  const seatStyles = {
-    available: "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
-    booked: "bg-gray-500 dark:bg-gray-800 cursor-not-allowed",
-    selected: "bg-primary text-primary-foreground scale-110",
-  };
 
   const handleClick = () => {
     if (!isBooked) {
@@ -29,17 +28,32 @@ const SeatComponent = ({ seat, section, isSelected, isBooked, onSelect, showTool
   
   const handleMouseEnter = () => {
     if (seatRef.current) {
-        showTooltip(seat, section, seatRef.current);
+      showTooltip(seat, section, seatRef.current);
     }
   }
 
+  const getSeatClass = () => {
+    if (isBooked) return "fill-gray-500 dark:fill-gray-800 cursor-not-allowed";
+    if (isSelected) return "fill-green-500 dark:fill-green-600 stroke-green-700";
+    return cn("cursor-pointer hover:fill-green-400", section.className);
+  }
+
   return (
-    <div
-      ref={seatRef}
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      className={cn("w-5 h-5 rounded-full cursor-pointer transition-all duration-200 flex-shrink-0", seatStyles[status])}
-    />
+    <g transform={`translate(${seat.x || 0}, ${seat.y || 0})`} onClick={handleClick} onMouseEnter={handleMouseEnter}>
+        <circle
+            ref={seatRef}
+            r={SEAT_RADIUS}
+            className={cn("transition-all duration-200", getSeatClass())}
+            strokeWidth="1"
+        />
+        <text 
+            className="text-[8px] fill-current text-white font-bold pointer-events-none" 
+            textAnchor="middle" 
+            dy=".3em"
+        >
+            {seat.id.split('-')[1]}
+        </text>
+    </g>
   );
 };
 
@@ -58,7 +72,7 @@ const SeatTooltip = ({ tooltipData, onMouseLeave }: { tooltipData: { seat: Seat,
     );
 }
 
-export function SeatingChart({ event, ticketCount: initialTicketCount }: { event: Event; ticketCount: number }) {
+export function SeatingChart({ event }: { event: Event }) {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const { toast } = useToast();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
@@ -75,6 +89,13 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
       });
     }
   }, [event.seatingChart, toast]);
+  
+  const seatingData = event.seatingChart;
+  if (!seatingData) {
+      return <div>Loading seating chart...</div>;
+  }
+
+  const { bookedSeats = [] } = seatingData;
 
   const handleSelectSeat = (seat: Seat) => {
     setSelectedSeats((prev) => {
@@ -125,7 +146,7 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
   const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.5));
   const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
 
-  const showTooltip = (seat: Seat, section: SeatSection, element: HTMLDivElement) => {
+  const showTooltip = (seat: Seat, section: SeatSection, element: SVGCircleElement) => {
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       const rect = element.getBoundingClientRect();
       const containerRect = containerRef.current?.getBoundingClientRect();
@@ -148,6 +169,39 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
       }, 100);
   }
 
+  const renderCurvedRow = (row: SeatRow, rowIndex: number, totalRows: number) => {
+      const seats = row.seats;
+      const numSeats = seats.length;
+      const arcWidth = numSeats * SEAT_SPACING;
+      const radius = (arcWidth * 1.5) / Math.PI; 
+      
+      const rowY = rowIndex * ROW_SPACING;
+
+      return seats.map((seatNum, index) => {
+          const angle = (index / (numSeats - 1) - 0.5) * Math.PI * 0.6; 
+          const x = radius * Math.sin(angle);
+          const y = radius * (1 - Math.cos(angle)) + rowY;
+          const seatId = `${row.row}${seatNum}`;
+          
+          const seatObj: Seat = { id: seatId, row: row.row, col: seatNum, x, y };
+
+          return {
+              seat: seatObj,
+              component: (
+                  <SeatComponent
+                      key={seatId}
+                      seat={seatObj}
+                      section={seatingData.sections.find(s => s.rows.includes(row))!}
+                      isSelected={selectedSeats.some(s => s.id === seatId)}
+                      isBooked={bookedSeats.includes(seatId)}
+                      onSelect={handleSelectSeat}
+                      showTooltip={showTooltip}
+                  />
+              ),
+          };
+      });
+  };
+
   if (!event.seatingChart) {
     return (
       <div className="text-center text-muted-foreground py-12">
@@ -159,11 +213,31 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
     );
   }
 
-  const { sections, bookedSeats = [] } = event.seatingChart;
+  let yOffset = 0;
+  const allRenderedSeats = seatingData.sections.flatMap(section => {
+    const renderedSection = section.rows.map((row, rowIndex) => {
+        const renderedRow = renderCurvedRow(row, rowIndex, section.rows.length);
+        return renderedRow;
+    });
+    
+    // Find max Y in this section to calculate offset for the next
+    const maxYInSection = Math.max(...renderedSection.flat().map(s => s.seat.y || 0));
+    const sectionSeats = renderedSection.flat().map(s => {
+        s.seat.y = (s.seat.y || 0) + yOffset;
+        return s;
+    });
+    
+    yOffset += maxYInSection + ROW_SPACING * 2; // Add extra spacing between sections
+
+    return sectionSeats;
+  }).flat();
   
+  const svgWidth = 800;
+  const svgHeight = 600;
+
   return (
     <>
-      <div className="w-full bg-background relative" onMouseLeave={hideTooltip}>
+      <div className="w-full bg-background relative rounded-lg border shadow-lg" onMouseLeave={hideTooltip}>
         <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
           <Button variant="outline" size="icon" onClick={handleZoomOut}><ZoomOut /></Button>
           <Button variant="outline" size="icon" onClick={handleZoomIn}><ZoomIn /></Button>
@@ -171,57 +245,43 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
         
         <div ref={containerRef} className="overflow-auto p-4 md:p-8" >
           <SeatTooltip tooltipData={tooltip} onMouseLeave={hideTooltip} />
-          <div 
-            className="mx-auto transition-transform duration-300"
+           <svg 
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
+            className="w-full h-auto transition-transform duration-300"
             style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
-          >
-            <div className="flex flex-col items-center gap-6">
-
-                {/* Legend */}
-                 <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 mt-4 text-sm w-full">
-                    {sections.map(s => (
-                        <div key={s.sectionName} className="flex items-center gap-2">
-                           <div className={cn("w-4 h-4 rounded-sm border", s.className.replace('bg-', 'border-'))}></div>
-                            <span>{s.sectionName} - ₹{s.price}</span>
-                        </div>
-                    ))}
-                </div>
-                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-2 text-sm">
-                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600" /> Available</div>
-                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-primary" /> Selected</div>
-                    <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-gray-500 dark:bg-gray-800" /> Booked</div>
-                </div>
+           >
+            <g transform={`translate(${svgWidth / 2}, 50)`}>
+                {allRenderedSeats.map(({ seat, component }) => component)}
 
                 {/* Stage */}
-                <div className="w-2/3 h-10 mt-8 flex items-center justify-center">
-                    <div className="w-full h-full border-b-4 border-t-2 border-x-2 border-primary/50 rounded-t-[100%] flex items-center justify-center">
-                       <p className="text-center font-bold text-primary/80 tracking-widest mt-2">STAGE</p>
-                    </div>
-                </div>
+                <g transform={`translate(0, ${yOffset + 50})`}>
+                    <path d={`M -150 0 C -150 -30, 150 -30, 150 0 Z`} fill="none" stroke="currentColor" strokeWidth="2" />
+                    <text textAnchor="middle" dy="-15" className="font-bold text-lg tracking-widest fill-current">STAGE</text>
+                </g>
 
-                {/* Seats */}
-                 <div className="flex flex-col-reverse gap-4 w-full items-center">
-                    {sections.map((section) => (
-                        <div key={section.sectionName} className={cn("flex flex-col-reverse items-center gap-2 border-2 rounded-lg p-2 md:p-4", section.className)}>
-                             <p className="font-semibold text-xs mt-2">{section.sectionName}</p>
-                            {section.rows.map(rowInfo => (
-                                <div key={rowInfo.row} className="flex items-center justify-center gap-1 md:gap-2">
-                                    <div className="seat-row-label">{rowInfo.row}</div>
-                                    <div className="flex justify-center gap-1 md:gap-2">
-                                        {rowInfo.seats.map((seatNum) => {
-                                            const seat: Seat = { id: `${rowInfo.row}${seatNum}`, row: rowInfo.row, col: seatNum };
-                                            return <SeatComponent key={seat.id} seat={seat} section={section} isSelected={selectedSeats.some(s => s.id === seat.id)} isBooked={bookedSeats.includes(seat.id)} onSelect={handleSelectSeat} showTooltip={showTooltip} />;
-                                        })}
-                                    </div>
-                                    <div className="seat-row-label">{rowInfo.row}</div>
-                                </div>
-                            ))}
-                        </div>
+                {/* Legend */}
+                <g transform={`translate(${-svgWidth / 2 + 20}, ${yOffset + 100})`}>
+                    {seatingData.sections.map((s, i) => (
+                        <g key={s.sectionName} transform={`translate(0, ${i * 20})`}>
+                            <rect width="12" height="12" className={s.className} />
+                            <text x="18" y="10" className="text-xs fill-current">{s.sectionName} - ₹{s.price}</text>
+                        </g>
                     ))}
-                </div>
-
-            </div>
-          </div>
+                    <g transform={`translate(200, 0)`}>
+                        <circle cx="6" cy="6" r="6" className="fill-gray-300 dark:fill-gray-600" />
+                        <text x="18" y="10" className="text-xs fill-current">Available</text>
+                    </g>
+                     <g transform={`translate(200, 20)`}>
+                        <circle cx="6" cy="6" r="6" className="fill-green-500" />
+                        <text x="18" y="10" className="text-xs fill-current">Selected</text>
+                    </g>
+                     <g transform={`translate(200, 40)`}>
+                        <circle cx="6" cy="6" r="6" className="fill-gray-500 dark:fill-gray-800" />
+                        <text x="18" y="10" className="text-xs fill-current">Booked</text>
+                    </g>
+                </g>
+            </g>
+          </svg>
         </div>
 
         {/* --- Booking Summary Panel --- */}
@@ -249,3 +309,6 @@ export function SeatingChart({ event, ticketCount: initialTicketCount }: { event
     </>
   );
 }
+
+
+    

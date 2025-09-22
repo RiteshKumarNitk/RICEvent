@@ -1,4 +1,5 @@
 
+
 export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
@@ -10,17 +11,20 @@ export type Seat = {
   id: string; // e.g., "A1"
   row: string;
   col: number;
+  x?: number; // Optional coordinate for rendering
+  y?: number; // Optional coordinate for rendering
 };
 
-export type SeatRowArray = {
+export type SeatRow = {
   row: string;
   seats: number[];
+  offset?: number;
 }
 
 export type SeatSection = {
   sectionName: string;
   price: number;
-  rows: SeatRowArray[];
+  rows: SeatRow[];
   className: string;
 }
 
@@ -43,3 +47,6 @@ export type Event = {
   seatingChart?: SeatingChartData;
 };
 
+
+
+    
