@@ -23,7 +23,7 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
         <div
             onClick={handleClick}
             className={cn(
-                "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
                 seat.isBooked ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
                 isSelected && "!bg-green-500 !text-white",
                 !seat.isBooked && section.className.replace('bg-', 'hover:bg-'),
@@ -41,14 +41,16 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
     const [zoom, setZoom] = useState(1);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const seatingData = event.seatingChart;
+    
     useEffect(() => {
-        if (!event.seatingChart) {
+        if (!seatingData || !seatingData.tiers) {
             toast({
                 title: "General Admission",
                 description: "This event does not have a seating chart.",
             });
         }
-    }, [event.seatingChart, toast]);
+    }, [seatingData, toast]);
 
     const handleSelectSeat = (seat: Seat, section: SeatSection) => {
         setSelectedSeats((prev) => {
@@ -96,9 +98,7 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
     const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.5));
     const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
 
-    const seatingData = event.seatingChart;
-
-    if (!seatingData) {
+    if (!seatingData || !seatingData.tiers) {
         return (
             <div className="text-center text-muted-foreground py-12">
                 <h2 className="text-xl font-semibold">General Admission Event</h2>

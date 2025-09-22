@@ -8,20 +8,17 @@ import { db } from '@/lib/firebase';
 import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
-const generateSeats = (rows: string[], seatsPerRow: number, bookedSeats: string[]): { rowId: string, seats: { id: string, row: string, col: number, isBooked: boolean }[] }[] => {
-    return rows.map(rowId => ({
-        rowId,
-        seats: Array.from({ length: seatsPerRow }, (_, i) => {
-            const seatNum = i + 1;
-            const seatId = `${rowId}${seatNum}`;
-            return {
-                id: seatId,
-                row: rowId,
-                col: seatNum,
-                isBooked: bookedSeats.includes(seatId),
-            };
-        }),
-    }));
+const generateSeats = (rowId: string, count: number, bookedSeats: string[]): { id: string, row: string, col: number, isBooked: boolean }[] => {
+    return Array.from({ length: count }, (_, i) => {
+        const seatNum = i + 1;
+        const seatId = `${rowId}${seatNum}`;
+        return {
+            id: seatId,
+            row: rowId,
+            col: seatNum,
+            isBooked: bookedSeats.includes(seatId),
+        };
+    });
 };
 
 const bookedSeatsSample = ["A5", "A6", "C10", "D1", "D2", "H5", "K12", "K13", "F20", "G1", "J15"];
@@ -35,19 +32,31 @@ const detailedSeatingChart: SeatingChartData = {
         {
           sectionName: 'Balcony Left',
           price: 99,
-          rows: generateSeats(['J', 'K', 'L'], 10, bookedSeatsSample),
+          rows: [
+            { rowId: 'J', seats: generateSeats('J', 10, bookedSeatsSample) },
+            { rowId: 'K', seats: generateSeats('K', 10, bookedSeatsSample) },
+            { rowId: 'L', seats: generateSeats('L', 10, bookedSeatsSample) },
+          ],
           className: 'bg-purple-600/20 border-purple-600',
         },
         {
           sectionName: 'Balcony Center',
           price: 99,
-          rows: generateSeats(['J', 'K', 'L'], 20, bookedSeatsSample),
+          rows: [
+             { rowId: 'J', seats: generateSeats('J', 20, bookedSeatsSample) },
+             { rowId: 'K', seats: generateSeats('K', 20, bookedSeatsSample) },
+             { rowId: 'L', seats: generateSeats('L', 20, bookedSeatsSample) },
+          ],
           className: 'bg-purple-600/20 border-purple-600',
         },
         {
           sectionName: 'Balcony Right',
           price: 99,
-          rows: generateSeats(['J', 'K', 'L'], 10, bookedSeatsSample),
+          rows: [
+            { rowId: 'J', seats: generateSeats('J', 10, bookedSeatsSample) },
+            { rowId: 'K', seats: generateSeats('K', 10, bookedSeatsSample) },
+            { rowId: 'L', seats: generateSeats('L', 10, bookedSeatsSample) },
+          ],
           className: 'bg-purple-600/20 border-purple-600',
         },
       ],
@@ -58,13 +67,21 @@ const detailedSeatingChart: SeatingChartData = {
         {
           sectionName: 'Middle Left',
           price: 299,
-          rows: generateSeats(['F', 'G', 'H'], 15, bookedSeatsSample),
+          rows: [
+            { rowId: 'F', seats: generateSeats('F', 15, bookedSeatsSample) },
+            { rowId: 'G', seats: generateSeats('G', 15, bookedSeatsSample) },
+            { rowId: 'H', seats: generateSeats('H', 15, bookedSeatsSample) },
+          ],
           className: 'bg-blue-600/20 border-blue-600',
         },
         {
           sectionName: 'Middle Right',
           price: 299,
-          rows: generateSeats(['F', 'G', 'H'], 15, bookedSeatsSample),
+          rows: [
+            { rowId: 'F', seats: generateSeats('F', 15, bookedSeatsSample) },
+            { rowId: 'G', seats: generateSeats('G', 15, bookedSeatsSample) },
+            { rowId: 'H', seats: generateSeats('H', 15, bookedSeatsSample) },
+          ],
           className: 'bg-blue-600/20 border-blue-600',
         },
       ],
@@ -75,7 +92,12 @@ const detailedSeatingChart: SeatingChartData = {
             {
                 sectionName: 'Premium Center',
                 price: 499,
-                rows: generateSeats(['A', 'B', 'C', 'D'], 20, bookedSeatsSample),
+                rows: [
+                    { rowId: 'A', seats: generateSeats('A', 20, bookedSeatsSample) },
+                    { rowId: 'B', seats: generateSeats('B', 20, bookedSeatsSample) },
+                    { rowId: 'C', seats: generateSeats('C', 20, bookedSeatsSample) },
+                    { rowId: 'D', seats: generateSeats('D', 20, bookedSeatsSample) },
+                ],
                 className: 'bg-pink-600/20 border-pink-600',
             }
         ]
