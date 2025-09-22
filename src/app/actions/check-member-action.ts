@@ -38,20 +38,19 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
 
     // 2. Check if Member ID has already been used for this event
     try {
-        const q = query(
+        const bookingsQuery = query(
             collection(db, "bookings"),
-            where("eventId", "==", eventId),
-            where("attendees", "array-contains-any", [{ memberId, isMember: true }])
+            where("eventId", "==", eventId)
         );
-
-        const querySnapshot = await getDocs(q);
-
-        // Firestore's array-contains-any can be tricky. We need to manually filter to be sure.
+        const querySnapshot = await getDocs(bookingsQuery);
+        
         let isUsed = false;
         querySnapshot.forEach(doc => {
             const booking = doc.data();
-            if (booking.attendees.some((attendee: any) => attendee.memberId === memberId && attendee.isMember)) {
-                isUsed = true;
+            if (booking.attendees && Array.isArray(booking.attendees)) {
+                if (booking.attendees.some((attendee: any) => attendee.isMember && String(attendee.memberId) === memberId)) {
+                    isUsed = true;
+                }
             }
         });
 
@@ -61,24 +60,10 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
 
     } catch (e: any) {
         console.error("Firestore query failed:", e);
-        // We might get a "Needs an index" error here. For now, we'll proceed with client-side check as a backup.
-        // A better long-term solution is to create the composite index in Firestore.
+        // If the query fails, we can't confirm, so deny the special access.
+        return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Could not verify member ID.' };
     }
-
-    const bookingsSnapshot = await getDocs(query(collection(db, "bookings"), where("eventId", "==", eventId)));
     
-    let isAlreadyUsed = false;
-    bookingsSnapshot.forEach(doc => {
-        const booking = doc.data();
-        if (booking.attendees.some((attendee: any) => attendee.memberId === memberId && attendee.isMember)) {
-            isAlreadyUsed = true;
-        }
-    });
-
-    if (isAlreadyUsed) {
-        return { isValid: true, isAlreadyUsed: true, memberName: member["Member Details"].Name };
-    }
-
     // If we reach here, the member is valid and hasn't booked for this event
     return { isValid: true, isAlreadyUsed: false, memberName: member["Member Details"].Name };
 }
