@@ -9,6 +9,7 @@ import { ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
+
 const MAX_SEATS = 6;
 
 const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, section: SeatSection, isSelected: boolean, onSelect: (seat: Seat, section: SeatSection) => void }) => {
@@ -120,30 +121,32 @@ export function SeatingChart({ event, ticketCount }: { event: Event, ticketCount
                         className="transition-transform duration-300 inline-block"
                         style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
                     >
-                        <div className="space-y-4">
-                            {seatingData.map((section, sectionIndex) => (
-                                <div key={sectionIndex}>
-                                     <p className="font-semibold text-center text-lg mb-2">{section.sectionName} - ₹{section.price}</p>
-                                    <div className={cn("p-4 rounded-lg", section.className)}>
-                                        <div className="space-y-2">
-                                            {section.rows.map(row => (
-                                                <div key={row.rowId} className="flex items-center justify-center gap-2">
-                                                    <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
-                                                    <div className="flex gap-2 flex-wrap justify-center">
-                                                        {row.seats.map(seat => (
-                                                            <SeatComponent
-                                                                key={seat.id}
-                                                                seat={seat}
-                                                                section={section}
-                                                                isSelected={selectedSeats.some(s => s.seat.id === seat.id)}
-                                                                onSelect={handleSelectSeat}
-                                                            />
-                                                        ))}
+                        <div className="space-y-8">
+                            {seatingData.tiers.map((tier, tierIndex) => (
+                                <div key={tierIndex} className="flex justify-center items-start gap-4">
+                                    {tier.sections.map((section, sectionIndex) => (
+                                        <div key={sectionIndex} className={cn("p-4 rounded-lg border-2", section.className)}>
+                                             <p className="font-semibold text-center text-lg mb-4">{section.sectionName} - ₹{section.price}</p>
+                                            <div className="space-y-2">
+                                                {section.rows.map(row => (
+                                                    <div key={row.rowId} className="flex items-center justify-center gap-2">
+                                                        <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
+                                                        <div className="flex gap-2 flex-wrap justify-center">
+                                                            {row.seats.map(seat => (
+                                                                <SeatComponent
+                                                                    key={seat.id}
+                                                                    seat={seat}
+                                                                    section={section}
+                                                                    isSelected={selectedSeats.some(s => s.seat.id === seat.id)}
+                                                                    onSelect={handleSelectSeat}
+                                                                />
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
                             ))}
                         </div>
