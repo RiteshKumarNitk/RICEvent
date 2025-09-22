@@ -37,8 +37,10 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
         <div
             onClick={handleClick}
             className={cn(
-                "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200 cursor-pointer",
-                seat.isBooked ? "bg-muted text-muted-foreground/50 cursor-not-allowed" : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
+                "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200",
+                seat.isBooked 
+                    ? "bg-red-500/50 text-white/50 cursor-not-allowed" 
+                    : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400 cursor-pointer",
                 isSelected && "!bg-primary !text-primary-foreground",
             )}
             title={`Seat ${seat.id.split('-')[1]} - ₹${section.price}`}
@@ -77,7 +79,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                 toast({
                     variant: "destructive",
                     title: "Could not load booked seats.",
-                    description: "There was a problem fetching seat availability from the database.",
+                    description: "There was a problem fetching seat availability from the database. This usually means a Firestore index is required. Please check the browser console for a link to create the index.",
                 })
             } finally {
                 setLoadingBookings(false);
@@ -230,8 +232,22 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-12 bg-gray-700 text-white text-center py-2 rounded-md font-bold text-xl tracking-widest">
+                         <div className="mt-12 bg-gray-700 text-white text-center py-2 rounded-md font-bold text-xl tracking-widest">
                             STAGE
+                        </div>
+                         <div className="mt-8 flex justify-center items-center gap-6 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-md bg-gray-300 dark:bg-gray-600"></div>
+                                <span>Available</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-md bg-primary"></div>
+                                <span>Selected</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-md bg-red-500/50"></div>
+                                <span>Booked</span>
+                            </div>
                         </div>
                     </div>
                 </div>
