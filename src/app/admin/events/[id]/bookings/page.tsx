@@ -35,12 +35,18 @@ export default function EventBookingsPage() {
       try {
         const bookingsQuery = query(collection(db, 'bookings'), where('eventId', '==', eventId));
         const bookingSnapshots = await getDocs(bookingsQuery);
-        const bookingsData = bookingSnapshots.docs.map(doc => ({ 
-            id: doc.id, 
-            ...doc.data(),
-            eventDate: (doc.data().eventDate as Timestamp).toDate().toISOString(),
-            bookingDate: (doc.data().bookingDate as Timestamp).toDate().toISOString(),
-        })) as Booking[];
+        const bookingsData = bookingSnapshots.docs.map(doc => {
+            const data = doc.data();
+            const eventDate = data.eventDate instanceof Timestamp ? data.eventDate.toDate().toISOString() : data.eventDate;
+            const bookingDate = data.bookingDate instanceof Timestamp ? data.bookingDate.toDate().toISOString() : data.bookingDate;
+
+            return { 
+                id: doc.id, 
+                ...data,
+                eventDate,
+                bookingDate,
+            } as Booking;
+        });
 
         // Enrich bookings with user data
         const enrichedBookings = await Promise.all(

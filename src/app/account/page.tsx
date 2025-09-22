@@ -40,7 +40,6 @@ export default function AccountPage() {
       if (!user) return;
       setBookingsLoading(true);
       try {
-        // Removed orderBy to prevent query failure without a composite index
         const q = query(
           collection(db, "bookings"),
           where("userId", "==", user.uid)
@@ -48,15 +47,23 @@ export default function AccountPage() {
         const querySnapshot = await getDocs(q);
         const bookingsData = querySnapshot.docs.map(doc => {
             const data = doc.data();
+            
+            const eventDate = data.eventDate instanceof Timestamp 
+                ? data.eventDate.toDate().toISOString() 
+                : data.eventDate;
+
+            const bookingDate = data.bookingDate instanceof Timestamp 
+                ? data.bookingDate.toDate().toISOString() 
+                : data.bookingDate;
+
             return {
               id: doc.id,
               ...data,
-              eventDate: (data.eventDate as Timestamp).toDate().toISOString(),
-              bookingDate: (data.bookingDate as Timestamp).toDate().toISOString(),
+              eventDate,
+              bookingDate,
             } as Booking;
         });
         
-        // Sort bookings by date client-side
         const sortedBookings = bookingsData.sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
 
         setRegisteredBookings(sortedBookings);
