@@ -32,6 +32,7 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
 
     // 1. Check if Member ID is valid
     const member = membersData.find(m => String(m["Member ID"]) === memberId);
+    
     if (!member) {
         return { isValid: false, isAlreadyUsed: false, memberName: null };
     }
