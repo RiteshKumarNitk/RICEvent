@@ -1,33 +1,30 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Events: Publicly readable by anyone.
+    // Allow public read access to events
     match /events/{eventId} {
       allow read: if true;
-      // Write access is restricted. Only admin can write.
       allow write: if request.auth != null && request.auth.token.email == 'admin@example.com';
     }
 
-    // Users: Allow users to read all profiles (for names), but only write to their own.
-    match /users/{userId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth.uid == userId;
-        allow update: if request.auth.uid == userId;
-        allow delete: if request.auth.uid == userId;
+    // Allow listing of events for anyone
+    match /events {
+      allow list: if true;
     }
 
-    // Bookings: Users can create bookings and only read their own. Admin can read all.
+    // Rules for users and bookings
+    match /users/{userId} {
+      // Users can create their own doc
+      allow create: if request.auth.uid == userId;
+      // Only the user or an admin can read their doc
+      allow read: if request.auth.uid == userId || (request.auth.token.email == 'admin@example.com');
+    }
+
     match /bookings/{bookingId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      
-      // Allow user to read their own bookings OR if user is admin
-      allow read: if (request.auth != null && request.auth.uid == resource.data.userId) || 
-                   (request.auth != null && request.auth.token.email == 'admin@example.com');
-                   
-      // No updates or deletes allowed for now to preserve booking history
-      allow update, delete: if false;
+      // Users can create their own bookings
+      allow create: if request.auth.uid == request.resource.data.userId;
+      // Users can read their own bookings, admin can read all bookings for an event
+      allow read: if (request.auth.uid == resource.data.userId) || (request.auth.token.email == 'admin@example.com');
     }
   }
 }
