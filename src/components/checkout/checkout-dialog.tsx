@@ -73,6 +73,12 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
     resolver: zodResolver(finalSchema),
     defaultValues: {
       attendees: [],
+      payment: {
+        cardName: '',
+        cardNumber: '',
+        expiryDate: '',
+        cvc: '',
+      }
     },
   });
 
@@ -128,7 +134,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
     // Trigger a re-render by setting the form value again to update the total amount
-    form.setValue('attendees', form.getValues('attendees'), { shouldDirty: true });
+    form.setValue('attendees', form.getValues('attendees'), { shouldDirty: true, shouldValidate: true });
   };
 
 
