@@ -9,22 +9,22 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
 const bookedSeatsSample: string[] = [];
-// Programmatically book the "Balcony Center" section
-const balconyCenterSection = {
-    "sectionName": "Balcony Center",
-    "price": 99,
+// Programmatically book the "Middle Right" section
+const middleRightSection = {
+    "sectionName": "Middle Right",
+    "price": 299,
     "rows": [
-        { "rowId": "N", "seats": 12 },
-        { "rowId": "O", "seats": 12 },
-        { "rowId": "P", "seats": 12 },
-        { "rowId": "Q", "seats": 12 },
-        { "rowId": "R", "seats": 12 },
-        { "rowId": "S", "seats": 12 }
+        { "rowId": "H", "seats": 12 },
+        { "rowId": "I", "seats": 12 },
+        { "rowId": "J", "seats": 12 },
+        { "rowId": "K", "seats": 12 },
+        { "rowId": "L", "seats": 12 },
+        { "rowId": "M", "seats": 12 }
     ],
-    "className": "bg-purple-600/20 border-purple-600"
+    "className": "bg-blue-600/20 border-blue-600"
 };
 
-balconyCenterSection.rows.forEach(row => {
+middleRightSection.rows.forEach(row => {
     for (let i = 1; i <= row.seats; i++) {
         bookedSeatsSample.push(`${row.rowId}${i}`);
     }
