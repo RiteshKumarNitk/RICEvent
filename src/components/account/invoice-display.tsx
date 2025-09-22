@@ -55,7 +55,7 @@ export function InvoiceDisplay({ booking, event, user }: InvoiceDisplayProps) {
         seats: booking.attendees.map((a) => a.seatId).join(', '),
     });
 
-    const totalPaid = booking.attendees.reduce((acc: number, att: Attendee) => acc + (att.isMember ? 0 : att.price), 0);
+    const totalPaid = booking.total;
 
     return (
         <div className="text-left">
