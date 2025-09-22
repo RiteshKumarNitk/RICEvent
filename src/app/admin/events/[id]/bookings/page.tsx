@@ -10,7 +10,7 @@ import { useEvents } from '../../events-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Users, Ticket, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 
 interface EnrichedBooking extends Booking {
@@ -26,6 +26,9 @@ export default function EventBookingsPage() {
   const [loading, setLoading] = useState(true);
 
   const event = events.find(e => e.id === eventId);
+  
+  const totalRevenue = bookings.reduce((acc, booking) => acc + booking.total, 0);
+  const totalSeatsSold = bookings.reduce((acc, booking) => acc + booking.attendees.length, 0);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -37,8 +40,13 @@ export default function EventBookingsPage() {
         const bookingSnapshots = await getDocs(bookingsQuery);
         const bookingsData = bookingSnapshots.docs.map(doc => {
             const data = doc.data();
-            const eventDate = data.eventDate instanceof Timestamp ? data.eventDate.toDate().toISOString() : data.eventDate;
-            const bookingDate = data.bookingDate instanceof Timestamp ? data.bookingDate.toDate().toISOString() : data.bookingDate;
+            const eventDate = data.eventDate instanceof Timestamp 
+                ? data.eventDate.toDate().toISOString() 
+                : data.eventDate;
+
+            const bookingDate = data.bookingDate instanceof Timestamp 
+                ? data.bookingDate.toDate().toISOString() 
+                : data.bookingDate;
 
             return { 
                 id: doc.id, 
@@ -65,7 +73,7 @@ export default function EventBookingsPage() {
           })
         );
         
-        setBookings(enrichedBookings);
+        setBookings(enrichedBookings.sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()));
 
       } catch (error) {
         console.error("Error fetching bookings:", error);
@@ -81,7 +89,7 @@ export default function EventBookingsPage() {
 
   return (
     <div>
-        <div className="mb-8">
+        <div className="mb-4">
             <Button asChild variant="outline">
                 <Link href="/admin/events">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -89,10 +97,45 @@ export default function EventBookingsPage() {
                 </Link>
             </Button>
         </div>
+        <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold">Bookings for {event?.name || 'Event'}</h1>
+            <p className="text-muted-foreground">A summary of all bookings for this event.</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Tickets Sold</CardTitle>
+                    <Ticket className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{totalSeatsSold}</div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{bookings.length}</div>
+                </CardContent>
+            </Card>
+        </div>
+
         <Card>
             <CardHeader>
-                <CardTitle>Bookings for {event?.name || 'Event'}</CardTitle>
-                <CardDescription>A list of all users who have booked tickets for this event.</CardDescription>
+                <CardTitle>Individual Bookings</CardTitle>
+                <CardDescription>A detailed list of all users who have booked tickets for this event.</CardDescription>
             </CardHeader>
             <CardContent>
                  <Table>
@@ -119,7 +162,7 @@ export default function EventBookingsPage() {
                                 <TableRow key={booking.id}>
                                     <TableCell>{booking.userDisplayName || 'N/A'}</TableCell>
                                     <TableCell>{booking.userEmail || 'N/A'}</TableCell>
-                                    <TableCell>{booking.attendees.map(a => a.seatId.split('-')[1] || 'GA').join(', ')}</TableCell>
+                                    <TableCell>{booking.attendees.map(a => `${a.seatId.split('-')[0].charAt(0)}-${a.seatId.split('-')[1]}` || 'GA').join(', ')}</TableCell>
                                     <TableCell>₹{booking.total.toFixed(2)}</TableCell>
                                     <TableCell>{new Date(booking.bookingDate).toLocaleString()}</TableCell>
                                 </TableRow>

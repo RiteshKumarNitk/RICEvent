@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { DollarSign, Users, Calendar, Database, AlertTriangle } from "lucide-react";
 import { useEvents } from "./events/events-provider";
@@ -14,17 +16,42 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Booking } from "@/lib/types";
 
 export default function AdminDashboard() {
   const { seedDatabase, events, deleteAllEvents } = useEvents();
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Mock data, to be replaced with real data from backend
-  const stats = {
-    totalRevenue: 45231.89,
-    registeredUsers: 1250,
-    upcomingEvents: events.filter(e => new Date(e.date) > new Date()).length,
-  };
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoadingStats(true);
+      try {
+        // Fetch all bookings to calculate total revenue
+        const bookingsSnapshot = await getDocs(collection(db, "bookings"));
+        const bookings = bookingsSnapshot.docs.map(doc => doc.data() as Booking);
+        const revenue = bookings.reduce((acc, booking) => acc + booking.total, 0);
+        setTotalRevenue(revenue);
+        
+        // Fetch all users to get total user count
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        setTotalUsers(usersSnapshot.size);
+
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, [events]); // Re-fetch stats if events change
+
+  const upcomingEvents = events.filter(e => new Date(e.date) > new Date()).length;
   
   const handleClearAndReseed = async () => {
     await deleteAllEvents();
@@ -41,8 +68,8 @@ export default function AdminDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            {loadingStats ? <div className="text-2xl font-bold">...</div> : <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</div>}
+            <p className="text-xs text-muted-foreground">Across all events</p>
           </CardContent>
         </Card>
         <Card>
@@ -51,8 +78,8 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{stats.registeredUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+            {loadingStats ? <div className="text-2xl font-bold">...</div> : <div className="text-2xl font-bold">+{totalUsers.toLocaleString()}</div>}
+            <p className="text-xs text-muted-foreground">Total users in database</p>
           </CardContent>
         </Card>
         <Card>
@@ -61,7 +88,7 @@ export default function AdminDashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{stats.upcomingEvents}</div>
+            <div className="text-2xl font-bold">+{upcomingEvents}</div>
             <p className="text-xs text-muted-foreground">2 scheduled for this week</p>
           </CardContent>
         </Card>
