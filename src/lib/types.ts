@@ -11,26 +11,27 @@ export type Seat = {
   id: string; // e.g., "A1"
   row: string;
   col: number;
-  x?: number; // Optional coordinate for rendering
-  y?: number; // Optional coordinate for rendering
+  isBooked: boolean;
 };
-
-export type SeatRow = {
-  row: string;
-  seats: number[];
-  offset?: number;
-}
 
 export type SeatSection = {
   sectionName: string;
   price: number;
-  rows: SeatRow[];
+  rows: {
+      rowId: string;
+      seats: Seat[];
+  }[];
   className: string;
 }
 
+export type SeatingChartTiers = {
+    tierName: string;
+    sections: SeatSection[];
+}[];
+
+
 export type SeatingChartData = {
-  sections: SeatSection[];
-  bookedSeats: string[];
+  tiers: SeatingChartTiers;
 };
 
 export type Event = {
@@ -46,7 +47,3 @@ export type Event = {
   ticketTypes: TicketType[];
   seatingChart?: SeatingChartData;
 };
-
-
-
-    

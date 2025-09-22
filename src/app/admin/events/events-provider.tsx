@@ -3,52 +3,86 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import type { Event } from '@/lib/types';
+import type { Event, SeatingChartData } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
-const detailedSeatingChart = {
-  sections: [
-    {
-      sectionName: "₹499 Zone",
-      price: 499,
-      rows: [
-        { row: "A", seats: Array.from({ length: 18 }, (_, i) => i + 1), offset: 3 },
-        { row: "B", seats: Array.from({ length: 20 }, (_, i) => i + 1), offset: 2 },
-        { row: "C", seats: Array.from({ length: 22 }, (_, i) => i + 1), offset: 1 },
-      ],
-      className: "fill-pink-500/10 stroke-pink-500",
-    },
-    {
-      sectionName: "₹299 Zone",
-      price: 299,
-      rows: [
-        { row: "D", seats: Array.from({ length: 8 }, (_, i) => i + 1) },
-        { row: "D", seats: Array.from({ length: 12 }, (_, i) => i + 9), offset: 2 },
-        { row: "D", seats: Array.from({ length: 8 }, (_, i) => i + 21), offset: 2 },
-        { row: "E", seats: Array.from({ length: 8 }, (_, i) => i + 1) },
-        { row: "E", seats: Array.from({ length: 12 }, (_, i) => i + 9), offset: 2 },
-        { row: "E", seats: Array.from({ length: 8 }, (_, i) => i + 21), offset: 2 },
-        { row: "F", seats: Array.from({ length: 8 }, (_, i) => i + 1) },
-        { row: "F", seats: Array.from({ length: 12 }, (_, i) => i + 9), offset: 2 },
-        { row: "F", seats: Array.from({ length: 8 }, (_, i) => i + 21), offset: 2 },
-      ],
-      className: "fill-blue-500/10 stroke-blue-500",
-    },
-    {
-      sectionName: "₹99 Zone",
-      price: 99,
-      rows: [
-        { row: "G", seats: Array.from({ length: 28 }, (_, i) => i + 1) },
-        { row: "H", seats: Array.from({ length: 28 }, (_, i) => i + 1) },
-        { row: "I", seats: Array.from({ length: 28 }, (_, i) => i + 1) },
-      ],
-      className: "fill-purple-500/10 stroke-purple-500",
-    },
-  ],
-  bookedSeats: ["C5", "C6", "C7", "F12", "F13", "G10", "G11", "I1", "I2", "A3", "A4"]
+const generateSeats = (rows: string[], seatsPerRow: number, bookedSeats: string[]): { rowId: string, seats: { id: string, row: string, col: number, isBooked: boolean }[] }[] => {
+    return rows.map(rowId => ({
+        rowId,
+        seats: Array.from({ length: seatsPerRow }, (_, i) => {
+            const seatNum = i + 1;
+            const seatId = `${rowId}${seatNum}`;
+            return {
+                id: seatId,
+                row: rowId,
+                col: seatNum,
+                isBooked: bookedSeats.includes(seatId),
+            };
+        }),
+    }));
 };
+
+const bookedSeatsSample = ["A5", "A6", "C10", "D1", "D2", "H5", "K12", "K13", "F20", "G1", "J15"];
+
+
+const detailedSeatingChart: SeatingChartData = {
+  tiers: [
+    {
+      tierName: 'Balcony',
+      sections: [
+        {
+          sectionName: 'Balcony Left',
+          price: 99,
+          rows: generateSeats(['J', 'K', 'L'], 10, bookedSeatsSample),
+          className: 'bg-purple-600/20 border-purple-600',
+        },
+        {
+          sectionName: 'Balcony Center',
+          price: 99,
+          rows: generateSeats(['J', 'K', 'L'], 20, bookedSeatsSample),
+          className: 'bg-purple-600/20 border-purple-600',
+        },
+        {
+          sectionName: 'Balcony Right',
+          price: 99,
+          rows: generateSeats(['J', 'K', 'L'], 10, bookedSeatsSample),
+          className: 'bg-purple-600/20 border-purple-600',
+        },
+      ],
+    },
+    {
+      tierName: 'Middle',
+      sections: [
+        {
+          sectionName: 'Middle Left',
+          price: 299,
+          rows: generateSeats(['F', 'G', 'H'], 15, bookedSeatsSample),
+          className: 'bg-blue-600/20 border-blue-600',
+        },
+        {
+          sectionName: 'Middle Right',
+          price: 299,
+          rows: generateSeats(['F', 'G', 'H'], 15, bookedSeatsSample),
+          className: 'bg-blue-600/20 border-blue-600',
+        },
+      ],
+    },
+    {
+        tierName: 'Premium',
+        sections: [
+            {
+                sectionName: 'Premium Center',
+                price: 499,
+                rows: generateSeats(['A', 'B', 'C', 'D'], 20, bookedSeatsSample),
+                className: 'bg-pink-600/20 border-pink-600',
+            }
+        ]
+    }
+  ],
+};
+
 
 const sampleEvents: Omit<Event, 'id'>[] = [
   {
@@ -88,7 +122,7 @@ const sampleEvents: Omit<Event, 'id'>[] = [
   },
    {
     name: 'Hamlet: A Contemporary Tragedy',
-    description: 'Experience Shakespeare\'s masterpiece like never before in this gripping, modern-day adaptation of the classic tragedy.',
+    description: "Experience Shakespeare's masterpiece like never before in this gripping, modern-day adaptation of the classic tragedy.",
     category: 'Theater',
     date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString(),
     location: 'Jaipur, Rajasthan',
@@ -255,7 +289,3 @@ export const useEvents = () => {
   }
   return context;
 };
-
-    
-
-    
