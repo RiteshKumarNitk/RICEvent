@@ -1,29 +1,32 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useEvents } from "@/app/admin/events/events-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, orderBy, Timestamp } from "firebase/firestore";
+import type { Booking, Event } from "@/lib/types";
+import { BookingDetailsDialog } from "@/components/account/booking-details-dialog";
 
-interface Booking {
-  id: string;
-  eventName: string;
-  eventDate: string;
-}
 
 export default function AccountPage() {
   const { user, loading, logout } = useAuth();
+  const { events, loading: eventsLoading } = useEvents();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
-  const [registeredEvents, setRegisteredEvents] = useState<Booking[]>([]);
+  const [registeredBookings, setRegisteredBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
+  
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -43,20 +46,16 @@ export default function AccountPage() {
           orderBy("bookingDate", "desc")
         );
         const querySnapshot = await getDocs(q);
-        const bookings = querySnapshot.docs.map(doc => {
+        const bookingsData = querySnapshot.docs.map(doc => {
             const data = doc.data();
-            // Ensure date fields are correctly converted from Firestore Timestamps
-            const eventDate = data.eventDate instanceof Timestamp 
-                ? data.eventDate.toDate().toISOString() 
-                : data.eventDate;
-          
             return {
               id: doc.id,
-              eventName: data.eventName,
-              eventDate: eventDate,
-            };
+              ...data,
+              eventDate: data.eventDate instanceof Timestamp ? data.eventDate.toDate().toISOString() : data.eventDate,
+              bookingDate: data.bookingDate instanceof Timestamp ? data.bookingDate.toDate().toISOString() : data.bookingDate,
+            } as Booking;
         });
-        setRegisteredEvents(bookings);
+        setRegisteredBookings(bookingsData);
       } catch (error) {
         console.error("Error fetching bookings: ", error);
       } finally {
@@ -69,11 +68,21 @@ export default function AccountPage() {
     }
   }, [user]);
 
+  const handleViewBooking = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsDetailsOpen(true);
+  }
+
   if (loading || !user) {
     return <div className="container text-center py-12">Loading your account details...</div>;
   }
+  
+  const getEventForBooking = (booking: Booking): Event | undefined => {
+    return events.find(event => event.id === booking.eventId);
+  }
 
   return (
+    <>
     <div className="container max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold mb-8">My Account</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -91,10 +100,9 @@ export default function AccountPage() {
                 </Avatar>
                 <div>
                   <p className="font-semibold">{user.displayName || 'User'}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 </div>
               </div>
-              <Button variant="outline" className="w-full">Edit Profile</Button>
               <Button variant="destructive" className="w-full" onClick={logout}>Log Out</Button>
             </CardContent>
           </Card>
@@ -102,29 +110,31 @@ export default function AccountPage() {
         <div className="md:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Registered Events</CardTitle>
+              <CardTitle>My Bookings</CardTitle>
               <CardDescription>Events you have booked.</CardDescription>
             </CardHeader>
             <CardContent>
-              {bookingsLoading ? (
+              {bookingsLoading || eventsLoading ? (
                  <p className="text-muted-foreground text-center">Loading your events...</p>
-              ) : registeredEvents.length > 0 ? (
+              ) : registeredBookings.length > 0 ? (
                 <ul className="space-y-4">
-                  {registeredEvents.map((event, index) => (
-                    <li key={event.id}>
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-semibold">{event.eventName}</p>
-                          <p className="text-sm text-muted-foreground">Date: {new Date(event.eventDate).toLocaleDateString()}</p>
+                  {registeredBookings.map((booking, index) => {
+                    const event = getEventForBooking(booking);
+                    return (
+                        <li key={booking.id}>
+                        <div className="flex justify-between items-center">
+                            <div>
+                            <p className="font-semibold">{booking.eventName}</p>
+                            <p className="text-sm text-muted-foreground">Date: {new Date(booking.eventDate).toLocaleDateString()}</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                            <Button variant="outline" size="sm" onClick={() => handleViewBooking(booking)} disabled={!event}>View Booking</Button>
+                            </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">View Booking</Button>
-                          <Button variant="destructive" size="sm">Cancel</Button>
-                        </div>
-                      </div>
-                      {index < registeredEvents.length - 1 && <Separator className="mt-4" />}
-                    </li>
-                  ))}
+                        {index < registeredBookings.length - 1 && <Separator className="mt-4" />}
+                        </li>
+                    )
+                  })}
                 </ul>
               ) : (
                 <p className="text-muted-foreground text-center">You have no registered events.</p>
@@ -134,5 +144,14 @@ export default function AccountPage() {
         </div>
       </div>
     </div>
+    {selectedBooking && (
+        <BookingDetailsDialog 
+            isOpen={isDetailsOpen}
+            onOpenChange={setIsDetailsOpen}
+            booking={selectedBooking}
+            event={getEventForBooking(selectedBooking)}
+        />
+    )}
+    </>
   );
 }
