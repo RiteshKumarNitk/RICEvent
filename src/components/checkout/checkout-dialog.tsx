@@ -16,16 +16,15 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, ArrowRight, ArrowLeft, CreditCard, User, FileText, BadgeCheck, XCircle, Download } from 'lucide-react';
-import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
-import membersData from '@/lib/members.json';
 import QRCode from "react-qr-code";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { checkMemberIdAction } from '@/app/actions/check-member-action';
 
 
 const isPaidEvent = (event: Event) => {
@@ -66,6 +65,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   const { user } = useAuth();
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
+  const [verifyingMember, setVerifyingMember] = useState<number | null>(null);
 
   const steps = eventIsPaid ? ['Seats', 'Details', 'Payment', 'Invoice'] : ['Seats', 'Details', 'Invoice'];
   const icons = eventIsPaid ? [User, FileText, CreditCard, CheckCircle2] : [User, FileText, CheckCircle2];
@@ -115,39 +115,55 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   }, [selectedSeats, replace, isOpen, user]);
 
 
- const handleVerifyMemberId = (index: number) => {
+ const handleVerifyMemberId = async (index: number) => {
+    setVerifyingMember(index);
     const currentAttendees = form.getValues('attendees');
     const currentAttendee = currentAttendees[index];
     const memberIdToVerify = currentAttendee.memberId;
     
-    const isIdAlreadyUsed = currentAttendees.some((attendee, idx) => 
-        idx !== index && attendee.isMember && String(attendee.memberId) === String(memberIdToVerify)
-    );
-
-    if (isIdAlreadyUsed) {
-        toast({ variant: "destructive", title: "Member ID in Use", description: "This Member ID has already been applied to another ticket." });
+    if (!memberIdToVerify) {
+        toast({ variant: "destructive", title: "Member ID missing", description: "Please enter a Member ID to verify." });
+        setVerifyingMember(null);
         return;
     }
 
-    const memberData = membersData.find(m => String(m["Member ID"]) === String(memberIdToVerify));
+    const isIdAlreadyUsedInSession = currentAttendees.some((attendee, idx) => 
+        idx !== index && attendee.isMember && String(attendee.memberId) === String(memberIdToVerify)
+    );
+
+    if (isIdAlreadyUsedInSession) {
+        toast({ variant: "destructive", title: "Member ID in Use", description: "This Member ID has already been applied to another ticket in this session." });
+        setVerifyingMember(null);
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('memberId', memberIdToVerify);
+    formData.append('eventId', event.id);
+
+    const result = await checkMemberIdAction(formData);
 
     let updatedAttendee;
-    if (memberData) {
+    if (result.isValid && !result.isAlreadyUsed) {
       updatedAttendee = {
         ...currentAttendee,
         isMember: true,
         memberIdVerified: true,
-        attendeeName: memberData["Member Details"].Name,
+        attendeeName: result.memberName || currentAttendee.attendeeName,
       };
-      toast({ title: "Member Verified", description: `${updatedAttendee.attendeeName} gets a free ticket!`});
+      toast({ title: "Member Verified", description: `${result.memberName} gets a free ticket!`});
+    } else if (result.isValid && result.isAlreadyUsed) {
+      updatedAttendee = { ...currentAttendee, isMember: false, memberIdVerified: false };
+      toast({ variant: "destructive", title: "Member ID Already Used", description: "This Member ID has already been used to book a ticket for this event."});
     } else {
-      updatedAttendee = { ...currentAttendee, isMember: false, memberIdVerified: true };
+      updatedAttendee = { ...currentAttendee, isMember: false, memberIdVerified: false };
       toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
     }
     
     const newAttendees = [...currentAttendees];
     newAttendees[index] = updatedAttendee;
     replace(newAttendees);
+    setVerifyingMember(null);
   };
 
 
@@ -208,7 +224,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       case 1: // Order Summary
         return <OrderSummaryStep event={event} selectedSeats={selectedSeats} total={totalAmount} isPaid={eventIsPaid} />;
       case 2: // Attendee Details
-        return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} />;
+        return <AttendeeDetailsStep form={form} fields={fields} onVerify={handleVerifyMemberId} verifyingMember={verifyingMember} />;
       case 3: // Payment (if applicable) or Invoice
         if (eventIsPaid) return <PaymentStep form={form} total={totalAmount} />;
         return <InvoiceStep event={event} form={form} bookingId={bookingId} />;
@@ -331,7 +347,7 @@ const OrderSummaryStep = ({ event, selectedSeats, total, isPaid }: { event: Even
   </div>
 );
 
-const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: any[], onVerify: (index: number) => void }) => (
+const AttendeeDetailsStep = ({ form, fields, onVerify, verifyingMember }: { form: any, fields: any[], onVerify: (index: number) => void, verifyingMember: number | null }) => (
   <div>
     <h3 className="font-semibold mb-4 text-lg">Attendee Details</h3>
     <div className="space-y-6">
@@ -361,7 +377,9 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                         )}
                     />
                     {!form.watch(`attendees.${index}.isMember`) ? (
-                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.memberId`)}>Verify ID</Button>
+                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.memberId`) || verifyingMember !== null}>
+                            {verifyingMember === index ? 'Verifying...' : 'Verify ID'}
+                        </Button>
                     ) : null}
                 </div>
             </div>
@@ -500,5 +518,3 @@ const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, book
         </div>
     )
 };
-
-    
