@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Event, Booking } from '@/lib/types';
 import { useAuth } from '@/hooks/use-auth';
 import { InvoiceDisplay } from './invoice-display';
@@ -23,6 +23,9 @@ export function BookingDetailsDialog({ isOpen, onOpenChange, booking, event }: B
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold">Booking Details</DialogTitle>
+           <DialogDescription className="text-center">
+            View your e-ticket and invoice for {event.name}.
+          </DialogDescription>
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto p-1">
           <InvoiceDisplay booking={booking} event={event} user={user} />

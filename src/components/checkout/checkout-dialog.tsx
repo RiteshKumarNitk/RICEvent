@@ -6,7 +6,7 @@ import * as React from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -224,6 +224,9 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
       <DialogContent className="sm:max-w-4xl" onInteractOutside={(e) => { if (isSubmitting) e.preventDefault()}} onEscapeKeyDown={resetAndClose}>
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">Complete Your Booking</DialogTitle>
+          <DialogDescription className="text-center text-muted-foreground">
+            Follow the steps to finalize your booking for {event.name}.
+          </DialogDescription>
            <div className="flex justify-center items-center my-4">
             {steps.map((s, index) => {
               const Icon = icons[index];
@@ -357,7 +360,7 @@ const AttendeeDetailsStep = ({ form, fields, onVerify }: { form: any, fields: an
                             <Input {...field} placeholder="e.g. 13" disabled={form.getValues(`attendees.${index}.isMember`)} />
                         )}
                     />
-                    {!form.getValues(`attendees.${index}.isMember`) ? (
+                    {!form.watch(`attendees.${index}.isMember`) ? (
                         <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.memberId`)}>Verify ID</Button>
                     ) : null}
                 </div>
