@@ -9,32 +9,31 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 
 const bookedSeatsSample: string[] = [];
-// Programmatically book the "Middle Right" section
+
 const middleRightSection = {
     "sectionName": "Middle Right",
     "price": 299,
     "rows": [
-      { "rowId": "H", "seats": 12 },
-      { "rowId": "I", "seats": 12 },
-      { "rowId": "J", "seats": 12 },
-      { "rowId": "K", "seats": 12 },
+      { "rowId": "M", "seats": 12 },
       { "rowId": "L", "seats": 12 },
-      { "rowId": "M", "seats": 12 }
-    ],
-    "className": "bg-blue-600/20 border-blue-600"
+      { "rowId": "K", "seats": 12 },
+      { "rowId": "J", "seats": 12 },
+      { "rowId": "I", "seats": 12 },
+      { "rowId": "H", "seats": 12 }
+    ]
 };
 
 middleRightSection.rows.forEach(row => {
     for (let i = 1; i <= row.seats; i++) {
-        bookedSeatsSample.push(`${row.rowId}${i}`);
+        bookedSeatsSample.push(`Middle Right-${row.rowId}${i}`);
     }
 });
 
 
-const generateSeats = (rowId: string, count: number): Seat[] => {
+const generateSeats = (sectionName: string, rowId: string, count: number): Seat[] => {
     return Array.from({ length: count }, (_, i) => {
         const seatNum = i + 1;
-        const seatId = `${rowId}${seatNum}`;
+        const seatId = `${sectionName}-${rowId}${seatNum}`;
         return {
             id: seatId,
             row: rowId,
@@ -60,7 +59,7 @@ const SeatComponent = ({ seat, section, isSelected, onSelect }: { seat: Seat, se
                 seat.isBooked ? "bg-muted text-muted-foreground/50 cursor-not-allowed" : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400",
                 isSelected && "!bg-primary !text-primary-foreground",
             )}
-            title={`Seat ${seat.id} - ₹${section.price}`}
+            title={`Seat ${seat.id.split('-')[1]} - ₹${section.price}`}
         >
         </div>
     );
@@ -137,7 +136,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
     const handleZoomIn = () => setZoom(z => Math.min(z + 0.1, 1.5));
     const handleZoomOut = () => setZoom(z => Math.max(z - 0.1, 0.5));
 
-    if (!seatingData) {
+    if (!seatingData || !seatingData.tiers) {
         return (
             <div className="text-center text-muted-foreground py-12">
                 <h2 className="text-xl font-semibold">General Admission Event</h2>
@@ -183,7 +182,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                                                     <div key={row.rowId} className="flex items-center justify-center gap-2">
                                                         <div className="w-8 text-center font-semibold text-gray-500">{row.rowId}</div>
                                                         <div className="flex gap-2 flex-wrap justify-center">
-                                                            {generateSeats(row.rowId, row.seats).map(seat => (
+                                                            {generateSeats(section.sectionName, row.rowId, row.seats).map(seat => (
                                                                 <SeatComponent
                                                                     key={seat.id}
                                                                     seat={seat}
@@ -213,7 +212,7 @@ export function SeatingChart({ event, ticketCount, onTicketCountChange }: { even
                         <div className="flex flex-col text-center sm:text-left">
                              <p className="text-lg font-bold">₹{getTotalPrice().toFixed(2)}</p>
                             <p className="text-sm text-muted-foreground truncate max-w-xs">
-                                {selectedSeats.map(s => s.seat.id).join(', ') || 'No seats selected'}
+                                {selectedSeats.map(s => s.seat.id.split('-')[1]).join(', ') || 'No seats selected'}
                             </p>
                         </div>
                         <Button onClick={handleCheckout} size="lg" className="w-full sm:w-auto">
