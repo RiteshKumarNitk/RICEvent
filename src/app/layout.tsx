@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { EventsProvider } from "./admin/events/events-provider";
+import { MembersProvider } from "./admin/members/members-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,12 +41,14 @@ export default function RootLayout({
         >
           <AuthProvider>
             <EventsProvider>
-              <div className="relative flex min-h-dvh flex-col bg-background">
-                <SiteHeader />
-                <main className="flex-1">{children}</main>
-                <SiteFooter />
-              </div>
-              <Toaster />
+              <MembersProvider>
+                <div className="relative flex min-h-dvh flex-col bg-background">
+                  <SiteHeader />
+                  <main className="flex-1">{children}</main>
+                  <SiteFooter />
+                </div>
+                <Toaster />
+              </MembersProvider>
             </EventsProvider>
           </AuthProvider>
         </ThemeProvider>

@@ -1,7 +1,8 @@
+
 "use client"
 
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
-import { Home, Calendar, Users, Settings, ShieldAlert } from "lucide-react";
+import { Home, Calendar, Users, ShieldAlert, BadgePercent } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
@@ -89,6 +90,14 @@ export default function AdminLayout({
                     <SidebarMenuButton isActive={isActive('/admin/events')}>
                         <Calendar />
                         <span>Events</span>
+                    </SidebarMenuButton>
+                 </Link>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                 <Link href="/admin/members" passHref>
+                    <SidebarMenuButton isActive={isActive('/admin/members')}>
+                        <BadgePercent />
+                        <span>Members</span>
                     </SidebarMenuButton>
                  </Link>
               </SidebarMenuItem>

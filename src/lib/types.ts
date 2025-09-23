@@ -1,8 +1,4 @@
 
-
-
-
-
 export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
@@ -72,4 +68,19 @@ export type Booking = {
   attendees: Attendee[];
   total: number;
   bookingDate: string;
+};
+
+export type Member = {
+    id: string;
+    applicationId: number;
+    memberId: number;
+    categoryType: string;
+    categoryAcronym: string;
+    doa: string; // Date of Association
+    name: string;
+    phone: string;
+    email: string;
+    dob: string;
+    address: string;
+    emergencyContact: string;
 };
