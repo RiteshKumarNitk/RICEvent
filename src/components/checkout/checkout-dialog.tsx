@@ -22,10 +22,10 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
-import membersData from '@/lib/members.json';
 import QRCode from "react-qr-code";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { checkMemberIdAction } from '@/app/actions/check-member-action';
 
 
 const isPaidEvent = (event: Event) => {
@@ -115,34 +115,38 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   }, [selectedSeats, replace, isOpen, user]);
 
 
- const handleVerifyMemberId = (index: number) => {
+  const handleVerifyMemberId = async (index: number) => {
     const currentAttendees = form.getValues('attendees');
     const currentAttendee = currentAttendees[index];
     const memberIdToVerify = currentAttendee.memberId;
-    
-    const isIdAlreadyUsed = currentAttendees.some((attendee, idx) => 
+
+    if (!memberIdToVerify) return;
+
+    // Check if the ID is already used in another ticket for THIS booking
+    const isIdAlreadyUsedInForm = currentAttendees.some((attendee, idx) => 
         idx !== index && attendee.isMember && String(attendee.memberId) === String(memberIdToVerify)
     );
 
-    if (isIdAlreadyUsed) {
-        toast({ variant: "destructive", title: "Member ID in Use", description: "This Member ID has already been applied to another ticket." });
+    if (isIdAlreadyUsedInForm) {
+        toast({ variant: "destructive", title: "Member ID in Use", description: "This Member ID has already been applied to another ticket in this booking." });
         return;
     }
-
-    const memberData = membersData.find(m => String(m["Member ID"]) === String(memberIdToVerify));
+    
+    // Call server action to verify against the database
+    const result = await checkMemberIdAction(memberIdToVerify, event.id);
 
     let updatedAttendee;
-    if (memberData) {
+    if (result.isValid) {
       updatedAttendee = {
         ...currentAttendee,
         isMember: true,
         memberIdVerified: true,
-        attendeeName: memberData["Member Details"].Name,
+        attendeeName: result.memberName || 'Member',
       };
-      toast({ title: "Member Verified", description: `${updatedAttendee.attendeeName} gets a free ticket!`});
+      toast({ title: "Member Verified", description: `${result.memberName} gets a free ticket!`});
     } else {
       updatedAttendee = { ...currentAttendee, isMember: false, memberIdVerified: true };
-      toast({ variant: "destructive", title: "Invalid Member ID", description: "This ID is not valid. The attendee is considered a guest."});
+      toast({ variant: "destructive", title: "Verification Failed", description: result.message});
     }
     
     const newAttendees = [...currentAttendees];
@@ -502,3 +506,4 @@ const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, book
 };
 
     
+
