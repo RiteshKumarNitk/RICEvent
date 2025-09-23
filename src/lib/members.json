@@ -7,12 +7,12 @@
     "Category Acronym": "FM",
     "DOA": "25-03-2024",
     "Member Details": {
-      "Name": "Dr. Gurdial Singh Sandhu",
-      "Phone": "9649601111",
+      "Name": " Manish Singh",
+      "Phone": "8899665544",
       "Email": "GSSANDHU55@GMAIL.COM",
       "DOB": "11-09-1955",
-      "Address": "HOUSE NO 5/15, SFS,, MANSAROVER, JAIPUR RAJASTHAN 302020",
-      "Emergency Contact": "8890022222"
+      "Address": "MANSAROVER, JAIPUR RAJASTHAN 302020",
+      "Emergency Contact": "8844556688"
     }
   },
   {
@@ -22,9 +22,9 @@
     "Category Acronym": "LM",
     "DOA": "26-03-2024",
     "Member Details": {
-      "Name": "Asha Sharma",
-      "Phone": "9876543210",
-      "Email": "asha.sharma@example.com",
+      "Name": "Mahima Sharma",
+      "Phone": "8946887702",
+      "Email": "Mahima.sharma@example.com",
       "DOB": "15-05-1980",
       "Address": "123, Malviya Nagar, Jaipur, Rajasthan 302017",
       "Emergency Contact": "9876543211"
@@ -37,11 +37,11 @@
     "Category Acronym": "CM",
     "DOA": "27-03-2024",
     "Member Details": {
-      "Name": "Rohan Verma",
+      "Name": "Vikas Verma",
       "Phone": "8887776665",
-      "Email": "rohan.verma@corporate.com",
+      "Email": "Vikas.verma@corporate.com",
       "DOB": "20-11-1992",
-      "Address": "45, C-Scheme, Jaipur, Rajasthan 302001",
+      "Address": "C-Scheme, Jaipur, Rajasthan 302001",
       "Emergency Contact": "8887776660"
     }
   }
