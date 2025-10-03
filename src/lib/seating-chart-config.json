@@ -1,138 +1,155 @@
 {
-    "tiers": [
-      {
-        "tierName": "Balcony",
-        "sections": [
-          {
-            "sectionName": "Balcony Left",
-            "price": 99,
-            "rows": [
-              { "rowId": "S", "seats": 6 },
-              { "rowId": "S-2", "seats": 5, "offset": 7 },
-              { "rowId": "R", "seats": 12 },
-              { "rowId": "Q", "seats": 12 },
-              { "rowId": "P", "seats": 12 },
-              { "rowId": "O", "seats": 12 },
-              { "rowId": "N", "seats": 12 }
-            ],
-            "className": "bg-purple-600/20 border-purple-600"
-          },
-          {
-            "sectionName": "Balcony Center",
-            "price": 99,
-            "rows": [
-               { "rowId": "S", "seats": 12 },
-               { "rowId": "R", "seats": 12 },
-               { "rowId": "Q", "seats": 12 },
-               { "rowId": "P", "seats": 12 },
-               { "rowId": "O", "seats": 12 },
-               { "rowId": "N", "seats": 12 }
-            ],
-            "className": "bg-purple-600/20 border-purple-600"
-          },
-          {
-            "sectionName": "Balcony Right",
-            "price": 99,
-            "rows": [
-              { "rowId": "S", "seats": 12 },
-              { "rowId": "R", "seats": 12 },
-              { "rowId": "Q", "seats": 12 },
-              { "rowId": "P", "seats": 12 },
-              { "rowId": "O", "seats": 12 },
-              { "rowId": "N", "seats": 12 }
-            ],
-            "className": "bg-purple-600/20 border-purple-600"
-          }
-        ]
-      },
-      {
-        "tierName": "Middle",
-        "sections": [
-          {
-            "sectionName": "Middle Left",
-            "price": 299,
-            "rows": [
-              { "rowId": "M", "seats": 12 },
-              { "rowId": "L", "seats": 12 },
-              { "rowId": "K", "seats": 12 },
-              { "rowId": "J", "seats": 12 },
-              { "rowId": "I", "seats": 12 },
-              { "rowId": "H", "seats": 12 }
-            ],
-            "className": "bg-blue-600/20 border-blue-600"
-          },
-          {
-            "sectionName": "Middle Center",
-            "price": 299,
-            "rows": [
-              { "rowId": "M", "seats": 12 },
-              { "rowId": "L", "seats": 12 },
-              { "rowId": "K", "seats": 12 },
-              { "rowId": "J", "seats": 12 },
-              { "rowId": "I", "seats": 12 },
-              { "rowId": "H", "seats": 12 }
-            ],
-            "className": "bg-blue-600/20 border-blue-600"
-          },
-          {
-            "sectionName": "Middle Right",
-            "price": 299,
-            "rows": [
-              { "rowId": "M", "seats": 12 },
-              { "rowId": "L", "seats": 12 },
-              { "rowId": "K", "seats": 12 },
-              { "rowId": "J", "seats": 12 },
-              { "rowId": "I", "seats": 12 },
-              { "rowId": "H", "seats": 12 }
-            ],
-            "className": "bg-blue-600/20 border-blue-600"
-          }
-        ]
-      },
-      {
-          "tierName": "Premium",
-          "sections": [
-             {
-                  "sectionName": "Premium Left",
-                  "price": 499,
-                  "rows": [
-                      { "rowId": "G", "seats": 12 },
-                      { "rowId": "F", "seats": 12 },
-                      { "rowId": "E", "seats": 12 },
-                      { "rowId": "D", "seats": 12 },
-                      { "rowId": "C", "seats": 12 },
-                      { "rowId": "B", "seats": 12 }
-                  ],
-                  "className": "bg-pink-600/20 border-pink-600"
-              },
-              {
-                  "sectionName": "Premium Center",
-                  "price": 499,
-                  "rows": [
-                      { "rowId": "G", "seats": 12 },
-                      { "rowId": "F", "seats": 12 },
-                      { "rowId": "E", "seats": 12 },
-                      { "rowId": "D", "seats": 12 },
-                      { "rowId": "C", "seats": 12 },
-                      { "rowId": "B", "seats": 12 }
-                  ],
-                  "className": "bg-pink-600/20 border-pink-600"
-              },
-              {
-                  "sectionName": "Premium Right",
-                  "price": 499,
-                  "rows": [
-                      { "rowId": "G", "seats": 12 },
-                      { "rowId": "F", "seats": 12 },
-                      { "rowId": "E", "seats": 12 },
-                      { "rowId": "D", "seats": 12 },
-                      { "rowId": "C", "seats": 12 },
-                      { "rowId": "B", "seats": 12 }
-                  ],
-                  "className": "bg-pink-600/20 border-pink-600"
-              }
-          ]
-      }
-    ]
-  }
-  
+  "tiers": [
+    {
+      "tierName": "Balcony",
+      "sections": [
+        {
+          "sectionName": "Balcony Left",
+          "price": 99,
+          "rows": [
+            { "rowId": "R", "seats": 7 },
+            { "rowId": "Q", "seats": 15 },
+            { "rowId": "P", "seats": 14 },
+            { "rowId": "O", "seats": 14 },
+            { "rowId": "N", "seats": 13 }
+          ],
+          "className": "bg-purple-600/20 border-purple-600",
+          "angle": -15,
+          "translateX": -40
+        },
+        {
+          "sectionName": "Balcony Center",
+          "price": 99,
+          "rows": [
+            { "rowId": "R", "seats": 11 },
+            { "rowId": "Q", "seats": 19 },
+            { "rowId": "P", "seats": 18 },
+            { "rowId": "O", "seats": 17 },
+            { "rowId": "N", "seats": 14 }
+          ],
+          "className": "bg-purple-600/20 border-purple-600",
+          "angle": 0,
+          "translateX": 0
+        },
+        {
+          "sectionName": "Balcony Right",
+          "price": 99,
+          "rows": [
+
+            { "rowId": "R", "seats": 7 },
+            { "rowId": "Q", "seats": 14 },
+            { "rowId": "P", "seats": 14 },
+            { "rowId": "O", "seats": 14 },
+            { "rowId": "N", "seats": 13 }
+          ],
+          "className": "bg-purple-600/20 border-purple-600",
+          "angle": 15,
+          "translateX": 40
+        }
+      ]
+    },
+    {
+      "tierName": "Middle",
+      "sections": [
+        {
+          "sectionName": "Middle Left",
+          "price": 299,
+          "rows": [
+            { "rowId": "M", "seats": 12 },
+            { "rowId": "L", "seats": 12 },
+            { "rowId": "K", "seats": 12 },
+            { "rowId": "J", "seats": 12 },
+            { "rowId": "I", "seats": 12 },
+            { "rowId": "H", "seats": 12 },
+            { "rowId": "G", "seats": 12 },
+            { "rowId": "F", "seats": 12 }
+          ],
+          "className": "bg-blue-600/20 border-blue-600",
+          "angle": -10,
+          "translateX": -25
+        },
+        {
+          "sectionName": "Middle Center",
+          "price": 299,
+          "rows": [
+            { "rowId": "M", "seats": 12 },
+            { "rowId": "L", "seats": 12 },
+            { "rowId": "K", "seats": 12 },
+            { "rowId": "J", "seats": 12 },
+            { "rowId": "I", "seats": 12 },
+            { "rowId": "H", "seats": 12 },
+            { "rowId": "G", "seats": 12 },
+            { "rowId": "F", "seats": 12 }
+          ],
+          "className": "bg-blue-600/20 border-blue-600",
+          "angle": 0,
+          "translateX": 0
+        },
+        {
+          "sectionName": "Middle Right",
+          "price": 299,
+          "rows": [
+            { "rowId": "M", "seats": 12 },
+            { "rowId": "L", "seats": 12 },
+            { "rowId": "K", "seats": 12 },
+            { "rowId": "J", "seats": 12 },
+            { "rowId": "I", "seats": 12 },
+            { "rowId": "H", "seats": 12 },
+            { "rowId": "G", "seats": 12 },
+            { "rowId": "F", "seats": 12 }
+          ],
+          "className": "bg-blue-600/20 border-blue-600",
+          "angle": 10,
+          "translateX": 25
+        }
+      ]
+    },
+    {
+      "tierName": "Premium",
+      "sections": [
+        {
+          "sectionName": "Premium Left",
+          "price": 499,
+          "rows": [
+            { "rowId": "E", "seats": 10 },
+            { "rowId": "D", "seats": 10 },
+            { "rowId": "C", "seats": 10 },
+            { "rowId": "B", "seats": 10 },
+            { "rowId": "A", "seats": 10 }
+          ],
+          "className": "bg-pink-600/20 border-pink-600",
+          "angle": -8,
+          "translateX": -20
+        },
+        {
+          "sectionName": "Premium Center",
+          "price": 499,
+          "rows": [
+            { "rowId": "E", "seats": 14 },
+            { "rowId": "D", "seats": 14 },
+            { "rowId": "C", "seats": 14 },
+            { "rowId": "B", "seats": 14 },
+            { "rowId": "A", "seats": 14 }
+          ],
+          "className": "bg-pink-600/20 border-pink-600",
+          "angle": 0,
+          "translateX": 0
+        },
+        {
+          "sectionName": "Premium Right",
+          "price": 499,
+          "rows": [
+            { "rowId": "E", "seats": 10 },
+            { "rowId": "D", "seats": 10 },
+            { "rowId": "C", "seats": 10 },
+            { "rowId": "B", "seats": 10 },
+            { "rowId": "A", "seats": 10 }
+          ],
+          "className": "bg-pink-600/20 border-pink-600",
+          "angle": 8,
+          "translateX": 20
+        }
+      ]
+    }
+  ]
+}
