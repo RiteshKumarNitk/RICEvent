@@ -249,7 +249,7 @@ export function SeatingChart({
       <div
         key={idx}
         className={cn(
-          "p-4 rounded-xl shadow-sm border bg-white/60 dark:bg-gray-800/50",
+          "p-4 rounded-xl   ",
           section.className
         )}
         style={sectionStyle}
@@ -273,7 +273,7 @@ export function SeatingChart({
               </div>
 
               {/* Seats: allow wrapping so rows break naturally on small screens */}
-              <div className="flex gap-2 flex-wrap justify-center">
+              <div className="flex gap-2 justify-center whitespace-nowrap">
                 {generateSeats(section.sectionName, row, bookedSeats).map(
                   (seat) => (
                     <SeatComponent
@@ -359,7 +359,7 @@ export function SeatingChart({
                     <div className="text-center font-bold">{tier.tierName}</div>
 
                     {/* 3-column layout: left | center | right */}
-                    <div className="grid grid-cols-3 items-start gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr] items-start justify-items-center">
                       {/* LEFT */}
                       <div className="flex flex-col nowrap items-center gap-6">
                         {leftSections.map((sec: any, idx: number) =>
