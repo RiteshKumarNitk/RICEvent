@@ -1,3 +1,4 @@
+
 {
   "tiers": [
     {
@@ -52,21 +53,38 @@
       "tierName": "Middle",
       "sections": [
         {
-          "sectionName": "Middle Left",
+          "sectionName": "Middle Left Left",
           "price": 299,
           "rows": [
-            { "rowId": "M", "seats": 12 },
-            { "rowId": "L", "seats": 12 },
-            { "rowId": "K", "seats": 12 },
-            { "rowId": "J", "seats": 12 },
-            { "rowId": "I", "seats": 12 },
-            { "rowId": "H", "seats": 12 },
-            { "rowId": "G", "seats": 12 },
-            { "rowId": "F", "seats": 12 }
+            { "rowId": "M-L", "seats": 6, "offset": 1 },
+            { "rowId": "L-L", "seats": 6, "offset": 1 },
+            { "rowId": "K-L", "seats": 6, "offset": 1 },
+            { "rowId": "J-L", "seats": 6, "offset": 1 },
+            { "rowId": "I-L", "seats": 6, "offset": 1 },
+            { "rowId": "H-L", "seats": 6, "offset": 1 },
+            { "rowId": "G-L", "seats": 6, "offset": 1 },
+            { "rowId": "F-L", "seats": 6, "offset": 1 }
           ],
           "className": "bg-blue-600/20 border-blue-600",
-          "angle": -10,
-          "translateX": -25
+          "angle": -12,
+          "translateX": -30
+        },
+        {
+          "sectionName": "Middle Left Right",
+          "price": 299,
+          "rows": [
+            { "rowId": "M-R", "seats": 6, "offset": 7 },
+            { "rowId": "L-R", "seats": 6, "offset": 7 },
+            { "rowId": "K-R", "seats": 6, "offset": 7 },
+            { "rowId": "J-R", "seats": 6, "offset": 7 },
+            { "rowId": "I-R", "seats": 6, "offset": 7 },
+            { "rowId": "H-R", "seats": 6, "offset": 7 },
+            { "rowId": "G-R", "seats": 6, "offset": 7 },
+            { "rowId": "F-R", "seats": 6, "offset": 7 }
+          ],
+          "className": "bg-blue-600/20 border-blue-600",
+          "angle": -8,
+          "translateX": -20
         },
         {
           "sectionName": "Middle Center",
