@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // --- Generate seats for each row ---
@@ -52,11 +53,13 @@ const SeatComponent = ({
         "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200",
         seat.isBooked
           ? "bg-red-500/50 text-white/50 cursor-not-allowed"
-          : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400 cursor-pointer",
+          : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400 cursor-pointer text-gray-700 dark:text-gray-200",
         isSelected && "!bg-primary !text-primary-foreground"
       )}
       title={`Seat ${seat.row}${seat.col} - ₹${section.price}`}
-    />
+    >
+      {!seat.isBooked && <span>{seat.col}</span>}
+    </div>
   );
 };
 
@@ -83,18 +86,19 @@ export function SeatingChart({
 
   // --- Fetch booked seats ---
   useEffect(() => {
-    const fetchBookedSeats = async () => {
-      if (!event.id) return;
-      setLoadingBookings(true);
-      try {
-        const bookingsSnapshot = await getDocs(collection(db, "bookings"));
-        const seatIds = bookingsSnapshot.docs
-          .filter((doc) => doc.data().eventId === event.id)
-          .flatMap((doc) =>
-            doc.data().attendees.map((attendee: any) => attendee.seatId)
-          );
-        setBookedSeats(seatIds);
-      } catch (error) {
+    if (!event.id || !event.seatingChart) {
+      setLoadingBookings(false);
+      return;
+    }
+    
+    setLoadingBookings(true);
+    const bookingsQuery = query(collection(db, 'bookings'), where('eventId', '==', event.id));
+    
+    const unsubscribe = onSnapshot(bookingsQuery, (snapshot) => {
+      const seatIds = snapshot.docs.flatMap(doc => doc.data().attendees.map((attendee: any) => attendee.seatId));
+      setBookedSeats(seatIds);
+      setLoadingBookings(false);
+    }, (error) => {
         console.error("Error fetching booked seats:", error);
         toast({
           variant: "destructive",
@@ -102,16 +106,10 @@ export function SeatingChart({
           description:
             "There was a problem fetching seat availability from the database.",
         });
-      } finally {
         setLoadingBookings(false);
-      }
-    };
+    });
 
-    if (event.seatingChart) {
-      fetchBookedSeats();
-    } else {
-      setLoadingBookings(false);
-    }
+    return () => unsubscribe();
   }, [event.id, event.seatingChart, toast]);
 
   // --- Truncate if ticket count reduced ---
