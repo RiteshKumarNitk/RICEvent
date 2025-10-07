@@ -336,12 +336,12 @@ export function SeatingChart({
         </div>
 
         {/* Seating Chart */}
-        <div className="overflow-auto p-4 md:p-8 pt-20">
+        <div className="overflow-auto pt-12">
           <div
             className="transition-transform duration-300 inline-block"
             style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
           >
-            <div className="space-y-8">
+            <div className="space-y-2">
               {seatingData.tiers.map((tier, tierIndex) => {
                 // split sections into left / center / right buckets by name
                 const leftSections = tier.sections.filter((s: any) =>
@@ -361,21 +361,21 @@ export function SeatingChart({
                     {/* 3-column layout: left | center | right */}
                     <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr] items-start justify-items-center">
                       {/* LEFT */}
-                      <div className="flex flex-col nowrap items-center gap-6">
+                      <div className="flex flex-col nowrap items-center pt-24 ">
                         {leftSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
                       </div>
 
                       {/* CENTER (wider) */}
-                      <div className="flex flex-col items-center gap-6">
+                      <div className="flex flex-col items-center ">
                         {centerSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
                       </div>
 
                       {/* RIGHT */}
-                      <div className="flex flex-col items-center gap-6">
+                      <div className="flex flex-col items-center pt-24">
                         {rightSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
