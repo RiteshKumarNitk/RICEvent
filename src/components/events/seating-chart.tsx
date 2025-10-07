@@ -247,7 +247,7 @@ export function SeatingChart({
       <div
         key={idx}
         className={cn(
-          "p-4 rounded-xl   ",
+          "p-4 rounded-xl",
           section.className
         )}
         style={sectionStyle}
@@ -336,7 +336,7 @@ export function SeatingChart({
         {/* Seating Chart */}
         <div className="overflow-auto pt-12">
           <div
-            className="transition-transform duration-300 inline-block"
+            className="transition-transform duration-300 inline-block min-w-full"
             style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
           >
             <div className="space-y-2">
@@ -356,9 +356,9 @@ export function SeatingChart({
                   <div key={tierIndex} className="space-y-4">
                     <div className="text-center font-bold">{tier.tierName}</div>
 
-                    <div className="flex flex-wrap items-start justify-center">
+                    <div className="flex flex-nowrap items-start justify-center">
                       {/* LEFT */}
-                      <div className="flex flex-col nowrap items-center">
+                      <div className="flex flex-col items-center">
                         {leftSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
