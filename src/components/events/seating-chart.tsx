@@ -356,24 +356,23 @@ export function SeatingChart({
                   <div key={tierIndex} className="space-y-4">
                     <div className="text-center font-bold">{tier.tierName}</div>
 
-                    {/* 3-column layout: left | center | right */}
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr] items-start justify-items-center">
+                    <div className="flex flex-wrap items-start justify-center">
                       {/* LEFT */}
-                      <div className="flex flex-col nowrap items-center pt-24 ">
+                      <div className="flex flex-col nowrap items-center">
                         {leftSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
                       </div>
 
-                      {/* CENTER (wider) */}
-                      <div className="flex flex-col items-center ">
+                      {/* CENTER */}
+                      <div className="flex flex-col items-center mx-4">
                         {centerSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
                       </div>
 
                       {/* RIGHT */}
-                      <div className="flex flex-col items-center pt-24">
+                      <div className="flex flex-col items-center">
                         {rightSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
