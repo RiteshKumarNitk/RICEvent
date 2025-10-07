@@ -50,15 +50,15 @@ const SeatComponent = ({
     <div
       onClick={handleClick}
       className={cn(
-        "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-200",
+        "w-6 h-6 rounded-t-md border-b-4 border-gray-400 dark:border-gray-500 flex items-center justify-center text-xs font-bold transition-all duration-200",
         seat.isBooked
-          ? "bg-red-500/50 text-white/50 cursor-not-allowed"
-          : "bg-gray-300 dark:bg-gray-600 hover:bg-green-400 cursor-pointer text-gray-700 dark:text-gray-200",
-        isSelected && "!bg-primary !text-primary-foreground"
+          ? "bg-muted cursor-not-allowed"
+          : "bg-green-200 dark:bg-green-900/50 hover:bg-green-300 dark:hover:bg-green-800/50 cursor-pointer text-gray-700 dark:text-gray-200",
+        isSelected && "!bg-primary !border-primary-foreground/50 text-primary-foreground"
       )}
       title={`Seat ${seat.row}${seat.col} - ₹${section.price}`}
     >
-      {!seat.isBooked && <span>{seat.col}</span>}
+        {!seat.isBooked && <span>{seat.col}</span>}
     </div>
   );
 };
@@ -394,7 +394,7 @@ export function SeatingChart({
             {/* Legend */}
             <div className="mt-8 flex justify-center items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-gray-300 dark:bg-gray-600"></div>
+                <div className="w-4 h-4 rounded-md bg-green-200 dark:bg-green-900/50"></div>
                 <span>Available</span>
               </div>
               <div className="flex items-center gap-2">
@@ -402,7 +402,7 @@ export function SeatingChart({
                 <span>Selected</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-red-500/50"></div>
+                <div className="w-4 h-4 rounded-md bg-muted"></div>
                 <span>Booked</span>
               </div>
             </div>
