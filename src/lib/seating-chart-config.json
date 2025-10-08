@@ -8,11 +8,11 @@
           "sectionName": "Balcony Left",
           "price": 99,
           "rows": [
-            { "rowId": "R", "seats": 7 },
-            { "rowId": "Q", "seats": 15 },
-            { "rowId": "P", "seats": 14 },
-            { "rowId": "O", "seats": 14 },
-            { "rowId": "N", "seats": 13 }
+            { "rowId": "R", "seats": 7, "offset": 1 },
+            { "rowId": "Q", "seats": 15, "offset": 1 },
+            { "rowId": "P", "seats": 14, "offset": 1 },
+            { "rowId": "O", "seats": 14, "offset": 1 },
+            { "rowId": "N", "seats": 13, "offset": 1 }
           ],
           "className": "bg-purple-600/20 border-purple-600",
           "angle": -15,
@@ -22,11 +22,11 @@
           "sectionName": "Balcony Center",
           "price": 99,
           "rows": [
-            { "rowId": "R", "seats": 11 },
-            { "rowId": "Q", "seats": 19 },
-            { "rowId": "P", "seats": 18 },
-            { "rowId": "O", "seats": 17 },
-            { "rowId": "N", "seats": 14 }
+            { "rowId": "R", "seats": 11, "offset": 8 },
+            { "rowId": "Q", "seats": 19, "offset": 16 },
+            { "rowId": "P", "seats": 18, "offset": 15 },
+            { "rowId": "O", "seats": 17, "offset": 15 },
+            { "rowId": "N", "seats": 14, "offset": 14 }
           ],
           "className": "bg-purple-600/20 border-purple-600",
           "angle": 0,
@@ -36,12 +36,11 @@
           "sectionName": "Balcony Right",
           "price": 99,
           "rows": [
-
-            { "rowId": "R", "seats": 7 },
-            { "rowId": "Q", "seats": 14 },
-            { "rowId": "P", "seats": 14 },
-            { "rowId": "O", "seats": 14 },
-            { "rowId": "N", "seats": 13 }
+            { "rowId": "R", "seats": 7, "offset": 19 },
+            { "rowId": "Q", "seats": 14, "offset": 35 },
+            { "rowId": "P", "seats": 14, "offset": 33 },
+            { "rowId": "O", "seats": 14, "offset": 32 },
+            { "rowId": "N", "seats": 13, "offset": 28 }
           ],
           "className": "bg-purple-600/20 border-purple-600",
           "angle": 15,
@@ -90,14 +89,14 @@
           "sectionName": "Middle Center",
           "price": 299,
           "rows": [
-            { "rowId": "M", "seats": 12 },
-            { "rowId": "L", "seats": 12 },
-            { "rowId": "K", "seats": 12 },
-            { "rowId": "J", "seats": 12 },
-            { "rowId": "I", "seats": 12 },
-            { "rowId": "H", "seats": 12 },
-            { "rowId": "G", "seats": 12 },
-            { "rowId": "F", "seats": 12 }
+            { "rowId": "M", "seats": 12, "offset": 13 },
+            { "rowId": "L", "seats": 12, "offset": 13 },
+            { "rowId": "K", "seats": 12, "offset": 13 },
+            { "rowId": "J", "seats": 12, "offset": 13 },
+            { "rowId": "I", "seats": 12, "offset": 13 },
+            { "rowId": "H", "seats": 12, "offset": 13 },
+            { "rowId": "G", "seats": 12, "offset": 13 },
+            { "rowId": "F", "seats": 12, "offset": 13 }
           ],
           "className": "bg-blue-600/20 border-blue-600",
           "angle": 0,
@@ -107,14 +106,14 @@
           "sectionName": "Middle Right",
           "price": 299,
           "rows": [
-            { "rowId": "M", "seats": 12 },
-            { "rowId": "L", "seats": 12 },
-            { "rowId": "K", "seats": 12 },
-            { "rowId": "J", "seats": 12 },
-            { "rowId": "I", "seats": 12 },
-            { "rowId": "H", "seats": 12 },
-            { "rowId": "G", "seats": 12 },
-            { "rowId": "F", "seats": 12 }
+            { "rowId": "M", "seats": 12, "offset": 25 },
+            { "rowId": "L", "seats": 12, "offset": 25 },
+            { "rowId": "K", "seats": 12, "offset": 25 },
+            { "rowId": "J", "seats": 12, "offset": 25 },
+            { "rowId": "I", "seats": 12, "offset": 25 },
+            { "rowId": "H", "seats": 12, "offset": 25 },
+            { "rowId": "G", "seats": 12, "offset": 25 },
+            { "rowId": "F", "seats": 12, "offset": 25 }
           ],
           "className": "bg-blue-600/20 border-blue-600",
           "angle": 10,
@@ -129,11 +128,11 @@
           "sectionName": "Premium Left",
           "price": 499,
           "rows": [
-            { "rowId": "E", "seats": 10 },
-            { "rowId": "D", "seats": 10 },
-            { "rowId": "C", "seats": 10 },
-            { "rowId": "B", "seats": 10 },
-            { "rowId": "A", "seats": 10 }
+            { "rowId": "E", "seats": 10, "offset": 1 },
+            { "rowId": "D", "seats": 10, "offset": 1 },
+            { "rowId": "C", "seats": 10, "offset": 1 },
+            { "rowId": "B", "seats": 10, "offset": 1 },
+            { "rowId": "A", "seats": 10, "offset": 1 }
           ],
           "className": "bg-pink-600/20 border-pink-600",
           "angle": -8,
@@ -143,11 +142,11 @@
           "sectionName": "Premium Center",
           "price": 499,
           "rows": [
-            { "rowId": "E", "seats": 14 },
-            { "rowId": "D", "seats": 14 },
-            { "rowId": "C", "seats": 14 },
-            { "rowId": "B", "seats": 14 },
-            { "rowId": "A", "seats": 14 }
+            { "rowId": "E", "seats": 14, "offset": 11 },
+            { "rowId": "D", "seats": 14, "offset": 11 },
+            { "rowId": "C", "seats": 14, "offset": 11 },
+            { "rowId": "B", "seats": 14, "offset": 11 },
+            { "rowId": "A", "seats": 14, "offset": 11 }
           ],
           "className": "bg-pink-600/20 border-pink-600",
           "angle": 0,
@@ -157,11 +156,11 @@
           "sectionName": "Premium Right",
           "price": 499,
           "rows": [
-            { "rowId": "E", "seats": 10 },
-            { "rowId": "D", "seats": 10 },
-            { "rowId": "C", "seats": 10 },
-            { "rowId": "B", "seats": 10 },
-            { "rowId": "A", "seats": 10 }
+            { "rowId": "E", "seats": 10, "offset": 25 },
+            { "rowId": "D", "seats": 10, "offset": 25 },
+            { "rowId": "C", "seats": 10, "offset": 25 },
+            { "rowId": "B", "seats": 10, "offset": 25 },
+            { "rowId": "A", "seats": 10, "offset": 25 }
           ],
           "className": "bg-pink-600/20 border-pink-600",
           "angle": 8,
