@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Booking } from '@/lib/types';
+import type { Booking, Attendee } from '@/lib/types';
 import { useEvents } from '../../events-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, Ticket, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
+import { Badge } from '@/components/ui/badge';
 
 interface EnrichedBooking extends Booking {
   userDisplayName?: string;
@@ -170,7 +171,15 @@ export default function EventBookingsPage() {
                                 <TableRow key={booking.id}>
                                     <TableCell>{booking.userDisplayName || 'N/A'}</TableCell>
                                     <TableCell>{booking.userEmail || 'N/A'}</TableCell>
-                                    <TableCell>{booking.attendees.map(a => `${a.seatId.split('-')[0].charAt(0)}-${a.seatId.split('-')[1]}` || 'GA').join(', ')}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                            {booking.attendees.map((attendee: Attendee) => (
+                                                <Badge key={attendee.seatId} variant={attendee.isMember ? 'default' : 'secondary'}>
+                                                    {attendee.seatId.includes('-') ? `${attendee.seatId.split('-')[1]}-${attendee.seatId.split('-')[2]}` : 'GA'}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>₹{booking.total.toFixed(2)}</TableCell>
                                     <TableCell>{new Date(booking.bookingDate).toLocaleString()}</TableCell>
                                 </TableRow>

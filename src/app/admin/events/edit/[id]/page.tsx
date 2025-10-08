@@ -54,7 +54,7 @@ export default function EditEventPage() {
         const updatedEventData = {
             ...values,
             date: new Date(values.date).toISOString(),
-            reservedSeats: values.reservedSeats ? values.reservedSeats.split(',').map(s => s.trim()).filter(Boolean) : [],
+            reservedSeats: values.reservedSeats ? values.reservedSeats.split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : [],
         };
 
         await updateEvent(event.id, updatedEventData);

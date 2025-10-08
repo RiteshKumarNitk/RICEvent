@@ -27,7 +27,7 @@ const generateSeats = (
       id: seatId,
       row: row.rowId,
       col: seatNum,
-      isBooked: bookedSeats.includes(seatId) || reservedSeats.includes(simpleSeatId),
+      isBooked: bookedSeats.includes(seatId) || reservedSeats.includes(simpleSeatId.toUpperCase()),
     };
   });
 };
@@ -47,7 +47,7 @@ const SeatComponent = ({
   isReserved: boolean;
 }) => {
   const handleClick = () => {
-    if (!seat.isBooked) onSelect(seat, section);
+    if (!seat.isBooked && !isReserved) onSelect(seat, section);
   };
 
   return (
@@ -55,9 +55,9 @@ const SeatComponent = ({
       onClick={handleClick}
       className={cn(
         "relative w-5 h-5 md:w-6 md:h-6 transition-all duration-200 flex items-center justify-center",
-        !seat.isBooked && "cursor-pointer group"
+        !seat.isBooked && !isReserved && "cursor-pointer group"
       )}
-      title={isReserved ? `Seat ${seat.row}${seat.col} - Reserved` : `Seat ${seat.row}${seat.col} - ₹${section.price}`}
+      title={isReserved ? `Seat ${seat.row}-${seat.col} - Reserved` : `Seat ${seat.row}-${seat.col} - ₹${section.price}`}
     >
       <div className={cn(
           "absolute bottom-0 h-3/4 w-full rounded-t-sm",
@@ -144,17 +144,6 @@ export function SeatingChart({
     }
   }, [ticketCount, selectedSeats.length]);
 
-  // --- Warn if over select ---
-  useEffect(() => {
-    if (selectedSeats.length > ticketCount) {
-      toast({
-        variant: "destructive",
-        title: `You can only select a maximum of ${ticketCount} seats.`,
-        description: "Deselect a seat to choose another.",
-      });
-    }
-  }, [selectedSeats, ticketCount, toast]);
-
   // --- Select seat ---
   const handleSelectSeat = (seat: Seat, section: SeatSection) => {
     setSelectedSeats((prev) => {
@@ -170,7 +159,7 @@ export function SeatingChart({
         const newSelection = [...prev.slice(1), { seat, section }];
         toast({
           title: `Seat Updated`,
-          description: `Replaced seat ${prev[0].seat.id.split('-').slice(1).join('-')} with ${seat.id.split('-').slice(1).join('-')}.`,
+          description: `Replaced seat ${prev[0].seat.row}-${prev[0].seat.col} with ${seat.row}-${seat.col}.`,
         });
         return newSelection;
       }
@@ -313,7 +302,7 @@ export function SeatingChart({
                 {generateSeats(section.sectionName, row, bookedSeats, reservedSeats).map(
                   (seat) => {
                     const simpleSeatId = `${seat.row}-${seat.col}`;
-                    const isReserved = reservedSeats.includes(simpleSeatId);
+                    const isReserved = reservedSeats.includes(simpleSeatId.toUpperCase());
                     return (
                         <SeatComponent
                           key={seat.id}
@@ -436,19 +425,19 @@ export function SeatingChart({
             {/* Legend */}
             <div className="mt-8 flex justify-center items-center flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-gray-200 dark:bg-gray-700 border"></div>
+                <div className="w-4 h-4 rounded-sm border bg-gray-300 dark:bg-gray-700"></div>
                 <span>Available</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-primary"></div>
+                <div className="w-4 h-4 rounded-sm bg-primary"></div>
                 <span>Selected</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-muted"></div>
+                <div className="w-4 h-4 rounded-sm bg-muted"></div>
                 <span>Booked</span>
               </div>
                <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-amber-600/50 flex items-center justify-center">
+                <div className="w-4 h-4 rounded-sm bg-amber-600/50 flex items-center justify-center">
                     <Lock className="h-3 w-3 text-white" />
                 </div>
                 <span>Reserved</span>
