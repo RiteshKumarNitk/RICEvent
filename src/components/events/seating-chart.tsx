@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Event, Seat, SeatSection, SeatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Plus, Minus } from "lucide-react";
+import { ZoomIn, ZoomOut, Plus, Minus, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -15,17 +15,19 @@ import { db } from "@/lib/firebase";
 const generateSeats = (
   sectionName: string,
   row: SeatRow,
-  bookedSeats: string[]
+  bookedSeats: string[],
+  reservedSeats: string[]
 ): Seat[] => {
   const start = (row as any).offset || 1;
   return Array.from({ length: row.seats }, (_, i) => {
     const seatNum = start + i;
     const seatId = `${sectionName}-${row.rowId}-${seatNum}`;
+    const simpleSeatId = `${row.rowId}-${seatNum}`;
     return {
       id: seatId,
       row: row.rowId,
       col: seatNum,
-      isBooked: bookedSeats.includes(seatId),
+      isBooked: bookedSeats.includes(seatId) || reservedSeats.includes(simpleSeatId),
     };
   });
 };
@@ -36,11 +38,13 @@ const SeatComponent = ({
   section,
   isSelected,
   onSelect,
+  isReserved
 }: {
   seat: Seat;
   section: SeatSection;
   isSelected: boolean;
   onSelect: (seat: Seat, section: SeatSection) => void;
+  isReserved: boolean;
 }) => {
   const handleClick = () => {
     if (!seat.isBooked) onSelect(seat, section);
@@ -53,26 +57,31 @@ const SeatComponent = ({
         "relative w-5 h-5 md:w-6 md:h-6 transition-all duration-200 flex items-center justify-center",
         !seat.isBooked && "cursor-pointer group"
       )}
-      title={`Seat ${seat.row}${seat.col} - ₹${section.price}`}
+      title={isReserved ? `Seat ${seat.row}${seat.col} - Reserved` : `Seat ${seat.row}${seat.col} - ₹${section.price}`}
     >
       <div className={cn(
           "absolute bottom-0 h-3/4 w-full rounded-t-sm",
            seat.isBooked ? "bg-muted" : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
+           isReserved && "!bg-amber-600/50",
            isSelected && "!bg-primary"
       )} />
       <div className={cn(
           "absolute bottom-0 h-1/4 w-[120%] rounded-sm",
            seat.isBooked ? "bg-muted/80" : "bg-gray-400 dark:bg-gray-600 group-hover:bg-primary/40",
+           isReserved && "!bg-amber-700/50",
            isSelected && "!bg-primary"
       )} />
       
-      {!seat.isBooked && 
+      {!seat.isBooked && !isReserved &&
         <span className={cn(
             "relative text-[10px] md:text-xs font-bold",
             isSelected ? "text-primary-foreground" : "text-gray-700 dark:text-gray-200"
         )}>
             {seat.col}
         </span>
+      }
+      {isReserved && 
+        <Lock className="relative h-3 w-3 text-white" />
       }
     </div>
   );
@@ -98,6 +107,7 @@ export function SeatingChart({
   const [zoom, setZoom] = useState(1);
 
   const seatingData = event.seatingChart;
+  const reservedSeats = event.reservedSeats || [];
 
   // --- Fetch booked seats ---
   useEffect(() => {
@@ -160,7 +170,7 @@ export function SeatingChart({
         const newSelection = [...prev.slice(1), { seat, section }];
         toast({
           title: `Seat Updated`,
-          description: `Replaced seat ${prev[0].seat.id.split('-')[1]} with ${seat.id.split('-')[1]}.`,
+          description: `Replaced seat ${prev[0].seat.id.split('-').slice(1).join('-')} with ${seat.id.split('-').slice(1).join('-')}.`,
         });
         return newSelection;
       }
@@ -300,18 +310,23 @@ export function SeatingChart({
 
               {/* Seats: allow wrapping so rows break naturally on small screens */}
               <div className="flex gap-1 md:gap-2 justify-center whitespace-nowrap">
-                {generateSeats(section.sectionName, row, bookedSeats).map(
-                  (seat) => (
-                    <SeatComponent
-                      key={seat.id}
-                      seat={seat}
-                      section={section}
-                      isSelected={selectedSeats.some(
-                        (s) => s.seat.id === seat.id
-                      )}
-                      onSelect={handleSelectSeat}
-                    />
-                  )
+                {generateSeats(section.sectionName, row, bookedSeats, reservedSeats).map(
+                  (seat) => {
+                    const simpleSeatId = `${seat.row}-${seat.col}`;
+                    const isReserved = reservedSeats.includes(simpleSeatId);
+                    return (
+                        <SeatComponent
+                          key={seat.id}
+                          seat={seat}
+                          section={section}
+                          isSelected={selectedSeats.some(
+                            (s) => s.seat.id === seat.id
+                          )}
+                          onSelect={handleSelectSeat}
+                          isReserved={isReserved}
+                        />
+                    )
+                  }
                 )}
               </div>
             </div>
@@ -419,9 +434,9 @@ export function SeatingChart({
             </div>
 
             {/* Legend */}
-            <div className="mt-8 flex justify-center items-center gap-6 text-sm text-muted-foreground">
+            <div className="mt-8 flex justify-center items-center flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-gray-200 dark:bg-gray-700"></div>
+                <div className="w-4 h-4 rounded-md bg-gray-200 dark:bg-gray-700 border"></div>
                 <span>Available</span>
               </div>
               <div className="flex items-center gap-2">
@@ -431,6 +446,12 @@ export function SeatingChart({
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-md bg-muted"></div>
                 <span>Booked</span>
+              </div>
+               <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-md bg-amber-600/50 flex items-center justify-center">
+                    <Lock className="h-3 w-3 text-white" />
+                </div>
+                <span>Reserved</span>
               </div>
             </div>
           </div>
@@ -447,7 +468,7 @@ export function SeatingChart({
             <div className="flex flex-col text-center sm:text-left">
               <p className="text-lg font-bold">₹{getTotalPrice().toFixed(2)}</p>
               <p className="text-sm text-muted-foreground truncate max-w-xs">
-                {selectedSeats.map((s) => `${s.seat.row}${s.seat.col}`).join(", ") ||
+                {selectedSeats.map((s) => `${s.seat.row}-${s.seat.col}`).join(", ") ||
                   "No seats selected"}
               </p>
             </div>

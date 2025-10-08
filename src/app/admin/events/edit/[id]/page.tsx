@@ -6,7 +6,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -23,6 +23,7 @@ const eventSchema = z.object({
   date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
   venue: z.string().min(3, "Venue is required."),
   image: z.string().url("Please enter a valid URL."),
+  reservedSeats: z.string().optional(),
 });
 
 export default function EditEventPage() {
@@ -42,6 +43,7 @@ export default function EditEventPage() {
             form.reset({
                 ...event,
                 date: format(new Date(event.date), "yyyy-MM-dd'T'HH:mm"),
+                reservedSeats: event.reservedSeats?.join(', ') || '',
             });
         }
     }, [event, form]);
@@ -52,6 +54,7 @@ export default function EditEventPage() {
         const updatedEventData = {
             ...values,
             date: new Date(values.date).toISOString(),
+            reservedSeats: values.reservedSeats ? values.reservedSeats.split(',').map(s => s.trim()).filter(Boolean) : [],
         };
 
         await updateEvent(event.id, updatedEventData);
@@ -123,6 +126,16 @@ export default function EditEventPage() {
                             </div>
                              <FormField control={form.control} name="image" render={({ field }) => (
                                 <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} placeholder="https://example.com/image.jpg" /></FormControl><FormMessage /></FormItem>
+                            )} />
+                             <FormField control={form.control} name="reservedSeats" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Reserved Seats</FormLabel>
+                                    <FormControl><Textarea {...field} placeholder="e.g. A-5, A-6, C-10" rows={3} /></FormControl>
+                                    <FormDescription>
+                                        Enter a comma-separated list of seat IDs to reserve (e.g., A-5, C-10). These seats won't be bookable.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
                             )} />
                             <div className="flex justify-end">
                                 <Button type="submit">Save Changes</Button>

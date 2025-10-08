@@ -3,6 +3,7 @@
 
 
 
+
 export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
@@ -52,6 +53,7 @@ export type Event = {
   showtimes: string[];
   ticketTypes: TicketType[];
   seatingChart?: SeatingChartData;
+  reservedSeats?: string[];
 };
 
 export type Attendee = {
