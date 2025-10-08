@@ -1,34 +1,41 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// Mock data for users
-const users = [
-  { id: "1", name: "John Doe", email: "john.doe@example.com", registeredOn: "2024-08-01" },
-  { id: "2", name: "Jane Smith", email: "jane.smith@example.com", registeredOn: "2024-08-02" },
-  { id: "3", name: "Peter Jones", email: "peter.jones@example.com", registeredOn: "2024-08-02" },
-  { id: "4", name: "Susan Williams", email: "susan.williams@example.com", registeredOn: "2024-08-03" },
-];
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import membersData from '@/lib/members.json';
 
 export default function AdminUsersPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Registered Users</h1>
+      <h1 className="text-3xl font-bold mb-2">RIC Members</h1>
+      <p className="text-muted-foreground mb-8">This is a list of all registered members.</p>
       <Card>
+        <CardHeader>
+            <CardTitle>Members List</CardTitle>
+            <CardDescription>
+                A total of {membersData.length} members found in the system.
+            </CardDescription>
+        </CardHeader>
         <CardContent className="pt-6">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Member ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Registered On</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>DOA</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{new Date(user.registeredOn).toLocaleDateString()}</TableCell>
+              {membersData.map((member) => (
+                <TableRow key={member["Member ID"]}>
+                  <TableCell className="font-medium">{member["Member ID"]}</TableCell>
+                  <TableCell>{member["Member Details"].Name}</TableCell>
+                  <TableCell>{member["Member Details"].Email}</TableCell>
+                   <TableCell>{member["Member Details"].Phone}</TableCell>
+                  <TableCell>{member.DOA}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
