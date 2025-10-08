@@ -376,7 +376,7 @@ export function SeatingChart({
           </Button>
         </div>
 
-        {/* Seating Chart */}
+        {/* Seating Chartggg */}
         <div className="overflow-auto pt-12">
           <div
             className="transition-transform duration-300 inline-block min-w-full"
