@@ -57,13 +57,13 @@ const SeatComponent = ({
     >
       <div className={cn(
           "absolute bottom-0 h-3/4 w-full rounded-t-sm",
-          seat.isBooked ? "bg-muted" : "bg-green-300 dark:bg-green-900/50 group-hover:bg-green-400 dark:group-hover:bg-green-800",
-          isSelected && "!bg-primary"
+           seat.isBooked ? "bg-muted" : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
+           isSelected && "!bg-primary/50"
       )} />
       <div className={cn(
           "absolute bottom-0 h-1/4 w-[120%] rounded-sm",
-           seat.isBooked ? "bg-muted/80" : "bg-green-400 dark:bg-green-800/80 group-hover:bg-green-500 dark:group-hover:bg-green-700",
-           isSelected && "!bg-primary/80"
+           seat.isBooked ? "bg-muted/80" : "bg-gray-400 dark:bg-gray-600 group-hover:bg-primary/40",
+           isSelected && "!bg-primary"
       )} />
       
       {!seat.isBooked && 
@@ -421,7 +421,7 @@ export function SeatingChart({
             {/* Legend */}
             <div className="mt-8 flex justify-center items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-md bg-green-200 dark:bg-green-900/50"></div>
+                <div className="w-4 h-4 rounded-md bg-gray-200 dark:bg-gray-700"></div>
                 <span>Available</span>
               </div>
               <div className="flex items-center gap-2">
