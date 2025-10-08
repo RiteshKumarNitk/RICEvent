@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { Member } from "@/lib/types";
 
 const MemberCheckSchema = z.object({
     memberId: z.string(),
@@ -30,14 +31,22 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
     const { memberId, eventId } = validatedFields.data;
 
     // 1. Check if Member ID is valid by querying the members collection
-    let memberData: any = null;
+    let memberData: Member | null = null;
     try {
-        const membersQuery = query(collection(db, "members"), where("memberId", "==", memberId));
+        const membersQuery = query(collection(db, "members"));
         const querySnapshot = await getDocs(membersQuery);
         if (querySnapshot.empty) {
             return { isValid: false, isAlreadyUsed: false, memberName: null };
         }
-        memberData = querySnapshot.docs[0].data();
+        
+        const allMembers = querySnapshot.docs.map(doc => doc.data() as Member);
+        const foundMember = allMembers.find(member => String(member.memberId) === memberId);
+
+        if (!foundMember) {
+            return { isValid: false, isAlreadyUsed: false, memberName: null };
+        }
+        memberData = foundMember;
+
     } catch(e) {
         console.error("Error querying members collection:", e);
         return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Could not verify member ID.' };
