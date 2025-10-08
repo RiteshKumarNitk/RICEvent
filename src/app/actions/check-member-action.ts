@@ -47,15 +47,14 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
     try {
         const bookingsQuery = query(
             collection(db, "bookings"),
-            where("eventId", "==", eventId),
-            where("attendees", "array-contains", { memberId: memberId, isMember: true }) // This is a simplification, Firestore requires the full object match for array-contains
+            where("eventId", "==", eventId)
         );
-        const bookingSnapshots = await getDocs(collection(db, "bookings"));
+        const bookingSnapshots = await getDocs(bookingsQuery);
         
         let isUsed = false;
         bookingSnapshots.forEach(doc => {
             const booking = doc.data();
-            if (booking.eventId === eventId && Array.isArray(booking.attendees)) {
+            if (Array.isArray(booking.attendees)) {
                  if (booking.attendees.some((attendee: any) => attendee.isMember && String(attendee.memberId) === memberId)) {
                     isUsed = true;
                 }
