@@ -50,7 +50,7 @@ const SeatComponent = ({
     <div
       onClick={handleClick}
       className={cn(
-        "w-6 h-6 rounded-t-md border-b-4 border-gray-400 dark:border-gray-500 flex items-center justify-center text-xs font-bold transition-all duration-200",
+        "w-5 h-5 md:w-6 md:h-6 rounded-t-md border-b-2 md:border-b-4 border-gray-400 dark:border-gray-500 flex items-center justify-center text-[10px] md:text-xs font-bold transition-all duration-200",
         seat.isBooked
           ? "bg-muted cursor-not-allowed"
           : "bg-green-200 dark:bg-green-900/50 hover:bg-green-300 dark:hover:bg-green-800/50 cursor-pointer text-gray-700 dark:text-gray-200",
@@ -247,12 +247,12 @@ export function SeatingChart({
       <div
         key={idx}
         className={cn(
-          "p-4 rounded-xl",
+          "p-2 md:p-4 rounded-xl",
           section.className
         )}
         style={sectionStyle}
       >
-        <p className="font-semibold text-center text-lg mb-4">
+        <p className="font-semibold text-center text-sm md:text-lg mb-2 md:mb-4">
           {section.sectionName} - ₹{section.price}
         </p>
 
@@ -260,18 +260,18 @@ export function SeatingChart({
           {section.rows.map((row: SeatRow, rowIndex: number) => (
             <div
               key={row.rowId}
-              className="flex items-center justify-center gap-2 origin-bottom"
+              className="flex items-center justify-center gap-1 md:gap-2 origin-bottom"
               style={{
                 transform: `rotate(${getRowAngle(section.sectionName, rowIndex)}deg)`,
               }}
             >
               {/* Row label */}
-              <div className="w-12 text-center font-semibold text-gray-500">
+              <div className="seat-row-label">
                 {row.rowId.replace(/-.*/, "")}
               </div>
 
               {/* Seats: allow wrapping so rows break naturally on small screens */}
-              <div className="flex gap-2 justify-center whitespace-nowrap">
+              <div className="flex gap-1 md:gap-2 justify-center whitespace-nowrap">
                 {generateSeats(section.sectionName, row, bookedSeats).map(
                   (seat) => (
                     <SeatComponent
@@ -365,7 +365,7 @@ export function SeatingChart({
                       </div>
 
                       {/* CENTER */}
-                      <div className="flex flex-col items-center mx-4">
+                      <div className="flex flex-col items-center mx-2 md:mx-4">
                         {centerSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
