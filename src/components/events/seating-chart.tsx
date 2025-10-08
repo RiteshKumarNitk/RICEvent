@@ -384,13 +384,15 @@ export function SeatingChart({
                   (s: any) => !/left|right/i.test(s.sectionName)
                 );
 
+                const hasAngledSections = tier.sections.some(s => (s as any).angle !== 0 && (s as any).angle !== undefined);
+
                 return (
                   <div key={tierIndex} className="space-y-4">
                     <div className="text-center font-bold">{tier.tierName}</div>
 
                     <div className="flex flex-nowrap items-start justify-center">
                       {/* LEFT */}
-                      <div className="flex flex-col items-center mt-8">
+                      <div className={cn("flex flex-col items-center", hasAngledSections && "mt-8")}>
                         {leftSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
@@ -404,7 +406,7 @@ export function SeatingChart({
                       </div>
 
                       {/* RIGHT */}
-                      <div className="flex flex-col items-center mt-8">
+                      <div className={cn("flex flex-col items-center", hasAngledSections && "mt-8")}>
                         {rightSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
