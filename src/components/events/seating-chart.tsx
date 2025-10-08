@@ -58,7 +58,7 @@ const SeatComponent = ({
       <div className={cn(
           "absolute bottom-0 h-3/4 w-full rounded-t-sm",
            seat.isBooked ? "bg-muted" : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
-           isSelected && "!bg-primary/50"
+           isSelected && "!bg-primary"
       )} />
       <div className={cn(
           "absolute bottom-0 h-1/4 w-[120%] rounded-sm",
@@ -386,7 +386,7 @@ export function SeatingChart({
 
                     <div className="flex flex-nowrap items-start justify-center">
                       {/* LEFT */}
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center mt-8">
                         {leftSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
@@ -400,7 +400,7 @@ export function SeatingChart({
                       </div>
 
                       {/* RIGHT */}
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center mt-8">
                         {rightSections.map((sec: any, idx: number) =>
                           renderSection(sec, idx)
                         )}
