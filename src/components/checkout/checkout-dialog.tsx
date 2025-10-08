@@ -333,7 +333,10 @@ const OrderSummaryStep = ({ event, selectedSeats, total, isPaid }: { event: Even
         <Separator />
         <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Seats</span>
-            <span className="font-medium">{selectedSeats.map(s => s.seat.id.split('-')[1]).join(', ')} ({selectedSeats.length})</span>
+            <span className="font-medium">{selectedSeats.map(s => {
+                const parts = s.seat.id.split('-');
+                return parts.length > 2 ? `${parts[1]}-${parts[2]}` : 'GA'
+            }).join(', ')} ({selectedSeats.length})</span>
         </div>
         {isPaid && <>
             <Separator />
@@ -351,56 +354,62 @@ const AttendeeDetailsStep = ({ form, fields, onVerify, verifyingMember }: { form
   <div>
     <h3 className="font-semibold mb-4 text-lg">Attendee Details</h3>
     <div className="space-y-6">
-      {fields.map((field, index) => (
-        <div key={field.id} className="rounded-lg border p-4 space-y-4">
-          <h4 className="font-semibold text-primary">Seat: {form.getValues(`attendees.${index}.seatId`).split('-')[1]}</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <FormField
-                control={form.control}
-                name={`attendees.${index}.attendeeName`}
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Attendee Name</FormLabel>
-                        <FormControl><Input {...field} placeholder="Full Name" disabled={form.getValues(`attendees.${index}.isMember`)} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <div>
-                <FormLabel>Member ID (Optional)</FormLabel>
-                 <div className="flex items-center gap-2">
-                     <Controller
-                        control={form.control}
-                        name={`attendees.${index}.memberId`}
-                        render={({ field }) => (
-                            <Input {...field} placeholder="e.g. 13" disabled={form.getValues(`attendees.${index}.isMember`)} />
-                        )}
-                    />
-                    {!form.watch(`attendees.${index}.isMember`) ? (
-                        <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.memberId`) || verifyingMember !== null}>
-                            {verifyingMember === index ? 'Verifying...' : 'Verify ID'}
-                        </Button>
-                    ) : null}
-                </div>
+      {fields.map((field, index) => {
+        const seatId = form.getValues(`attendees.${index}.seatId`);
+        const parts = seatId.split('-');
+        const seatLabel = parts.length > 2 ? `${parts[1]}-${parts[2]}` : 'GA';
+
+        return (
+          <div key={field.id} className="rounded-lg border p-4 space-y-4">
+            <h4 className="font-semibold text-primary">Seat: {seatLabel}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                  control={form.control}
+                  name={`attendees.${index}.attendeeName`}
+                  render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Attendee Name</FormLabel>
+                          <FormControl><Input {...field} placeholder="Full Name" disabled={form.getValues(`attendees.${index}.isMember`)} /></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                  )}
+              />
+              <div>
+                  <FormLabel>Member ID (Optional)</FormLabel>
+                  <div className="flex items-center gap-2">
+                      <Controller
+                          control={form.control}
+                          name={`attendees.${index}.memberId`}
+                          render={({ field }) => (
+                              <Input {...field} placeholder="e.g. 13" disabled={form.getValues(`attendees.${index}.isMember`)} />
+                          )}
+                      />
+                      {!form.watch(`attendees.${index}.isMember`) ? (
+                          <Button type="button" variant="secondary" onClick={() => onVerify(index)} disabled={!form.watch(`attendees.${index}.memberId`) || verifyingMember !== null}>
+                              {verifyingMember === index ? 'Verifying...' : 'Verify ID'}
+                          </Button>
+                      ) : null}
+                  </div>
+              </div>
             </div>
+            <div className="flex justify-end">
+                  {form.getValues(`attendees.${index}.memberIdVerified`) && (
+                      form.getValues(`attendees.${index}.isMember`) ? (
+                          <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                              <BadgeCheck className="mr-2 h-4 w-4" />
+                              Member (Ticket is Free)
+                          </Badge>
+                      ) : (
+                          <Badge variant="destructive">
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Guest
+                          </Badge>
+                      )
+                  )}
+              </div>
           </div>
-           <div className="flex justify-end">
-                {form.getValues(`attendees.${index}.memberIdVerified`) && (
-                    form.getValues(`attendees.${index}.isMember`) ? (
-                        <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-                            <BadgeCheck className="mr-2 h-4 w-4" />
-                            Member (Ticket is Free)
-                        </Badge>
-                    ) : (
-                        <Badge variant="destructive">
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Guest
-                        </Badge>
-                    )
-                )}
-            </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   </div>
 );
@@ -493,12 +502,16 @@ const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, book
                 </div>
                 <Separator className="my-4" />
                 <h4 className="font-semibold mb-2">Attendees & Seats</h4>
-                {form.getValues('attendees').map((attendee: any) => (
-                    <div key={attendee.seatId} className="flex justify-between text-sm">
-                        <span>{attendee.attendeeName} ({attendee.seatId.split('-')[1]})</span>
-                        <span>{attendee.isMember ? 'Free' : `₹${attendee.price.toFixed(2)}`}</span>
-                    </div>
-                ))}
+                {form.getValues('attendees').map((attendee: any) => {
+                    const parts = attendee.seatId.split('-');
+                    const seatLabel = parts.length > 2 ? `${parts[1]}-${parts[2]}` : 'GA';
+                    return (
+                        <div key={attendee.seatId} className="flex justify-between text-sm">
+                            <span>{attendee.attendeeName} ({seatLabel})</span>
+                            <span>{attendee.isMember ? 'Free' : `₹${attendee.price.toFixed(2)}`}</span>
+                        </div>
+                    )
+                })}
                 <Separator className="my-4" />
                 <div className="flex justify-between font-bold text-base">
                     <span>Total Paid:</span>
