@@ -17,7 +17,10 @@ const generateSeats = (
   row: SeatRow,
   bookedSeats: string[],
   reservedSeats: string[]
-): Seat[] => {
+): (Seat | { isSpacer: true })[] => {
+  if (row.rowId === 'spacer') {
+    return [{ isSpacer: true }];
+  }
   const start = (row.offset || 0) + 1;
   return Array.from({ length: row.seats }, (_, i) => {
     const seatNum = start + i;
@@ -284,42 +287,50 @@ export function SeatingChart({
         </p>
 
         <div className="space-y-2">
-          {section.rows.map((row: SeatRow, rowIndex: number) => (
-            <div
-              key={row.rowId}
-              className="flex items-center justify-center gap-1 md:gap-2 origin-bottom"
-              style={{
-                transform: `rotate(${getRowAngle(section.sectionName, rowIndex)}deg)`,
-              }}
-            >
-              {/* Row label */}
-              <div className="seat-row-label">
-                {row.rowId.replace(/-.*/, "")}
-              </div>
+          {section.rows.map((row: SeatRow, rowIndex: number) => {
+            if (row.rowId === 'spacer') {
+              return <div key={`spacer-${rowIndex}`} className="h-4 md:h-6" />;
+            }
+            return (
+              <div
+                key={row.rowId}
+                className="flex items-center justify-center gap-1 md:gap-2 origin-bottom"
+                style={{
+                  transform: `rotate(${getRowAngle(section.sectionName, rowIndex)}deg)`,
+                }}
+              >
+                {/* Row label */}
+                <div className="seat-row-label">
+                  {row.rowId.replace(/-.*/, "")}
+                </div>
 
-              {/* Seats: allow wrapping so rows break naturally on small screens */}
-              <div className="flex gap-1 md:gap-2 justify-center whitespace-nowrap">
-                {generateSeats(section.sectionName, row, bookedSeats, reservedSeats).map(
-                  (seat) => {
-                    const simpleSeatId = `${seat.row}-${seat.col}`;
-                    const isReserved = reservedSeats.includes(simpleSeatId.toUpperCase());
-                    return (
-                        <SeatComponent
-                          key={seat.id}
-                          seat={seat}
-                          section={section}
-                          isSelected={selectedSeats.some(
-                            (s) => s.seat.id === seat.id
-                          )}
-                          onSelect={handleSelectSeat}
-                          isReserved={isReserved}
-                        />
-                    )
-                  }
-                )}
+                {/* Seats: allow wrapping so rows break naturally on small screens */}
+                <div className="flex gap-1 md:gap-2 justify-center whitespace-nowrap">
+                  {generateSeats(section.sectionName, row, bookedSeats, reservedSeats).map(
+                    (seat, seatIndex) => {
+                       if ('isSpacer' in seat) {
+                         return null; // Should have been handled above, but as a safeguard.
+                       }
+                      const simpleSeatId = `${seat.row}-${seat.col}`;
+                      const isReserved = reservedSeats.includes(simpleSeatId.toUpperCase());
+                      return (
+                          <SeatComponent
+                            key={seat.id}
+                            seat={seat as Seat}
+                            section={section}
+                            isSelected={selectedSeats.some(
+                              (s) => s.seat.id === seat.id
+                            )}
+                            onSelect={handleSelectSeat}
+                            isReserved={isReserved}
+                          />
+                      )
+                    }
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -374,22 +385,14 @@ export function SeatingChart({
             <div className="space-y-2">
               {seatingData.tiers.map((tier, tierIndex) => {
                 const tierSections = tier.sections;
-                const hasAngledSections = tierSections.some(
-                  (s: any) => s.angle !== 0 && s.angle !== undefined
-                );
-
-                return (
+                 return (
                   <div key={tierIndex} className="space-y-4">
                     <div className="text-center font-bold">{tier.tierName}</div>
-                    <div className={cn("flex flex-nowrap items-start justify-center", hasAngledSections ? "" : "mx-2 md:mx-4")}>
+                    <div className="flex flex-nowrap items-start justify-center">
                       {tierSections.map((sec: any, idx: number) => (
                         <div
                           key={idx}
-                          className={cn(
-                            "flex flex-col items-center",
-                            hasAngledSections && tier.tierName !== "Middle" && "mt-8",
-                             !hasAngledSections ? "mx-1 md:mx-2" : ""
-                          )}
+                          className={cn("flex flex-col items-center mx-1 md:mx-2", tier.tierName !== "Middle" && "mt-8")}
                         >
                           {renderSection(sec, idx)}
                         </div>
