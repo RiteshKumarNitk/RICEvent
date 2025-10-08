@@ -47,6 +47,7 @@ export type Event = {
   showtimes: string[];
   ticketTypes: TicketType[];
   seatingChart?: SeatingChartData;
+  reservedSeats?: string[];
 };
 
 export type Attendee = {
@@ -68,3 +69,13 @@ export type Booking = {
   total: number;
   bookingDate: string;
 };
+
+
+export type Member = {
+    id: string;
+    memberId: string;
+    name: string;
+    email: string;
+    phone: string;
+    doa: string; // Date of Association
+}

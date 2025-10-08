@@ -3,12 +3,11 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import type { Event, SeatingChartData } from '@/lib/types';
+import type { Event, SeatingChartData, Member } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, Timestamp, getDocs, addDoc, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import detailedSeatingChart from '@/lib/seating-chart-config.json';
-
 
 const sampleEvents: Omit<Event, 'id'>[] = [
   {
@@ -21,7 +20,8 @@ const sampleEvents: Omit<Event, 'id'>[] = [
     image: 'https://picsum.photos/seed/event1/600/400',
     showtimes: ['19:00', '21:30'],
     ticketTypes: [{ type: 'Standard', price: 299 }],
-    seatingChart: detailedSeatingChart as SeatingChartData
+    seatingChart: detailedSeatingChart as SeatingChartData,
+    reservedSeats: ['A-5', 'A-6']
   },
   {
     name: 'Tech Visionaries Summit 2024',
@@ -77,7 +77,7 @@ interface EventsContextType {
   events: Event[];
   loading: boolean;
   addEvent: (event: Omit<Event, 'id'>) => Promise<void>;
-  updateEvent: (id: string, event: Partial<Event>) => Promise<void>;
+  updateEvent: (id: string, event: Partial<Omit<Event, 'id'>>) => Promise<void>;
   deleteEvent: (id: string) => Promise<void>;
   seedDatabase: () => Promise<void>;
   deleteAllEvents: () => Promise<void>;
@@ -92,11 +92,14 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'events'), (snapshot) => {
-      const eventsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data() as Omit<Event, 'id'>,
-        date: (doc.data().date as Timestamp).toDate().toISOString()
-      }));
+      const eventsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            date: (data.date as Timestamp).toDate().toISOString()
+          } as Event;
+      });
       setEvents(eventsData);
       setLoading(false);
     }, (error) => {
@@ -122,7 +125,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateEvent = async (id: string, event: Partial<Event>) => {
+  const updateEvent = async (id: string, event: Partial<Omit<Event, 'id'>>) => {
     try {
       const eventRef = doc(db, 'events', id);
       const updateData: { [key: string]: any } = { ...event };
@@ -171,9 +174,10 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const seedDatabase = useCallback(async () => {
     try {
       const eventsCollection = collection(db, 'events');
-      const snapshot = await getDocs(eventsCollection);
+      const eventsSnapshot = await getDocs(eventsCollection);
 
-      if (snapshot.empty) {
+      // Seed Events
+      if (eventsSnapshot.empty) {
         const batch = writeBatch(db);
         sampleEvents.forEach((event) => {
           const eventData = { ...event, date: Timestamp.fromDate(new Date(event.date)) };
@@ -185,12 +189,13 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       } else {
         toast({ title: 'Database Not Empty', description: 'Seeding was skipped because events already exist.' });
       }
+
     } catch (error) {
       console.error('Error seeding database:', error);
       toast({
         variant: 'destructive',
         title: 'Seeding Failed',
-        description: 'Could not add sample events. Check Firestore security rules and that you are logged in.',
+        description: 'Could not add sample data. Check Firestore security rules and that you are logged in.',
       });
     }
   }, [toast]);
