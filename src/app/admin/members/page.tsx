@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -44,11 +44,19 @@ const memberSchema = z.object({
 
 type MemberFormData = z.infer<typeof memberSchema>;
 
-const MemberForm = ({ member, onSave, closeDialog }: { member?: Member | null, onSave: (data: MemberFormData, id?: string) => void, closeDialog: () => void }) => {
+const MemberForm = ({ member, onSave, closeDialog, nextMemberId }: { member?: Member | null, onSave: (data: MemberFormData, id?: string) => void, closeDialog: () => void, nextMemberId: string }) => {
   const form = useForm<MemberFormData>({
     resolver: zodResolver(memberSchema),
-    defaultValues: member || { memberId: '', name: '', email: '', phone: '', doa: '' },
+    defaultValues: member || { memberId: nextMemberId, name: '', email: '', phone: '', doa: '' },
   });
+
+  useEffect(() => {
+    if (!member && nextMemberId) {
+      form.setValue('memberId', nextMemberId);
+    } else if (member) {
+      form.reset(member);
+    }
+  }, [member, nextMemberId, form]);
 
   const onSubmit = (data: MemberFormData) => {
     onSave(data, member?.id);
@@ -59,7 +67,7 @@ const MemberForm = ({ member, onSave, closeDialog }: { member?: Member | null, o
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField control={form.control} name="memberId" render={({ field }) => (
-          <FormItem><FormLabel>Member ID</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Member ID</FormLabel><FormControl><Input {...field} readOnly={!member} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -87,6 +95,7 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [nextMemberId, setNextMemberId] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -104,6 +113,22 @@ export default function AdminMembersPage() {
     );
     return () => unsubscribe();
   }, [toast]);
+
+  const generateNextMemberId = async () => {
+    const membersRef = collection(db, 'members');
+    // Query for the member with the highest memberId
+    const q = query(membersRef, orderBy('memberId', 'desc'), limit(1));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      // If no members exist, start with 1
+      setNextMemberId('1');
+    } else {
+      const lastMember = querySnapshot.docs[0].data();
+      const lastId = parseInt(lastMember.memberId, 10);
+      setNextMemberId((lastId + 1).toString());
+    }
+  };
 
   const handleSaveMember = async (data: MemberFormData, id?: string) => {
     try {
@@ -130,8 +155,13 @@ export default function AdminMembersPage() {
     }
   };
 
-  const openDialog = (member: Member | null = null) => {
-    setEditingMember(member);
+  const openDialog = async (member: Member | null = null) => {
+    if (!member) {
+      await generateNextMemberId();
+      setEditingMember(null);
+    } else {
+      setEditingMember(member);
+    }
     setIsDialogOpen(true);
   };
 
@@ -156,6 +186,7 @@ export default function AdminMembersPage() {
             member={editingMember}
             onSave={handleSaveMember}
             closeDialog={() => setIsDialogOpen(false)}
+            nextMemberId={nextMemberId}
           />
         </DialogContent>
       </Dialog>
