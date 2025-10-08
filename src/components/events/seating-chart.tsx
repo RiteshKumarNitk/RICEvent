@@ -18,7 +18,7 @@ const generateSeats = (
   bookedSeats: string[],
   reservedSeats: string[]
 ): Seat[] => {
-  const start = row.offset ? row.offset + 1 : 1;
+  const start = (row.offset || 0) + 1;
   return Array.from({ length: row.seats }, (_, i) => {
     const seatNum = start + i;
     const seatId = `${sectionName}-${row.rowId}-${seatNum}`;
