@@ -58,7 +58,7 @@ const SeatComponent = ({
       )}
       title={`Seat ${seat.row}${seat.col} - ₹${section.price}`}
     >
-        {!seat.isBooked && <span>{seat.col}</span>}
+      {!seat.isBooked && <span>{seat.col}</span>}
     </div>
   );
 };
@@ -134,8 +134,17 @@ export function SeatingChart({
   const handleSelectSeat = (seat: Seat, section: SeatSection) => {
     setSelectedSeats((prev) => {
       const isSelected = prev.some((s) => s.seat.id === seat.id);
-      if (isSelected) return prev.filter((s) => s.seat.id !== seat.id);
-      if (prev.length < ticketCount) return [...prev, { seat, section }];
+      if (isSelected) {
+        return prev.filter((s) => s.seat.id !== seat.id);
+      }
+      if (prev.length < ticketCount) {
+        return [...prev, { seat, section }];
+      }
+      // If max seats are selected, replace the first selected seat with the new one
+      if (prev.length === ticketCount) {
+        const newSelection = [...prev.slice(1), { seat, section }];
+        return newSelection;
+      }
       return prev;
     });
   };
