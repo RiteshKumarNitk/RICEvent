@@ -50,15 +50,30 @@ const SeatComponent = ({
     <div
       onClick={handleClick}
       className={cn(
-        "w-5 h-5 md:w-6 md:h-6 rounded-t-md border-b-2 md:border-b-4 border-gray-400 dark:border-gray-500 flex items-center justify-center text-[10px] md:text-xs font-bold transition-all duration-200",
-        seat.isBooked
-          ? "bg-muted cursor-not-allowed"
-          : "bg-green-200 dark:bg-green-900/50 hover:bg-green-300 dark:hover:bg-green-800/50 cursor-pointer text-gray-700 dark:text-gray-200",
-        isSelected && "!bg-primary !border-primary-foreground/50 text-primary-foreground"
+        "relative w-5 h-5 md:w-6 md:h-6 transition-all duration-200 flex items-center justify-center",
+        !seat.isBooked && "cursor-pointer group"
       )}
       title={`Seat ${seat.row}${seat.col} - ₹${section.price}`}
     >
-      {!seat.isBooked && <span>{seat.col}</span>}
+      <div className={cn(
+          "absolute bottom-0 h-3/4 w-full rounded-t-sm",
+          seat.isBooked ? "bg-muted" : "bg-green-300 dark:bg-green-900/50 group-hover:bg-green-400 dark:group-hover:bg-green-800",
+          isSelected && "!bg-primary"
+      )} />
+      <div className={cn(
+          "absolute bottom-0 h-1/4 w-[120%] rounded-sm",
+           seat.isBooked ? "bg-muted/80" : "bg-green-400 dark:bg-green-800/80 group-hover:bg-green-500 dark:group-hover:bg-green-700",
+           isSelected && "!bg-primary/80"
+      )} />
+      
+      {!seat.isBooked && 
+        <span className={cn(
+            "relative text-[10px] md:text-xs font-bold",
+            isSelected ? "text-primary-foreground" : "text-gray-700 dark:text-gray-200"
+        )}>
+            {seat.col}
+        </span>
+      }
     </div>
   );
 };
@@ -143,6 +158,10 @@ export function SeatingChart({
       // If max seats are selected, replace the first selected seat with the new one
       if (prev.length === ticketCount) {
         const newSelection = [...prev.slice(1), { seat, section }];
+        toast({
+          title: `Seat Updated`,
+          description: `Replaced seat ${prev[0].seat.id.split('-')[1]} with ${seat.id.split('-')[1]}.`,
+        });
         return newSelection;
       }
       return prev;
