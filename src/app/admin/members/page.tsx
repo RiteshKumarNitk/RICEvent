@@ -54,7 +54,10 @@ const MemberForm = ({ member, onSave, closeDialog, nextMemberId }: { member?: Me
     if (!member && nextMemberId) {
       form.setValue('memberId', nextMemberId);
     } else if (member) {
-      form.reset(member);
+      form.reset({
+        ...member,
+        doa: member.doa || ''
+      });
     }
   }, [member, nextMemberId, form]);
 
@@ -67,7 +70,7 @@ const MemberForm = ({ member, onSave, closeDialog, nextMemberId }: { member?: Me
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField control={form.control} name="memberId" render={({ field }) => (
-          <FormItem><FormLabel>Member ID</FormLabel><FormControl><Input {...field} readOnly={!member} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Member ID</FormLabel><FormControl><Input {...field} readOnly /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -99,7 +102,7 @@ export default function AdminMembersPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'members'), 
+    const unsubscribe = onSnapshot(query(collection(db, 'members'), orderBy('memberId')), 
       (snapshot) => {
         const membersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Member));
         setMembers(membersData);
@@ -116,17 +119,21 @@ export default function AdminMembersPage() {
 
   const generateNextMemberId = async () => {
     const membersRef = collection(db, 'members');
-    // Query for the member with the highest memberId
     const q = query(membersRef, orderBy('memberId', 'desc'), limit(1));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      // If no members exist, start with 1
       setNextMemberId('1');
     } else {
       const lastMember = querySnapshot.docs[0].data();
+      // Ensure memberId is treated as a number for correct incrementing
       const lastId = parseInt(lastMember.memberId, 10);
-      setNextMemberId((lastId + 1).toString());
+      if (!isNaN(lastId)) {
+        setNextMemberId((lastId + 1).toString());
+      } else {
+        // Fallback if the last memberId is not a number
+        setNextMemberId((members.length + 1).toString());
+      }
     }
   };
 
@@ -136,7 +143,8 @@ export default function AdminMembersPage() {
         await updateDoc(doc(db, 'members', id), data);
         toast({ title: 'Success', description: 'Member updated successfully.' });
       } else {
-        await addDoc(collection(db, 'members'), data);
+        const newMemberData = { ...data, memberId: nextMemberId };
+        await addDoc(collection(db, 'members'), newMemberData);
         toast({ title: 'Success', description: 'Member added successfully.' });
       }
     } catch (error) {
@@ -161,6 +169,8 @@ export default function AdminMembersPage() {
       setEditingMember(null);
     } else {
       setEditingMember(member);
+      // We don't need to generate a new ID when editing
+      setNextMemberId(member.memberId);
     }
     setIsDialogOpen(true);
   };
@@ -182,12 +192,14 @@ export default function AdminMembersPage() {
           <DialogHeader>
             <DialogTitle>{editingMember ? 'Edit Member' : 'Add New Member'}</DialogTitle>
           </DialogHeader>
-          <MemberForm 
-            member={editingMember}
-            onSave={handleSaveMember}
-            closeDialog={() => setIsDialogOpen(false)}
-            nextMemberId={nextMemberId}
-          />
+          { (isDialogOpen && (editingMember || nextMemberId)) &&
+            <MemberForm 
+              member={editingMember}
+              onSave={handleSaveMember}
+              closeDialog={() => setIsDialogOpen(false)}
+              nextMemberId={nextMemberId}
+            />
+          }
         </DialogContent>
       </Dialog>
       
@@ -211,6 +223,8 @@ export default function AdminMembersPage() {
             <TableBody>
               {loading ? (
                 <TableRow><TableCell colSpan={6} className="text-center">Loading members...</TableCell></TableRow>
+              ) : members.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center">No members found. Add one!</TableCell></TableRow>
               ) : members.map((member) => (
                 <TableRow key={member.id}>
                   <TableCell className="font-medium">{member.memberId}</TableCell>
