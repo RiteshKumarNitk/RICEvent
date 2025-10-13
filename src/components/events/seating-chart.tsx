@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Event, Seat, SeatSection, SeatRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -271,6 +271,19 @@ export function SeatingChart({
     );
   }
 
+  // Group rows by their display label (e.g., 'A', 'B')
+  const groupedRows = (rows: SeatRow[]) => {
+    return rows.reduce((acc, row) => {
+      const label = row.rowLabel || row.rowId.replace(/-.*/, "");
+      if (!acc[label]) {
+        acc[label] = [];
+      }
+      acc[label].push(row);
+      return acc;
+    }, {} as Record<string, SeatRow[]>);
+  };
+
+
   // Render helper for a single section
   const renderSection = (section: SeatSection, idx: number) => {
     const angle = (section as any).angle ?? 0;
@@ -280,6 +293,8 @@ export function SeatingChart({
       transform: `rotate(${angle}deg) translateX(${translateX}px)`,
       transformOrigin: "center bottom",
     };
+    
+    const rowsByLabel = groupedRows(section.rows);
 
     return (
       <div
@@ -295,13 +310,13 @@ export function SeatingChart({
         </p>
 
         <div className="space-y-2">
-          {section.rows.map((row: SeatRow, rowIndex: number) => {
-            if (row.rowId === 'spacer') {
+          {Object.entries(rowsByLabel).map(([rowLabel, rowParts], rowIndex) => {
+            if (rowLabel === 'spacer') {
               return <div key={`spacer-${rowIndex}`} className="h-4 md:h-6" />;
             }
             return (
               <div
-                key={row.rowId}
+                key={rowLabel}
                 className="flex items-center justify-center gap-1 md:gap-2 origin-bottom"
                 style={{
                   transform: `rotate(${getRowAngle(section.sectionName, rowIndex)}deg)`,
@@ -309,32 +324,36 @@ export function SeatingChart({
               >
                 {/* Row label */}
                 <div className="seat-row-label">
-                  {row.rowLabel || row.rowId.replace(/-.*/, "")}
+                  {rowLabel}
                 </div>
 
                 {/* Seats: allow wrapping so rows break naturally on small screens */}
-                <div className="flex gap-1 md:gap-2 justify-center whitespace-nowrap">
-                  {generateSeats(section.sectionName, row, bookedSeats, reservedSeats).map(
-                    (seat, seatIndex) => {
-                       if ('isSpacer' in seat) {
-                         return null; // Should have been handled above, but as a safeguard.
-                       }
-                      const simpleSeatId = `${seat.row}-${seat.col}`;
-                      const isReserved = reservedSeats.includes(simpleSeatId.toUpperCase());
-                      return (
-                          <SeatComponent
-                            key={seat.id}
-                            seat={seat as Seat}
-                            section={section}
-                            isSelected={selectedSeats.some(
-                              (s) => s.seat.id === seat.id
-                            )}
-                            onSelect={handleSelectSeat}
-                            isReserved={isReserved}
-                          />
-                      )
-                    }
-                  )}
+                <div className="flex gap-4 justify-center whitespace-nowrap">
+                  {rowParts.map((rowPart, partIndex) => (
+                     <div key={rowPart.rowId} className="flex gap-1 md:gap-2">
+                       {generateSeats(section.sectionName, rowPart, bookedSeats, reservedSeats).map(
+                          (seat, seatIndex) => {
+                            if ('isSpacer' in seat) {
+                              return null; // Should have been handled above, but as a safeguard.
+                            }
+                            const simpleSeatId = `${seat.row}-${seat.col}`;
+                            const isReserved = reservedSeats.includes(simpleSeatId.toUpperCase());
+                            return (
+                                <SeatComponent
+                                  key={seat.id}
+                                  seat={seat as Seat}
+                                  section={section}
+                                  isSelected={selectedSeats.some(
+                                    (s) => s.seat.id === seat.id
+                                  )}
+                                  onSelect={handleSelectSeat}
+                                  isReserved={isReserved}
+                                />
+                            )
+                          }
+                        )}
+                     </div>
+                  ))}
                 </div>
               </div>
             );
