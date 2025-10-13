@@ -108,6 +108,7 @@ export function SeatingChart({
   const { toast } = useToast();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [isReplacingSeat, setIsReplacingSeat] = useState(false);
 
   const seatingData = event.seatingChart;
   const reservedSeats = event.reservedSeats || [];
@@ -146,6 +147,16 @@ export function SeatingChart({
       setSelectedSeats((prev) => prev.slice(0, ticketCount));
     }
   }, [ticketCount, selectedSeats.length]);
+  
+  useEffect(() => {
+    if (isReplacingSeat) {
+        toast({
+            title: `Seat Updated`,
+            description: `Your oldest selection was replaced with the newest.`,
+        });
+        setIsReplacingSeat(false);
+    }
+  }, [selectedSeats, isReplacingSeat, toast]);
 
   // --- Select seat ---
   const handleSelectSeat = (seat: Seat, section: SeatSection) => {
@@ -159,11 +170,8 @@ export function SeatingChart({
       }
       // If max seats are selected, replace the first selected seat with the new one
       if (prev.length === ticketCount) {
+        setIsReplacingSeat(true);
         const newSelection = [...prev.slice(1), { seat, section }];
-        toast({
-          title: `Seat Updated`,
-          description: `Replaced seat ${prev[0].seat.row}-${prev[0].seat.col} with ${seat.row}-${seat.col}.`,
-        });
         return newSelection;
       }
       return prev;
@@ -384,12 +392,11 @@ export function SeatingChart({
           >
             <div className="space-y-2">
               {seatingData.tiers.map((tier, tierIndex) => {
-                const tierSections = tier.sections;
                  return (
                   <div key={tierIndex} className="space-y-4">
                     <div className="text-center font-bold">{tier.tierName}</div>
                     <div className="flex flex-nowrap items-start justify-center">
-                      {tierSections.map((sec: any, idx: number) => (
+                      {tier.sections.map((sec: any, idx: number) => (
                         <div
                           key={idx}
                           className={cn("flex flex-col items-center mx-1 md:mx-2", tier.tierName !== "Middle" && "mt-8")}
@@ -468,5 +475,7 @@ export function SeatingChart({
     </>
   );
 }
+
+    
 
     
