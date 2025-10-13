@@ -108,24 +108,47 @@
       "tierName": "Premium",
       "sections": [
         {
+            "sectionName": "Premium Left",
+            "price": 499,
+            "rows": [
+                { "rowId": "E-left-pl", "rowLabel": "E", "seats": 5, "offset": 0 }, { "rowId": "E-right-pl", "rowLabel": "E", "seats": 5, "offset": 5 },
+                { "rowId": "D-left-pl", "rowLabel": "D", "seats": 5, "offset": 0 }, { "rowId": "D-right-pl", "rowLabel": "D", "seats": 5, "offset": 5 },
+                { "rowId": "C-left-pl", "rowLabel": "C", "seats": 5, "offset": 0 }, { "rowId": "C-right-pl", "rowLabel": "C", "seats": 5, "offset": 5 },
+                { "rowId": "B-left-pl", "rowLabel": "B", "seats": 5, "offset": 0 }, { "rowId": "B-right-pl", "rowLabel": "B", "seats": 5, "offset": 5 },
+                { "rowId": "A-left-pl", "rowLabel": "A", "seats": 5, "offset": 0 }, { "rowId": "A-right-pl", "rowLabel": "A", "seats": 5, "offset": 5 }
+            ],
+            "className": "bg-pink-600/20 border-pink-600",
+            "angle": -5,
+            "translateX": -10
+        },
+        {
           "sectionName": "Premium Center",
           "price": 499,
           "rows": [
-            { "rowId": "E-left", "rowLabel": "E", "seats": 6, "offset": 10 },
-            { "rowId": "E-right", "rowLabel": "E", "seats": 8, "offset": 16 },
-            { "rowId": "D-left", "rowLabel": "D", "seats": 6, "offset": 10 },
-            { "rowId": "D-right", "rowLabel": "D", "seats": 8, "offset": 16 },
-            { "rowId": "spacer-1", "rowLabel": "spacer", "seats": 0 },
-            { "rowId": "C-left", "rowLabel": "C", "seats": 6, "offset": 10 },
-            { "rowId": "C-right", "rowLabel": "C", "seats": 8, "offset": 16 },
-            { "rowId": "B-left", "rowLabel": "B", "seats": 6, "offset": 10 },
-            { "rowId": "B-right", "rowLabel": "B", "seats": 8, "offset": 16 },
-            { "rowId": "A-left", "rowLabel": "A", "seats": 6, "offset": 10 },
-            { "rowId": "A-right", "rowLabel": "A", "seats": 8, "offset": 16 }
+            { "rowId": "E-left", "rowLabel": "E", "seats": 6, "offset": 10 }, { "rowId": "E-right", "rowLabel": "E", "seats": 8, "offset": 16 },
+            { "rowId": "D-left", "rowLabel": "D", "seats": 6, "offset": 10 }, { "rowId": "D-right", "rowLabel": "D", "seats": 8, "offset": 16 },
+            { "rowId": "spacer-1", "seats": 0 },
+            { "rowId": "C-left", "rowLabel": "C", "seats": 6, "offset": 10 }, { "rowId": "C-right", "rowLabel": "C", "seats": 8, "offset": 16 },
+            { "rowId": "B-left", "rowLabel": "B", "seats": 6, "offset": 10 }, { "rowId": "B-right", "rowLabel": "B", "seats": 8, "offset": 16 },
+            { "rowId": "A-left", "rowLabel": "A", "seats": 6, "offset": 10 }, { "rowId": "A-right", "rowLabel": "A", "seats": 8, "offset": 16 }
           ],
           "className": "bg-pink-600/20 border-pink-600",
           "angle": 0,
           "translateX": 0
+        },
+        {
+            "sectionName": "Premium Right",
+            "price": 499,
+            "rows": [
+                { "rowId": "E-left-pr", "rowLabel": "E", "seats": 5, "offset": 24 }, { "rowId": "E-right-pr", "rowLabel": "E", "seats": 5, "offset": 29 },
+                { "rowId": "D-left-pr", "rowLabel": "D", "seats": 5, "offset": 24 }, { "rowId": "D-right-pr", "rowLabel": "D", "seats": 5, "offset": 29 },
+                { "rowId": "C-left-pr", "rowLabel": "C", "seats": 5, "offset": 24 }, { "rowId": "C-right-pr", "rowLabel": "C", "seats": 5, "offset": 29 },
+                { "rowId": "B-left-pr", "rowLabel": "B", "seats": 5, "offset": 24 }, { "rowId": "B-right-pr", "rowLabel": "B", "seats": 5, "offset": 29 },
+                { "rowId": "A-left-pr", "rowLabel": "A", "seats": 5, "offset": 24 }, { "rowId": "A-right-pr", "rowLabel": "A", "seats": 5, "offset": 29 }
+            ],
+            "className": "bg-pink-600/20 border-pink-600",
+            "angle": 5,
+            "translateX": 10
         }
       ]
     }
