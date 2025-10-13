@@ -1,4 +1,5 @@
 
+
 export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
@@ -16,6 +17,8 @@ export type Seat = {
 export type SeatRow = {
     rowId: string;
     seats: number;
+    offset?: number;
+    rowLabel?: string;
 };
 
 export type SeatSection = {

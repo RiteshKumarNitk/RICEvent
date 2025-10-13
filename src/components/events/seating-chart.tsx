@@ -25,10 +25,10 @@ const generateSeats = (
   return Array.from({ length: row.seats }, (_, i) => {
     const seatNum = start + i;
     const seatId = `${sectionName}-${row.rowId}-${seatNum}`;
-    const simpleSeatId = `${row.rowId}-${seatNum}`;
+    const simpleSeatId = `${row.rowLabel || row.rowId}-${seatNum}`;
     return {
       id: seatId,
-      row: row.rowId,
+      row: row.rowLabel || row.rowId,
       col: seatNum,
       isBooked: bookedSeats.includes(seatId) || reservedSeats.includes(simpleSeatId.toUpperCase()),
     };
@@ -309,7 +309,7 @@ export function SeatingChart({
               >
                 {/* Row label */}
                 <div className="seat-row-label">
-                  {row.rowId.replace(/-.*/, "")}
+                  {row.rowLabel || row.rowId.replace(/-.*/, "")}
                 </div>
 
                 {/* Seats: allow wrapping so rows break naturally on small screens */}
@@ -384,7 +384,7 @@ export function SeatingChart({
           </Button>
         </div>
 
-        {/* Seating Chartggg */}
+        {/* Seating Chart */}
         <div className="overflow-auto pt-12">
           <div
             className="transition-transform duration-300 inline-block min-w-full"
@@ -399,7 +399,7 @@ export function SeatingChart({
                       {tier.sections.map((sec: any, idx: number) => (
                         <div
                           key={idx}
-                          className={cn("flex flex-col items-center mx-1 md:mx-2", tier.tierName !== "Middle" && "mt-8")}
+                          className={cn("flex flex-col items-center mx-1 md:mx-2", tier.tierName !== "Middle" && tier.tierName !== "Premium" && "mt-8")}
                         >
                           {renderSection(sec, idx)}
                         </div>
@@ -475,7 +475,3 @@ export function SeatingChart({
     </>
   );
 }
-
-    
-
-    
