@@ -48,7 +48,7 @@ type MemberFormData = z.infer<typeof memberSchema>;
 const MemberForm = ({ member, onSave, closeDialog, newCouponCode }: { member?: Member | null, onSave: (data: MemberFormData, id?: string) => void, closeDialog: () => void, newCouponCode: string }) => {
   const form = useForm<MemberFormData>({
     resolver: zodResolver(memberSchema),
-    defaultValues: member || { couponCode: newCouponCode, name: '', email: '', phone: '', doa: '' },
+    defaultValues: member || { couponCode: newCouponCode || '', name: '', email: '', phone: '', doa: '' },
   });
 
   useEffect(() => {
