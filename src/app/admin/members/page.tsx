@@ -1,13 +1,14 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
@@ -35,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 const memberSchema = z.object({
-  memberId: z.string().min(1, 'Member ID is required'),
+  couponCode: z.string().min(1, 'Coupon Code is required'),
   name: z.string().min(2, 'Name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
@@ -44,22 +45,22 @@ const memberSchema = z.object({
 
 type MemberFormData = z.infer<typeof memberSchema>;
 
-const MemberForm = ({ member, onSave, closeDialog, nextMemberId }: { member?: Member | null, onSave: (data: MemberFormData, id?: string) => void, closeDialog: () => void, nextMemberId: string }) => {
+const MemberForm = ({ member, onSave, closeDialog, newCouponCode }: { member?: Member | null, onSave: (data: MemberFormData, id?: string) => void, closeDialog: () => void, newCouponCode: string }) => {
   const form = useForm<MemberFormData>({
     resolver: zodResolver(memberSchema),
-    defaultValues: member || { memberId: nextMemberId, name: '', email: '', phone: '', doa: '' },
+    defaultValues: member || { couponCode: newCouponCode, name: '', email: '', phone: '', doa: '' },
   });
 
   useEffect(() => {
-    if (!member && nextMemberId) {
-      form.setValue('memberId', nextMemberId);
+    if (!member && newCouponCode) {
+      form.setValue('couponCode', newCouponCode);
     } else if (member) {
       form.reset({
         ...member,
         doa: member.doa || ''
       });
     }
-  }, [member, nextMemberId, form]);
+  }, [member, newCouponCode, form]);
 
   const onSubmit = (data: MemberFormData) => {
     onSave(data, member?.id);
@@ -69,8 +70,8 @@ const MemberForm = ({ member, onSave, closeDialog, nextMemberId }: { member?: Me
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField control={form.control} name="memberId" render={({ field }) => (
-          <FormItem><FormLabel>Member ID</FormLabel><FormControl><Input {...field} readOnly /></FormControl><FormMessage /></FormItem>
+        <FormField control={form.control} name="couponCode" render={({ field }) => (
+          <FormItem><FormLabel>Coupon Code</FormLabel><FormControl><Input {...field} readOnly /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -98,11 +99,11 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [nextMemberId, setNextMemberId] = useState('');
+  const [newCouponCode, setNewCouponCode] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(query(collection(db, 'members'), orderBy('memberId')), 
+    const unsubscribe = onSnapshot(collection(db, 'members'), 
       (snapshot) => {
         const membersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Member));
         setMembers(membersData);
@@ -116,26 +117,27 @@ export default function AdminMembersPage() {
     );
     return () => unsubscribe();
   }, [toast]);
+  
+  const generateNewCouponCode = async () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code: string;
+    let isUnique = false;
+    
+    const querySnapshot = await getDocs(collection(db, 'members'));
+    const existingCodes = new Set(querySnapshot.docs.map(doc => doc.data().couponCode));
 
-  const generateNextMemberId = async () => {
-    const membersRef = collection(db, 'members');
-    const q = query(membersRef, orderBy('memberId', 'desc'), limit(1));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      setNextMemberId('1');
-    } else {
-      const lastMember = querySnapshot.docs[0].data();
-      // Ensure memberId is treated as a number for correct incrementing
-      const lastId = parseInt(lastMember.memberId, 10);
-      if (!isNaN(lastId)) {
-        setNextMemberId((lastId + 1).toString());
-      } else {
-        // Fallback if the last memberId is not a number
-        setNextMemberId((members.length + 1).toString());
-      }
+    while (!isUnique) {
+        code = 'RIC-MEMBER-';
+        for (let i = 0; i < 4; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        if (!existingCodes.has(code)) {
+            isUnique = true;
+            setNewCouponCode(code);
+        }
     }
-  };
+  }
+
 
   const handleSaveMember = async (data: MemberFormData, id?: string) => {
     try {
@@ -143,7 +145,7 @@ export default function AdminMembersPage() {
         await updateDoc(doc(db, 'members', id), data);
         toast({ title: 'Success', description: 'Member updated successfully.' });
       } else {
-        const newMemberData = { ...data, memberId: nextMemberId };
+        const newMemberData = { ...data, couponCode: newCouponCode };
         await addDoc(collection(db, 'members'), newMemberData);
         toast({ title: 'Success', description: 'Member added successfully.' });
       }
@@ -164,13 +166,11 @@ export default function AdminMembersPage() {
   };
 
   const openDialog = async (member: Member | null = null) => {
+    setEditingMember(member);
     if (!member) {
-      await generateNextMemberId();
-      setEditingMember(null);
+      await generateNewCouponCode();
     } else {
-      setEditingMember(member);
-      // We don't need to generate a new ID when editing
-      setNextMemberId(member.memberId);
+        setNewCouponCode(member.couponCode);
     }
     setIsDialogOpen(true);
   };
@@ -192,12 +192,12 @@ export default function AdminMembersPage() {
           <DialogHeader>
             <DialogTitle>{editingMember ? 'Edit Member' : 'Add New Member'}</DialogTitle>
           </DialogHeader>
-          { (isDialogOpen && (editingMember || nextMemberId)) &&
+          { (isDialogOpen && (editingMember || newCouponCode)) &&
             <MemberForm 
               member={editingMember}
               onSave={handleSaveMember}
               closeDialog={() => setIsDialogOpen(false)}
-              nextMemberId={nextMemberId}
+              newCouponCode={newCouponCode}
             />
           }
         </DialogContent>
@@ -212,7 +212,7 @@ export default function AdminMembersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Member ID</TableHead>
+                <TableHead>Coupon Code</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
@@ -227,7 +227,7 @@ export default function AdminMembersPage() {
                 <TableRow><TableCell colSpan={6} className="text-center">No members found. Add one!</TableCell></TableRow>
               ) : members.map((member) => (
                 <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.memberId}</TableCell>
+                  <TableCell className="font-medium">{member.couponCode}</TableCell>
                   <TableCell>{member.name}</TableCell>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>{member.phone}</TableCell>

@@ -57,9 +57,9 @@ export type Attendee = {
   seatId: string;
   price: number;
   attendeeName: string;
-  memberId?: string;
+  couponCode?: string;
   isMember: boolean;
-  memberIdVerified: boolean;
+  couponVerified: boolean;
 };
 
 export type Booking = {
@@ -76,7 +76,7 @@ export type Booking = {
 
 export type Member = {
     id: string;
-    memberId: string;
+    couponCode: string;
     name: string;
     email: string;
     phone: string;

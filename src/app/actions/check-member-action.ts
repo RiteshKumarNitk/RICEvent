@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { z } from "zod";
@@ -6,21 +7,21 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Member } from "@/lib/types";
 
-const MemberCheckSchema = z.object({
-    memberId: z.string(),
+const CouponCheckSchema = z.object({
+    couponCode: z.string(),
     eventId: z.string(),
 });
 
-type MemberCheckResult = {
+type CouponCheckResult = {
     isValid: boolean;
     isAlreadyUsed: boolean;
     memberName: string | null;
     error?: string;
 }
 
-export async function checkMemberIdAction(formData: FormData): Promise<MemberCheckResult> {
-    const validatedFields = MemberCheckSchema.safeParse({
-        memberId: formData.get('memberId'),
+export async function checkCouponAction(formData: FormData): Promise<CouponCheckResult> {
+    const validatedFields = CouponCheckSchema.safeParse({
+        couponCode: formData.get('couponCode'),
         eventId: formData.get('eventId'),
     });
 
@@ -28,9 +29,8 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
         return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Invalid input.' };
     }
 
-    const { memberId, eventId } = validatedFields.data;
+    const { couponCode, eventId } = validatedFields.data;
 
-    // 1. Check if Member ID is valid by querying the members collection
     let memberData: Member | null = null;
     try {
         const membersQuery = query(collection(db, "members"));
@@ -40,7 +40,7 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
         }
         
         const allMembers = querySnapshot.docs.map(doc => doc.data() as Member);
-        const foundMember = allMembers.find(member => String(member.memberId) === memberId);
+        const foundMember = allMembers.find(member => member.couponCode === couponCode);
 
         if (!foundMember) {
             return { isValid: false, isAlreadyUsed: false, memberName: null };
@@ -49,10 +49,9 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
 
     } catch(e) {
         console.error("Error querying members collection:", e);
-        return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Could not verify member ID.' };
+        return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Could not verify coupon code.' };
     }
     
-    // 2. Check if Member ID has already been used for this event
     try {
         const bookingsQuery = query(
             collection(db, "bookings"),
@@ -64,7 +63,7 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
         bookingSnapshots.forEach(doc => {
             const booking = doc.data();
             if (Array.isArray(booking.attendees)) {
-                 if (booking.attendees.some((attendee: any) => attendee.isMember && String(attendee.memberId) === memberId)) {
+                 if (booking.attendees.some((attendee: any) => attendee.isMember && attendee.couponCode === couponCode)) {
                     isUsed = true;
                 }
             }
@@ -76,10 +75,8 @@ export async function checkMemberIdAction(formData: FormData): Promise<MemberChe
 
     } catch (e: any) {
         console.error("Firestore booking query failed:", e);
-        // If the query fails, we can't confirm, so deny the special access.
-        return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Could not verify member ID during booking check.' };
+        return { isValid: false, isAlreadyUsed: false, memberName: null, error: 'Could not verify coupon during booking check.' };
     }
     
-    // If we reach here, the member is valid and hasn't booked for this event
     return { isValid: true, isAlreadyUsed: false, memberName: memberData.name };
 }
