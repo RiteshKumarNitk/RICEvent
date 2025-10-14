@@ -72,13 +72,13 @@ const SeatComponent = ({
     >
       <div className={cn(
           "absolute bottom-0 h-3/4 w-full rounded-t-sm",
-           seat.isBooked ? (seat.isMemberBooking ? "bg-blue-500" : "bg-muted") : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
+           seat.isBooked ? (seat.isMemberBooking ? "bg-blue-500" : "bg-gray-500") : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
            isReserved && "!bg-amber-600/50",
            isSelected && "!bg-primary"
       )} />
       <div className={cn(
           "absolute bottom-0 h-1/4 w-[120%] rounded-sm",
-           seat.isBooked ? (seat.isMemberBooking ? "bg-blue-600" : "bg-muted/80") : "bg-gray-400 dark:bg-gray-600 group-hover:bg-primary/40",
+           seat.isBooked ? (seat.isMemberBooking ? "bg-blue-600" : "bg-gray-600") : "bg-gray-400 dark:bg-gray-600 group-hover:bg-primary/40",
            isReserved && "!bg-amber-700/50",
            isSelected && "!bg-primary"
       )} />
@@ -354,15 +354,15 @@ export function SeatingChart({
                             if ('isSpacer' in seat) {
                               return null; // Should have been handled above, but as a safeguard.
                             }
-                            const simpleSeatId = `${seat.row}-${seat.col}`;
+                            const simpleSeatId = `${(seat as Seat).row}-${(seat as Seat).col}`;
                             const isReserved = reservedSeats.includes(simpleSeatId.toUpperCase());
                             return (
                                 <SeatComponent
-                                  key={seat.id}
+                                  key={(seat as Seat).id}
                                   seat={seat as Seat}
                                   section={section}
                                   isSelected={selectedSeats.some(
-                                    (s) => s.seat.id === seat.id
+                                    (s) => s.seat.id === (seat as Seat).id
                                   )}
                                   onSelect={handleSelectSeat}
                                   isReserved={isReserved}
@@ -465,7 +465,7 @@ export function SeatingChart({
                 <span>Selected</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm bg-muted"></div>
+                <div className="w-4 h-4 rounded-sm bg-gray-500"></div>
                 <span>Booked (Guest)</span>
               </div>
               <div className="flex items-center gap-2">
