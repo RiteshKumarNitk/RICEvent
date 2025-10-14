@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
@@ -12,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Event, Seat, SeatSection } from '@/lib/types';
+import { Event, Seat, SeatSection, Member } from '@/lib/types';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -20,13 +19,11 @@ import { CheckCircle2, ArrowRight, ArrowLeft, CreditCard, User, FileText, BadgeC
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
 import QRCode from "react-qr-code";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { checkCouponAction } from '@/app/actions/check-member-action';
-
 
 const isPaidEvent = (event: Event) => {
     return event.ticketTypes.some(t => t.price > 0);
@@ -67,6 +64,7 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
   const { toast } = useToast();
   const eventIsPaid = isPaidEvent(event);
   const [verifyingCoupon, setVerifyingCoupon] = useState<number | null>(null);
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
 
   const steps = eventIsPaid ? ['Seats', 'Details', 'Payment', 'Invoice'] : ['Seats', 'Details', 'Invoice'];
   const icons = eventIsPaid ? [User, FileText, CreditCard, CheckCircle2] : [User, FileText, CheckCircle2];
@@ -114,6 +112,23 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         replace(attendeesData);
     }
   }, [selectedSeats, replace, isOpen, user]);
+  
+  useEffect(() => {
+    const fetchMembers = async () => {
+        if (isOpen) {
+            try {
+                const membersQuery = query(collection(db, "members"));
+                const querySnapshot = await getDocs(membersQuery);
+                const membersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Member));
+                setAllMembers(membersData);
+            } catch (error) {
+                console.error("Error fetching members:", error);
+                toast({ variant: "destructive", title: "Error", description: "Could not fetch member data for validation." });
+            }
+        }
+    };
+    fetchMembers();
+  }, [isOpen, toast]);
 
 
  const handleVerifyCoupon = async (index: number) => {
@@ -138,22 +153,43 @@ export function CheckoutDialog({ isOpen, onOpenChange, event, selectedSeats }: C
         return;
     }
     
-    const formData = new FormData();
-    formData.append('couponCode', couponToVerify);
-    formData.append('eventId', event.id);
-
-    const result = await checkCouponAction(formData);
+    // Client-side validation
+    const foundMember = allMembers.find(member => member.couponCode === couponToVerify);
+    
+    let isAlreadyUsedInDb = false;
+    if (foundMember) {
+        try {
+            const bookingsQuery = query(
+                collection(db, "bookings"),
+                where("eventId", "==", event.id)
+            );
+            const bookingSnapshots = await getDocs(bookingsQuery);
+            bookingSnapshots.forEach(doc => {
+                const booking = doc.data();
+                if (Array.isArray(booking.attendees)) {
+                     if (booking.attendees.some((attendee: any) => attendee.isMember && attendee.couponCode === couponToVerify)) {
+                        isAlreadyUsedInDb = true;
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("Error checking bookings for coupon:", e);
+            toast({ variant: "destructive", title: "Validation Error", description: "Could not verify if coupon was already used." });
+            setVerifyingCoupon(null);
+            return;
+        }
+    }
 
     let updatedAttendee;
-    if (result.isValid && !result.isAlreadyUsed) {
+    if (foundMember && !isAlreadyUsedInDb) {
       updatedAttendee = {
         ...currentAttendee,
         isMember: true,
         couponVerified: true,
-        attendeeName: result.memberName || currentAttendee.attendeeName,
+        attendeeName: foundMember.name || currentAttendee.attendeeName,
       };
-      toast({ title: "Coupon Applied", description: `${result.memberName} gets a free ticket!`});
-    } else if (result.isValid && result.isAlreadyUsed) {
+      toast({ title: "Coupon Applied", description: `${foundMember.name} gets a free ticket!`});
+    } else if (foundMember && isAlreadyUsedInDb) {
       updatedAttendee = { ...currentAttendee, isMember: false, couponVerified: false };
       toast({ variant: "destructive", title: "Coupon Already Used", description: "This coupon has already been used to book a ticket for this event."});
     } else {
@@ -532,3 +568,5 @@ const InvoiceStep = ({ event, form, bookingId }: { event: Event, form: any, book
         </div>
     )
 };
+
+    
