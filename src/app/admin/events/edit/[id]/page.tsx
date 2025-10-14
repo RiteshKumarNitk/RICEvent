@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useForm } from "react-hook-form";
@@ -15,6 +16,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEvents } from "../../events-provider";
 import { useEffect } from "react";
 import { format } from "date-fns";
+import { AdminSeatingChart } from "@/components/admin/admin-seating-chart";
 
 const eventSchema = z.object({
   name: z.string().min(5, "Event name must be at least 5 characters."),
@@ -23,7 +25,7 @@ const eventSchema = z.object({
   date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
   venue: z.string().min(3, "Venue is required."),
   image: z.string().url("Please enter a valid URL."),
-  reservedSeats: z.string().optional(),
+  reservedSeats: z.array(z.string()).optional(),
 });
 
 export default function EditEventPage() {
@@ -36,6 +38,9 @@ export default function EditEventPage() {
 
     const form = useForm<z.infer<typeof eventSchema>>({
         resolver: zodResolver(eventSchema),
+        defaultValues: {
+            reservedSeats: [],
+        }
     });
 
     useEffect(() => {
@@ -43,7 +48,7 @@ export default function EditEventPage() {
             form.reset({
                 ...event,
                 date: format(new Date(event.date), "yyyy-MM-dd'T'HH:mm"),
-                reservedSeats: event.reservedSeats?.join(', ') || '',
+                reservedSeats: event.reservedSeats || [],
             });
         }
     }, [event, form]);
@@ -54,7 +59,7 @@ export default function EditEventPage() {
         const updatedEventData = {
             ...values,
             date: new Date(values.date).toISOString(),
-            reservedSeats: values.reservedSeats ? values.reservedSeats.split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : [],
+            reservedSeats: values.reservedSeats?.map(s => s.trim().toUpperCase()).filter(Boolean) || [],
         };
 
         await updateEvent(event.id, updatedEventData);
@@ -71,6 +76,10 @@ export default function EditEventPage() {
                 </Button>
             </div>
         )
+    }
+    
+    const handleReservedSeatsChange = (newReservedSeats: string[]) => {
+        form.setValue('reservedSeats', newReservedSeats, { shouldDirty: true });
     }
 
     return (
@@ -127,16 +136,30 @@ export default function EditEventPage() {
                              <FormField control={form.control} name="image" render={({ field }) => (
                                 <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} placeholder="https://example.com/image.jpg" /></FormControl><FormMessage /></FormItem>
                             )} />
-                             <FormField control={form.control} name="reservedSeats" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Reserved Seats</FormLabel>
-                                    <FormControl><Textarea {...field} placeholder="e.g. A-5, A-6, C-10" rows={3} /></FormControl>
-                                    <FormDescription>
-                                        Enter a comma-separated list of seat IDs to reserve (e.g., A-5, C-10). These seats won't be bookable.
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                             
+                            {event.seatingChart && (
+                                <FormField
+                                    control={form.control}
+                                    name="reservedSeats"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Reserved Seats</FormLabel>
+                                            <FormDescription>
+                                                Click on seats in the chart below to reserve or un-reserve them.
+                                            </FormDescription>
+                                            <FormControl>
+                                                <AdminSeatingChart 
+                                                    event={event}
+                                                    reservedSeats={field.value || []}
+                                                    onReservedSeatsChange={handleReservedSeatsChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                            
                             <div className="flex justify-end">
                                 <Button type="submit">Save Changes</Button>
                             </div>
