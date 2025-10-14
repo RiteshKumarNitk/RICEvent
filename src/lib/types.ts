@@ -12,6 +12,7 @@ export type Seat = {
   row: string;
   col: number;
   isBooked: boolean;
+  isMemberBooking?: boolean;
 };
 
 export type SeatRow = {

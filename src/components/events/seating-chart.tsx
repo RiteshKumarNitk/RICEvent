@@ -2,20 +2,25 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Event, Seat, SeatSection, SeatRow } from "@/lib/types";
+import { Event, Seat, SeatSection, SeatRow, Attendee } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Plus, Minus, Lock } from "lucide-react";
+import { ZoomIn, ZoomOut, Plus, Minus, Lock, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckoutDialog } from "../checkout/checkout-dialog";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
+type BookedSeatInfo = {
+  seatId: string;
+  isMember: boolean;
+};
+
 // --- Generate seats for each row ---
 const generateSeats = (
   sectionName: string,
   row: SeatRow,
-  bookedSeats: string[],
+  bookedSeats: BookedSeatInfo[],
   reservedSeats: string[]
 ): (Seat | { isSpacer: true })[] => {
   if (row.rowId === 'spacer') {
@@ -26,11 +31,14 @@ const generateSeats = (
     const seatNum = start + i;
     const seatId = `${sectionName}-${row.rowId}-${seatNum}`;
     const simpleSeatId = `${row.rowLabel || row.rowId}-${seatNum}`;
+    const bookingInfo = bookedSeats.find(b => b.seatId === seatId);
+    
     return {
       id: seatId,
       row: row.rowLabel || row.rowId,
       col: seatNum,
-      isBooked: bookedSeats.includes(seatId) || reservedSeats.includes(simpleSeatId.toUpperCase()),
+      isBooked: !!bookingInfo,
+      isMemberBooking: bookingInfo?.isMember || false,
     };
   });
 };
@@ -64,13 +72,13 @@ const SeatComponent = ({
     >
       <div className={cn(
           "absolute bottom-0 h-3/4 w-full rounded-t-sm",
-           seat.isBooked ? "bg-muted" : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
+           seat.isBooked ? (seat.isMemberBooking ? "bg-blue-500" : "bg-muted") : "bg-gray-300 dark:bg-gray-700 group-hover:bg-primary/20",
            isReserved && "!bg-amber-600/50",
            isSelected && "!bg-primary"
       )} />
       <div className={cn(
           "absolute bottom-0 h-1/4 w-[120%] rounded-sm",
-           seat.isBooked ? "bg-muted/80" : "bg-gray-400 dark:bg-gray-600 group-hover:bg-primary/40",
+           seat.isBooked ? (seat.isMemberBooking ? "bg-blue-600" : "bg-muted/80") : "bg-gray-400 dark:bg-gray-600 group-hover:bg-primary/40",
            isReserved && "!bg-amber-700/50",
            isSelected && "!bg-primary"
       )} />
@@ -103,7 +111,7 @@ export function SeatingChart({
   const [selectedSeats, setSelectedSeats] = useState<
     { seat: Seat; section: SeatSection }[]
   >([]);
-  const [bookedSeats, setBookedSeats] = useState<string[]>([]);
+  const [bookedSeats, setBookedSeats] = useState<BookedSeatInfo[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const { toast } = useToast();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
@@ -124,9 +132,19 @@ export function SeatingChart({
     const bookingsQuery = query(collection(db, 'bookings'), where('eventId', '==', event.id));
     
     const unsubscribe = onSnapshot(bookingsQuery, (snapshot) => {
-      const seatIds = snapshot.docs.flatMap(doc => doc.data().attendees.map((attendee: any) => attendee.seatId));
-      setBookedSeats(seatIds);
-      setLoadingBookings(false);
+        const seatInfos = snapshot.docs.flatMap(doc => {
+            const data = doc.data();
+            // Ensure attendees is an array before mapping
+            if (Array.isArray(data.attendees)) {
+                return data.attendees.map((attendee: Attendee) => ({
+                    seatId: attendee.seatId,
+                    isMember: attendee.isMember
+                }));
+            }
+            return [];
+        });
+        setBookedSeats(seatInfos);
+        setLoadingBookings(false);
     }, (error) => {
         console.error("Error fetching booked seats:", error);
         toast({
@@ -448,7 +466,13 @@ export function SeatingChart({
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-sm bg-muted"></div>
-                <span>Booked</span>
+                <span>Booked (Guest)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-sm bg-blue-500 flex items-center justify-center">
+                    <UserCheck className="h-3 w-3 text-white" />
+                </div>
+                <span>Booked (Member)</span>
               </div>
                <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-sm bg-amber-600/50 flex items-center justify-center">
