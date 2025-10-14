@@ -10,7 +10,7 @@ import { useEvents } from '../../events-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Ticket, DollarSign } from 'lucide-react';
+import { ArrowLeft, Users, Ticket, DollarSign, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
@@ -65,22 +65,16 @@ export default function EventBookingsPage() {
             } as Booking;
         });
 
-        // Enrich bookings with user data
-        const enrichedBookings = await Promise.all(
-          bookingsData.map(async (booking) => {
-            const userDocRef = doc(db, 'users', booking.userId);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-              const userData = userDocSnap.data();
-              return {
-                ...booking,
-                userDisplayName: userData.displayName,
-                userEmail: userData.email,
-              };
-            }
-            return booking;
-          })
-        );
+        // Enrich bookings with user data from the attendees list
+        const enrichedBookings = bookingsData.map(booking => {
+          // Use the name from the first attendee as the primary booker's name
+          const primaryAttendeeName = booking.attendees[0]?.attendeeName;
+          return {
+            ...booking,
+            userDisplayName: primaryAttendeeName,
+            userEmail: 'N/A', // Email is not stored per booking in this structure
+          };
+        });
         
         setBookings(enrichedBookings.sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()));
 
@@ -108,10 +102,10 @@ export default function EventBookingsPage() {
         </div>
         <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold">Bookings for {event?.name || 'Event'}</h1>
-            <p className="text-muted-foreground">A summary of all bookings for this event.</p>
+            <p className="text-muted-foreground">A summary of all bookings and reservations for this event.</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 mb-8">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -123,7 +117,7 @@ export default function EventBookingsPage() {
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Tickets Sold</CardTitle>
+                    <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
                     <Ticket className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -139,6 +133,20 @@ export default function EventBookingsPage() {
                     <div className="text-2xl font-bold">{bookings.length}</div>
                 </CardContent>
             </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Reserved Seats</CardTitle>
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{event?.reservedSeats?.length || 0}</div>
+                     <div className="text-xs text-muted-foreground flex flex-wrap gap-1 mt-1">
+                        {event?.reservedSeats && event.reservedSeats.map(seat => (
+                            <Badge key={seat} variant="outline" className="bg-amber-100 dark:bg-amber-900/50">{seat}</Badge>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
 
         <Card>
@@ -151,7 +159,7 @@ export default function EventBookingsPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Booked By</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>Booking Type</TableHead>
                             <TableHead>Seats</TableHead>
                             <TableHead>Total Paid</TableHead>
                             <TableHead>Booking Date</TableHead>
@@ -167,10 +175,16 @@ export default function EventBookingsPage() {
                                 <TableCell colSpan={5} className="text-center">No bookings found for this event.</TableCell>
                             </TableRow>
                         ) : (
-                            bookings.map(booking => (
+                            bookings.map(booking => {
+                                const isAnyMember = booking.attendees.some(a => a.isMember);
+                                return (
                                 <TableRow key={booking.id}>
-                                    <TableCell>{booking.userDisplayName || 'N/A'}</TableCell>
-                                    <TableCell>{booking.userEmail || 'N/A'}</TableCell>
+                                    <TableCell>{booking.userDisplayName || 'Guest'}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={isAnyMember ? 'default' : 'secondary'}>
+                                            {isAnyMember ? 'Member Booking' : 'Guest Booking'}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {booking.attendees.map((attendee: Attendee) => (
@@ -183,7 +197,7 @@ export default function EventBookingsPage() {
                                     <TableCell>₹{booking.total.toFixed(2)}</TableCell>
                                     <TableCell>{new Date(booking.bookingDate).toLocaleString()}</TableCell>
                                 </TableRow>
-                            ))
+                            )})
                         )}
                     </TableBody>
                 </Table>
