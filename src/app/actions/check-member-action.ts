@@ -80,3 +80,4 @@ export async function checkCouponAction(formData: FormData): Promise<CouponCheck
     
     return { isValid: true, isAlreadyUsed: false, memberName: memberData.name };
 }
+
