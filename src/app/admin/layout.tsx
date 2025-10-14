@@ -120,12 +120,12 @@ export default function AdminLayout({
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
         <div className={cn(
-            "fixed inset-y-0 left-0 z-50 md:z-0 w-[220px] lg:w-[280px] bg-muted/40 border-r transition-transform duration-300 ease-in-out md:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 w-[220px] lg:w-[280px] bg-muted/40 border-r transition-transform duration-300 ease-in-out md:translate-x-0 md:static",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
             {sidebarContent}
         </div>
-        <div className="flex flex-col md:pl-[220px] lg:pl-[280px]">
+        <div className="flex flex-col">
             <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:hidden">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
                     <Menu className="h-5 w-5"/>
@@ -139,12 +139,12 @@ export default function AdminLayout({
                     <span>Admin Panel</span>
                 </Link>
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
                 {children}
             </main>
         </div>
         {isSidebarOpen && isMobile && (
-            <div className="fixed inset-0 bg-black/60 z-40" onClick={() => setIsSidebarOpen(false)}></div>
+            <div className="fixed inset-0 bg-black/60 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
         )}
     </div>
   )
