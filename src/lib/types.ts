@@ -1,8 +1,5 @@
 
 
-
-
-
 export type EventCategory = "Music" | "Sports" | "Art" | "Theater" | "Seminar" | "Cultural" | "Talk";
 
 export type TicketType = {
@@ -15,12 +12,14 @@ export type Seat = {
   row: string;
   col: number;
   isBooked: boolean;
+  isMemberBooking?: boolean;
 };
 
 export type SeatRow = {
     rowId: string;
     seats: number;
     offset?: number;
+    rowLabel?: string;
 };
 
 export type SeatSection = {
@@ -52,15 +51,16 @@ export type Event = {
   showtimes: string[];
   ticketTypes: TicketType[];
   seatingChart?: SeatingChartData;
+  reservedSeats?: string[];
 };
 
 export type Attendee = {
   seatId: string;
   price: number;
   attendeeName: string;
-  memberId?: string;
+  couponCode?: string;
   isMember: boolean;
-  memberIdVerified: boolean;
+  couponVerified: boolean;
 };
 
 export type Booking = {
@@ -73,3 +73,13 @@ export type Booking = {
   total: number;
   bookingDate: string;
 };
+
+
+export type Member = {
+    id: string;
+    couponCode: string;
+    name: string;
+    email: string;
+    phone: string;
+    doa: string; // Date of Association
+}

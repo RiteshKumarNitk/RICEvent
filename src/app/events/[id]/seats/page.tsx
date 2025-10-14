@@ -90,7 +90,9 @@ export default function SeatsPage() {
            <ShowtimeSelector event={event} selectedShowtime={selectedShowtime} onSelect={setSelectedShowtime} />
         </div>
         
-        <SeatingChart event={event} ticketCount={ticketCount} onTicketCountChange={handleTicketCountChange} />
+        <div className="mt-8">
+            <SeatingChart event={event} ticketCount={ticketCount} onTicketCountChange={handleTicketCountChange} />
+        </div>
     </div>
   );
 }
